@@ -5,18 +5,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../hooks/useAuth';
 import { Logo } from '../../components/ui/Logo';
+import { Button } from '../../components/ui/Button';
+import { Notice } from '../../components/ui/Notice';
+import { TextField } from '../../components/ui/TextField';
 import { 
   Eye, 
   EyeOff, 
   Lock, 
   Mail, 
   ArrowRight, 
-  AlertCircle, 
-  Loader2, 
-  ShieldCheck, 
-  CheckCircle2,
-  Sparkles,
-  KeyRound
 } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -42,7 +39,6 @@ export const LoginPage: React.FC = () => {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -80,105 +76,36 @@ export const LoginPage: React.FC = () => {
     window.location.href = `${gatewayUrl}/oauth2/authorization/google`;
   };
 
-  // Helper for university evaluators to quickly test each role
-  const fillCredentials = (role: 'admin' | 'customer' | 'merchant_approved' | 'merchant_pending' | 'courier') => {
-    switch (role) {
-      case 'admin':
-        setValue('email', 'admin@swiftdrop.io');
-        setValue('password', 'Admin@SwiftDrop2026!');
-        break;
-      case 'customer':
-        setValue('email', 'customer@swiftdrop.io');
-        setValue('password', 'Customer@123!');
-        break;
-      case 'merchant_approved':
-        setValue('email', 'merchant.approved@swiftdrop.io');
-        setValue('password', 'Merchant@123!');
-        break;
-      case 'merchant_pending':
-        setValue('email', 'merchant.pending@swiftdrop.io');
-        setValue('password', 'Merchant@123!');
-        break;
-      case 'courier':
-        setValue('email', 'courier@swiftdrop.io');
-        setValue('password', 'Courier@123!');
-        break;
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-white">
-      {/* ==================================================================== */}
-      {/* Left Panel: Logistics-Themed Visual Branding (Split Screen)          */}
-      {/* ==================================================================== */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 text-white flex-col justify-between p-12 overflow-hidden">
-        {/* Subtle SVG Map Grid Background */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#FFCB05_1.5px,transparent_1.5px)] [background-size:32px_32px]"></div>
+    <div className="min-h-[100dvh] bg-gradient-to-br from-navy-700 via-navy-900 to-navy-950 p-5 sm:p-8 lg:h-[100dvh] lg:overflow-hidden lg:p-6">
+      <div className="mx-auto flex h-auto max-w-5xl overflow-hidden rounded-lg bg-white shadow-2xl shadow-navy-950/40 lg:h-[calc(100dvh-3rem)] lg:min-h-0 lg:flex-row">
+      <div className="relative hidden overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 p-10 text-white lg:flex lg:w-[48%] lg:flex-col lg:justify-between xl:p-12">
+        <img src="/auth-abstract.svg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full -scale-y-100 object-cover opacity-90" />
 
-        {/* Ambient Glows */}
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-yellow-500/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-navy-700/60 rounded-full blur-3xl pointer-events-none"></div>
-
-        {/* Top Branding */}
         <div className="relative z-10">
           <Link to="/">
             <Logo variant="light" size="lg" />
           </Link>
         </div>
 
-        {/* Middle Logistics Graphics & Message */}
-        <div className="relative z-10 max-w-lg space-y-8 my-auto">
-          <div className="space-y-4">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5" />
-              Enterprise Courier & Freight Cloud
-            </span>
-            <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
-              Next-generation freight dispatch and parcel tracking.
-            </h2>
-            <p className="text-slate-300 text-sm leading-relaxed">
-              Log in to manage live delivery manifests, calculate multi-tier shipping rates, approve merchants, and coordinate last-mile couriers.
-            </p>
-          </div>
-
-          {/* Logistics Route Node Illustration */}
-          <div className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-3">
-            <div className="flex items-center justify-between text-xs text-slate-300 border-b border-white/10 pb-2.5">
-              <span className="font-semibold text-white">Live Route Telemetry</span>
-              <span className="text-yellow-400 font-mono text-[11px]">ACTIVE â€¢ 99.98% SLA</span>
-            </div>
-
-            <div className="flex items-center justify-between text-xs pt-1">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-ping"></div>
-                <span className="text-slate-200 font-medium">Regional Sorting Hub</span>
-              </div>
-              <span className="text-slate-400 font-mono">Gateway :8080</span>
-            </div>
-
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-blue-400"></div>
-                <span className="text-slate-200 font-medium">PostgreSQL Persistence</span>
-              </div>
-              <span className="text-slate-400 font-mono">Port :5432</span>
-            </div>
-          </div>
+        <div className="relative z-10 max-w-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-100">SwiftDrop logistics</p>
+          <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight xl:text-5xl">
+            Move every delivery forward.
+          </h2>
+          <p className="mt-5 max-w-xs text-sm leading-6 text-blue-100">
+            One clear workspace for every shipment, update, and handoff.
+          </p>
         </div>
 
-        {/* Bottom Footer Notice */}
-        <div className="relative z-10 text-xs text-slate-400 flex items-center justify-between">
-          <span>SwiftDrop Enterprise Edition v1.0</span>
-          <span className="flex items-center gap-1.5 text-yellow-400 font-medium">
-            <ShieldCheck className="w-4 h-4" /> End-to-End Encrypted Sessions
-          </span>
-        </div>
+        <p className="relative z-10 text-xs text-blue-100/70">Simple. Reliable. On time.</p>
       </div>
 
       {/* ==================================================================== */}
       {/* Right Panel: Authentication Form                                      */}
       {/* ==================================================================== */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20 max-w-2xl mx-auto w-full">
+      <div className="auth-form-panel relative mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col justify-start overflow-x-hidden overflow-y-auto bg-white px-6 py-12 sm:px-12 lg:w-[54%] lg:max-w-none lg:px-12 lg:py-8 xl:px-16">
+        <div className="auth-form-content w-full">
         {/* Mobile Header Logo */}
         <div className="lg:hidden mb-8">
           <Link to="/">
@@ -186,59 +113,38 @@ export const LoginPage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="space-y-2 mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-navy-900">
+        <div className="mb-8 space-y-3">
+          <h1 className="text-4xl font-black tracking-tight text-ink">
             Welcome back
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="max-w-md text-sm leading-6 text-slate-500">
             Enter your credentials to access your SwiftDrop dashboard.
           </p>
         </div>
 
         {/* Server Error Alert */}
         {serverError && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm flex items-start gap-3 animate-fade-in">
-            <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-semibold">Authentication Error</p>
-              <p className="text-xs text-red-700 mt-0.5">{serverError}</p>
-            </div>
-          </div>
+          <Notice title="Authentication Error" className="mb-6 animate-fade-in">
+            {serverError}
+          </Notice>
         )}
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Email field */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wide">
-              Email Address
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Mail className="w-4 h-4" />
-              </div>
-              <input
-                type="email"
-                placeholder="name@company.com"
-                {...register('email')}
-                className={`w-full pl-10 pr-4 py-3 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
-                  errors.email
-                    ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                    : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
-                }`}
-              />
-            </div>
-            {errors.email && (
-              <p className="text-xs text-red-600 mt-1 font-medium">{errors.email.message}</p>
-            )}
-          </div>
+          <TextField
+            label="Email Address"
+            type="email"
+            placeholder="name@company.com"
+            icon={<Mail className="h-4 w-4" />}
+            error={errors.email?.message}
+            {...register('email')}
+          />
 
           {/* Password field */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                Password
-              </label>
+              <span className="block text-xs font-bold uppercase tracking-[0.12em] text-slate-600">Password</span>
               <Link
                 to="/forgot-password"
                 className="text-xs font-semibold text-navy-800 hover:text-navy-900 transition-colors"
@@ -246,31 +152,24 @@ export const LoginPage: React.FC = () => {
                 Forgot password?
               </Link>
             </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Lock className="w-4 h-4" />
-              </div>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
-                {...register('password')}
-                className={`w-full pl-10 pr-11 py-3 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
-                  errors.password
-                    ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                    : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
-                }`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-xs text-red-600 mt-1 font-medium">{errors.password.message}</p>
-            )}
+            <TextField
+              label=""
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              icon={<Lock className="h-4 w-4" />}
+              error={errors.password?.message}
+              endAdornment={
+                <button
+                  type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-slate-400 hover:text-slate-700"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              }
+              {...register('password')}
+            />
           </div>
 
           {/* Remember Me */}
@@ -287,23 +186,13 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {/* Sign In Button */}
-          <button
+          <Button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full py-3.5 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600 text-navy-950 font-extrabold text-sm shadow-lg shadow-yellow-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            loading={isSubmitting}
+            fullWidth
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Authenticating...</span>
-              </>
-            ) : (
-              <>
-                <span>Sign In to Account</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
+            {isSubmitting ? 'Authenticating...' : <><span>Sign In to Account</span><ArrowRight className="h-4 w-4" /></>}
+          </Button>
         </form>
 
         {/* Divider */}
@@ -319,10 +208,11 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Google OAuth Button */}
-        <button
+        <Button
           type="button"
           onClick={handleGoogleLogin}
-          className="w-full py-3 px-4 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all flex items-center justify-center gap-3 shadow-sm"
+          variant="outline"
+          fullWidth
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -343,45 +233,7 @@ export const LoginPage: React.FC = () => {
             />
           </svg>
           <span>Continue with Google</span>
-        </button>
-
-        {/* Quick Demo Fill Buttons for Evaluators */}
-        <div className="mt-8 p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-navy-900 mb-2">
-            <KeyRound className="w-3.5 h-3.5 text-yellow-500" />
-            <span>Assignment Evaluator Quick Credentials:</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-            <button
-              type="button"
-              onClick={() => fillCredentials('admin')}
-              className="px-2 py-1.5 text-[11px] font-semibold bg-white border border-slate-200 hover:border-purple-300 hover:bg-purple-50 text-purple-700 rounded-lg transition-colors truncate"
-            >
-              Admin Role
-            </button>
-            <button
-              type="button"
-              onClick={() => fillCredentials('customer')}
-              className="px-2 py-1.5 text-[11px] font-semibold bg-white border border-slate-200 hover:border-yellow-500/30 hover:bg-yellow-500/10 text-yellow-700 rounded-lg transition-colors truncate"
-            >
-              Customer Role
-            </button>
-            <button
-              type="button"
-              onClick={() => fillCredentials('merchant_approved')}
-              className="px-2 py-1.5 text-[11px] font-semibold bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-blue-700 rounded-lg transition-colors truncate"
-            >
-              Merchant (Approved)
-            </button>
-            <button
-              type="button"
-              onClick={() => fillCredentials('courier')}
-              className="px-2 py-1.5 text-[11px] font-semibold bg-white border border-slate-200 hover:border-amber-300 hover:bg-amber-50 text-amber-700 rounded-lg transition-colors truncate"
-            >
-              Courier Role
-            </button>
-          </div>
-        </div>
+        </Button>
 
         {/* Registration Links */}
         <div className="mt-8 pt-6 border-t border-slate-100 space-y-2 text-center text-xs text-slate-500">
@@ -399,7 +251,8 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
       </div>
+        </div>
+      </div>
     </div>
   );
 };
-
