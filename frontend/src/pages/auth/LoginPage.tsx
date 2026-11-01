@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -111,13 +111,13 @@ export const LoginPage: React.FC = () => {
       {/* ==================================================================== */}
       {/* Left Panel: Logistics-Themed Visual Branding (Split Screen)          */}
       {/* ==================================================================== */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-navy-950 via-navy-900 to-teal-950 text-white flex-col justify-between p-12 overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 text-white flex-col justify-between p-12 overflow-hidden">
         {/* Subtle SVG Map Grid Background */}
-        <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#14b8a6_1.5px,transparent_1.5px)] [background-size:32px_32px]"></div>
+        <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#FFCB05_1.5px,transparent_1.5px)] [background-size:32px_32px]"></div>
 
         {/* Ambient Glows */}
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-yellow-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-navy-700/60 rounded-full blur-3xl pointer-events-none"></div>
 
         {/* Top Branding */}
         <div className="relative z-10">
@@ -129,7 +129,7 @@ export const LoginPage: React.FC = () => {
         {/* Middle Logistics Graphics & Message */}
         <div className="relative z-10 max-w-lg space-y-8 my-auto">
           <div className="space-y-4">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-300 text-xs font-semibold">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
               Enterprise Courier & Freight Cloud
             </span>
@@ -145,12 +145,12 @@ export const LoginPage: React.FC = () => {
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-3">
             <div className="flex items-center justify-between text-xs text-slate-300 border-b border-white/10 pb-2.5">
               <span className="font-semibold text-white">Live Route Telemetry</span>
-              <span className="text-teal-400 font-mono text-[11px]">ACTIVE • 99.98% SLA</span>
+              <span className="text-yellow-400 font-mono text-[11px]">ACTIVE â€¢ 99.98% SLA</span>
             </div>
 
             <div className="flex items-center justify-between text-xs pt-1">
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-ping"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-ping"></div>
                 <span className="text-slate-200 font-medium">Regional Sorting Hub</span>
               </div>
               <span className="text-slate-400 font-mono">Gateway :8080</span>
@@ -169,7 +169,7 @@ export const LoginPage: React.FC = () => {
         {/* Bottom Footer Notice */}
         <div className="relative z-10 text-xs text-slate-400 flex items-center justify-between">
           <span>SwiftDrop Enterprise Edition v1.0</span>
-          <span className="flex items-center gap-1.5 text-teal-400 font-medium">
+          <span className="flex items-center gap-1.5 text-yellow-400 font-medium">
             <ShieldCheck className="w-4 h-4" /> End-to-End Encrypted Sessions
           </span>
         </div>
@@ -224,7 +224,7 @@ export const LoginPage: React.FC = () => {
                 className={`w-full pl-10 pr-4 py-3 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                   errors.email
                     ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                    : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                 }`}
               />
             </div>
@@ -241,7 +241,7 @@ export const LoginPage: React.FC = () => {
               </label>
               <Link
                 to="/forgot-password"
-                className="text-xs font-semibold text-teal-700 hover:text-teal-800 transition-colors"
+                className="text-xs font-semibold text-navy-800 hover:text-navy-900 transition-colors"
               >
                 Forgot password?
               </Link>
@@ -252,12 +252,12 @@ export const LoginPage: React.FC = () => {
               </div>
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 {...register('password')}
                 className={`w-full pl-10 pr-11 py-3 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                   errors.password
                     ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                    : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                 }`}
               />
               <button
@@ -279,7 +279,7 @@ export const LoginPage: React.FC = () => {
               id="rememberMe"
               type="checkbox"
               {...register('rememberMe')}
-              className="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500 cursor-pointer"
+              className="w-4 h-4 text-yellow-500 border-slate-300 rounded focus:ring-yellow-400 cursor-pointer"
             />
             <label htmlFor="rememberMe" className="ml-2 text-xs font-medium text-slate-600 cursor-pointer">
               Remember this browser session
@@ -290,7 +290,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 px-4 rounded-xl bg-navy-900 hover:bg-navy-800 active:bg-navy-950 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full py-3.5 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600 text-navy-950 font-extrabold text-sm shadow-lg shadow-yellow-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>
@@ -348,7 +348,7 @@ export const LoginPage: React.FC = () => {
         {/* Quick Demo Fill Buttons for Evaluators */}
         <div className="mt-8 p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div className="flex items-center gap-1.5 text-xs font-bold text-navy-900 mb-2">
-            <KeyRound className="w-3.5 h-3.5 text-teal-600" />
+            <KeyRound className="w-3.5 h-3.5 text-yellow-500" />
             <span>Assignment Evaluator Quick Credentials:</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
@@ -362,7 +362,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => fillCredentials('customer')}
-              className="px-2 py-1.5 text-[11px] font-semibold bg-white border border-slate-200 hover:border-teal-300 hover:bg-teal-50 text-teal-700 rounded-lg transition-colors truncate"
+              className="px-2 py-1.5 text-[11px] font-semibold bg-white border border-slate-200 hover:border-yellow-500/30 hover:bg-yellow-500/10 text-yellow-700 rounded-lg transition-colors truncate"
             >
               Customer Role
             </button>
@@ -387,7 +387,7 @@ export const LoginPage: React.FC = () => {
         <div className="mt-8 pt-6 border-t border-slate-100 space-y-2 text-center text-xs text-slate-500">
           <p>
             Don't have an individual account?{' '}
-            <Link to="/register" className="font-semibold text-teal-700 hover:underline">
+            <Link to="/register" className="font-semibold text-yellow-600 hover:underline">
               Create Customer Account
             </Link>
           </p>
@@ -402,3 +402,4 @@ export const LoginPage: React.FC = () => {
     </div>
   );
 };
+

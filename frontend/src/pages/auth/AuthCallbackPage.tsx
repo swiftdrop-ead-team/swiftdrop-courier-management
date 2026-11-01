@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { setAccessToken } from '../../services/api';
@@ -42,7 +42,7 @@ export const AuthCallbackPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-[#F8FAFC]">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[#EDEDED]">
         <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-slate-100 text-center space-y-4">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
           <h2 className="text-xl font-bold text-navy-900">OAuth Sign-In Failed</h2>
@@ -59,10 +59,11 @@ export const AuthCallbackPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#F8FAFC]">
-      <Loader2 className="w-10 h-10 text-teal-600 animate-spin mb-4" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#EDEDED]">
+      <Loader2 className="w-10 h-10 text-yellow-500 animate-spin mb-4" />
       <h2 className="text-lg font-bold text-navy-900">Finalizing Google Authentication...</h2>
       <p className="text-xs text-slate-500 mt-1">Establishing secure session with SwiftDrop Identity Service</p>
     </div>
   );
 };
+
