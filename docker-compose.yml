@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # ==============================================================================
+  # Database Service — PostgreSQL 16
+  # ==============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: swiftdrop-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-swiftdrop_identity}
+      POSTGRES_USER: ${POSTGRES_USER:-swiftdrop_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-swiftdrop_user} -d ${POSTGRES_DB:-swiftdrop_identity}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - swiftdrop-net
+
+  # ==============================================================================
+  # Identity Microservice — Spring Boot 3.4.x / Java 21 (Port 8081)
+  # ==============================================================================
+  identity-service:
+    build:
+      context: ./services/identity-service
+      dockerfile: Dockerfile
+    container_name: swiftdrop-identity-service
+    restart: unless-stopped
+    ports:
+      - "${IDENTITY_SERVICE_PORT:-8081}:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-swiftdrop_identity}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
+      SWIFTDROP_SECURITY_JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      SWIFTDROP_SECURITY_JWT_EXPIRATION: ${JWT_EXPIRATION_MS:-900000}
+      SWIFTDROP_SECURITY_JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION_MS:-604800000}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-placeholder-client-id}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-placeholder-client-secret}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    networks:
+      - swiftdrop-net
+
+  # ==============================================================================
+  # API Gateway — Spring Cloud Gateway (Port 8080)
+  # ==============================================================================
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: swiftdrop-gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      IDENTITY_SERVICE_URL: http://identity-service:8081
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    depends_on:
+      identity-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - swiftdrop-net
+
+  # ==============================================================================
+  # Frontend Application — React / TypeScript / Nginx (Port 3000)
+  # ==============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: swiftdrop-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080/api/v1
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks:
+      - swiftdrop-net
+
+networks:
+  swiftdrop-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

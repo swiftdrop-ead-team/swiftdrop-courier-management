@@ -1,0 +1,118 @@
+server:
+  port: ${GATEWAY_PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://127.0.0.1:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            exposedHeaders:
+              - "Authorization"
+              - "Set-Cookie"
+              - "X-Correlation-Id"
+            maxAge: 3600
+
+      routes:
+        # ======================================================================
+        # 1. Identity & Authentication Routes (Implemented - Member 2)
+        # ======================================================================
+        - id: identity-auth-service
+          uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/auth/**
+
+        - id: identity-admin-service
+          uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/admin/**
+
+        - id: oauth2-authorization-flow
+          uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/oauth2/**
+
+        - id: oauth2-callback-flow
+          uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/login/oauth2/**
+
+        # ======================================================================
+        # 2. Parcel Service Routes (Reserved - Member 3)
+        # ======================================================================
+        - id: parcel-service
+          uri: ${PARCEL_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/parcels/**
+
+        # ======================================================================
+        # 3. Merchant Service Routes (Reserved - Member 4)
+        # ======================================================================
+        - id: merchant-service
+          uri: ${MERCHANT_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/merchants/**
+
+        # ======================================================================
+        # 4. Dispatch Service Routes (Reserved - Member 5)
+        # ======================================================================
+        - id: dispatch-service
+          uri: ${DISPATCH_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/dispatch/**
+
+        # ======================================================================
+        # 5. Pricing Service Routes (Reserved - Member 6)
+        # ======================================================================
+        - id: pricing-service
+          uri: ${PRICING_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/v1/pricing/**
+
+        # ======================================================================
+        # 6. Tracking Service Routes (Reserved - Member 7)
+        # ======================================================================
+        - id: tracking-service
+          uri: ${TRACKING_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/v1/tracking/**
+
+        # ======================================================================
+        # 7. Notification Service Routes (Reserved - Member 8)
+        # ======================================================================
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/v1/notifications/**
+
+        # ======================================================================
+        # 8. AI Assistant Service Routes (Reserved - Member 9)
+        # ======================================================================
+        - id: ai-assistant-service
+          uri: ${AI_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/v1/ai/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

@@ -1,0 +1,45 @@
+# Operating System
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+.npm/
+.eslintcache
+frontend/dist/
+frontend/node_modules/
+
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+services/*/target/
+gateway/target/
+
+# IDEs & Editors
+.idea/
+*.iml
+.vscode/
+*.ipr
+*.iws
+.settings/
+.project
+.classpath
+
+# Docker & Databases
+postgres_data/
+docker_data/
+*.pid
