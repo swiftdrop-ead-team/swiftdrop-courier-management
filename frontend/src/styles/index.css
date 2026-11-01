@@ -3,9 +3,86 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-brand-navy: #00274c;
+    --color-brand-blue: #11296b;
+    --color-brand-yellow: #ffcb05;
+    --color-brand-yellow-light: #ffdb57;
+    --color-surface: #ededed;
+    --color-surface-raised: #fcfcfc;
+    --color-border: #cbd5e1;
+    --color-text: #1e293b;
+    --color-text-muted: #64748b;
+    --focus-ring: #2563eb;
+    --font-sans: 'Inter', 'Segoe UI', sans-serif;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-width: 320px;
+    background-color: var(--color-surface);
+  }
+
   body {
-    @apply text-slate-800 bg-[#F8FAFC];
+    @apply antialiased;
+    min-width: 320px;
+    min-height: 100vh;
+    color: var(--color-text);
+    background-color: var(--color-surface);
+    font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  .auth-form-panel {
+    scrollbar-width: none;
+  }
+
+  .auth-form-panel::-webkit-scrollbar {
+    display: none;
+  }
+
+  ::selection {
+    color: var(--color-brand-navy);
+    background-color: var(--color-brand-yellow-light);
+  }
+
+  @media (min-width: 1024px) and (max-height: 820px) {
+    .auth-form-content {
+      transform: scale(0.9);
+      transform-origin: top center;
+      width: 111.111%;
+      margin-left: -5.555%;
+    }
+  }
+
+  @media (min-width: 1024px) and (max-height: 700px) {
+    .auth-form-content {
+      transform: scale(0.8);
+      transform-origin: top center;
+      width: 125%;
+      margin-left: -12.5%;
+    }
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
   }
 }
 
@@ -15,12 +92,23 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--color-surface);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-border);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--color-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

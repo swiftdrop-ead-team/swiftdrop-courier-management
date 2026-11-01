@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Logo } from '../ui/Logo';
@@ -68,12 +68,12 @@ export const DashboardLayout: React.FC = () => {
       case 'ADMIN': return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'MERCHANT': return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'COURIER': return 'bg-amber-100 text-amber-700 border-amber-200';
-      default: return 'bg-teal-100 text-teal-700 border-teal-200';
+      default: return 'bg-yellow-400/20 text-yellow-700 border-yellow-500/30';
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#EDEDED] flex flex-col md:flex-row">
       {/* Sidebar (Desktop) */}
       <aside className="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
         {/* Brand header */}
@@ -114,10 +114,10 @@ export const DashboardLayout: React.FC = () => {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-teal-400' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-yellow-400' : 'text-slate-400'}`} />
                   <span>{item.name}</span>
                 </div>
-                {isActive && <ChevronRight className="w-3.5 h-3.5 text-teal-400" />}
+                {isActive && <ChevronRight className="w-3.5 h-3.5 text-yellow-400" />}
               </Link>
             );
           })}
@@ -150,7 +150,7 @@ export const DashboardLayout: React.FC = () => {
 
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
               <span>Identity Service Connected</span>
             </div>
           </div>
@@ -164,3 +164,4 @@ export const DashboardLayout: React.FC = () => {
     </div>
   );
 };
+
