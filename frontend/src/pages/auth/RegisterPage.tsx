@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -82,7 +82,7 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center bg-[#F8FAFC]">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center bg-[#EDEDED]">
       <div className="max-w-xl w-full bg-white rounded-3xl shadow-xl border border-slate-100 p-8 sm:p-12">
         {/* Header */}
         <div className="text-center space-y-3 mb-8">
@@ -127,7 +127,7 @@ export const RegisterPage: React.FC = () => {
                 className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                   errors.fullName
                     ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                    : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                 }`}
               />
             </div>
@@ -152,7 +152,7 @@ export const RegisterPage: React.FC = () => {
                 className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                   errors.email
                     ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                    : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                 }`}
               />
             </div>
@@ -177,7 +177,7 @@ export const RegisterPage: React.FC = () => {
                 className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                   errors.phoneNumber
                     ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                    : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                 }`}
               />
             </div>
@@ -198,12 +198,12 @@ export const RegisterPage: React.FC = () => {
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   {...register('password')}
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.password
                       ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
                 <button
@@ -229,12 +229,12 @@ export const RegisterPage: React.FC = () => {
                 </div>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   {...register('confirmPassword')}
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.confirmPassword
                       ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
                 <button
@@ -258,7 +258,7 @@ export const RegisterPage: React.FC = () => {
                 id="acceptTerms"
                 type="checkbox"
                 {...register('acceptTerms')}
-                className="w-4 h-4 mt-0.5 text-teal-600 border-slate-300 rounded focus:ring-teal-500 cursor-pointer"
+                className="w-4 h-4 mt-0.5 text-yellow-500 border-slate-300 rounded focus:ring-yellow-400 cursor-pointer"
               />
               <label htmlFor="acceptTerms" className="ml-2.5 text-xs text-slate-600 cursor-pointer">
                 I agree to the SwiftDrop Terms of Service and Privacy Policy. My account will be provisioned with standard Customer dispatch privileges.
@@ -273,7 +273,7 @@ export const RegisterPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-4 py-3.5 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full mt-4 py-3.5 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600 text-navy-900 font-extrabold font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>
@@ -298,7 +298,7 @@ export const RegisterPage: React.FC = () => {
           </p>
           <p>
             Looking for business shipping?{' '}
-            <Link to="/merchant/register" className="font-semibold text-teal-700 hover:underline">
+            <Link to="/merchant/register" className="font-semibold text-yellow-600 hover:underline">
               Register as a Merchant
             </Link>
           </p>
@@ -307,3 +307,4 @@ export const RegisterPage: React.FC = () => {
     </div>
   );
 };
+

@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply text-slate-800 bg-[#F8FAFC];
+    @apply text-slate-800 bg-[#EDEDED];
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -15,7 +15,7 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #EDEDED;
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
