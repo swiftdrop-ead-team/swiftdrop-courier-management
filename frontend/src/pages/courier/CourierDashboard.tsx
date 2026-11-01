@@ -27,7 +27,7 @@ export const CourierDashboard: React.FC = () => {
             <h2 className="text-2xl font-bold text-navy-900">Courier Dispatch Console</h2>
           </div>
           <p className="text-xs text-slate-500">
-            Courier: <span className="font-semibold text-slate-800">{user?.fullName}</span> â€¢ Zone: Bay Area Central Hub
+            Courier: <span className="font-semibold text-slate-800">{user?.fullName}</span> - Zone: Bay Area Central Hub
           </p>
         </div>
 
@@ -92,4 +92,3 @@ export const CourierDashboard: React.FC = () => {
     </div>
   );
 };
-
