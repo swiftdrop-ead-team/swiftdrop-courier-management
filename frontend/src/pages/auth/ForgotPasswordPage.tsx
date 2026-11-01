@@ -104,7 +104,7 @@ export const ForgotPasswordPage: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-navy-950 font-extrabold font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+              className="w-full py-3 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-navy-950 font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70"
             >
               {isSubmitting ? (
                 <>
