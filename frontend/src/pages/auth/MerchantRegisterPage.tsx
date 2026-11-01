@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -67,9 +67,9 @@ export const MerchantRegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-navy-700 via-navy-900 to-navy-950 p-5 sm:p-8 lg:h-[100dvh] lg:overflow-hidden lg:p-6">
+    <div className="min-h-[100dvh] bg-gradient-to-bl from-[#001a35] via-[#00274c] to-[#8c6504] p-5 sm:p-8 lg:h-[100dvh] lg:overflow-hidden lg:p-6">
       <div className="mx-auto flex h-auto max-w-5xl overflow-hidden rounded-lg bg-white shadow-2xl shadow-navy-950/40 lg:h-[calc(100dvh-3rem)] lg:min-h-0 lg:flex-row">
-        <aside className="relative hidden overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 px-10 py-12 text-white lg:flex lg:w-[42%] lg:flex-col lg:justify-between xl:px-16">
+        <aside className="relative hidden overflow-hidden bg-gradient-to-bl from-[#001a35] via-[#00274c] to-[#8c6504] px-10 py-12 text-white lg:flex lg:w-[42%] lg:flex-col lg:justify-between xl:px-16">
           <img src="/auth-abstract.svg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full -scale-y-100 object-cover opacity-90" />
           <div className="relative">
             <Link to="/">
