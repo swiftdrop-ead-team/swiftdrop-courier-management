@@ -151,7 +151,7 @@ export const CustomerDashboard: React.FC = () => {
                 onClick={() => setShowBookingModal(false)}
                 className="text-slate-400 hover:text-slate-600 text-sm font-semibold"
               >
-                âœ•
+                x
               </button>
             </div>
 
@@ -238,4 +238,3 @@ export const CustomerDashboard: React.FC = () => {
     </div>
   );
 };
-
