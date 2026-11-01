@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { 
   Truck, 
@@ -27,7 +27,7 @@ export const CourierDashboard: React.FC = () => {
             <h2 className="text-2xl font-bold text-navy-900">Courier Dispatch Console</h2>
           </div>
           <p className="text-xs text-slate-500">
-            Courier: <span className="font-semibold text-slate-800">{user?.fullName}</span> • Zone: Bay Area Central Hub
+            Courier: <span className="font-semibold text-slate-800">{user?.fullName}</span> â€¢ Zone: Bay Area Central Hub
           </p>
         </div>
 
@@ -36,11 +36,11 @@ export const CourierDashboard: React.FC = () => {
           onClick={() => setIsOnline(!isOnline)}
           className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full font-bold text-xs shadow-sm transition-all ${
             isOnline
-              ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
+              ? 'bg-yellow-500/10 text-navy-900 border border-yellow-500/40 hover:bg-yellow-500/20'
               : 'bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200'
           }`}
         >
-          <Power className={`w-4 h-4 ${isOnline ? 'text-emerald-600' : 'text-slate-400'}`} />
+          <Power className={`w-4 h-4 ${isOnline ? 'text-yellow-500' : 'text-slate-400'}`} />
           <span>{isOnline ? 'ONLINE: ACCEPTING DROPS' : 'OFFLINE'}</span>
         </button>
       </div>
@@ -55,7 +55,7 @@ export const CourierDashboard: React.FC = () => {
 
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
           <span className="text-xs text-slate-500 font-medium">Delivered Today</span>
-          <h4 className="text-2xl font-bold text-teal-600 mt-1">0</h4>
+          <h4 className="text-2xl font-bold text-yellow-500 mt-1">0</h4>
           <span className="text-[11px] text-slate-400">100% on-time rating</span>
         </div>
 
@@ -92,3 +92,4 @@ export const CourierDashboard: React.FC = () => {
     </div>
   );
 };
+

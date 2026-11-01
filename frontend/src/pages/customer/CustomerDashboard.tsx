@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { 
   Package, 
@@ -37,9 +37,9 @@ export const CustomerDashboard: React.FC = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Welcome Greeting Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-navy-900 via-navy-800 to-teal-900 text-white shadow-xl relative overflow-hidden">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-navy-900 via-navy-800 to-navy-950 text-white shadow-xl relative overflow-hidden">
         <div className="relative z-10 max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 text-xs font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-semibold">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Retail Customer Portal</span>
           </div>
@@ -53,7 +53,7 @@ export const CustomerDashboard: React.FC = () => {
           <div className="flex flex-wrap gap-3 pt-2">
             <button
               onClick={() => setShowBookingModal(true)}
-              className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs shadow-md flex items-center gap-2 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-yellow-500 hover:bg-yellow-500/100 text-white font-semibold text-xs shadow-md flex items-center gap-2 transition-all"
             >
               <Plus className="w-4 h-4" />
               <span>Book New Delivery</span>
@@ -72,7 +72,7 @@ export const CustomerDashboard: React.FC = () => {
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-teal-50 text-teal-700">
+          <div className="p-3 rounded-xl bg-yellow-500/10 text-yellow-600">
             <Package className="w-6 h-6" />
           </div>
           <div>
@@ -92,7 +92,7 @@ export const CustomerDashboard: React.FC = () => {
         </div>
 
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-emerald-50 text-emerald-700">
+          <div className="p-3 rounded-xl bg-yellow-500/10 text-yellow-600">
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
@@ -131,7 +131,7 @@ export const CustomerDashboard: React.FC = () => {
           </div>
           <button
             onClick={() => setShowBookingModal(true)}
-            className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs shadow-sm transition-all"
+            className="px-5 py-2.5 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white font-semibold text-xs shadow-sm transition-all"
           >
             Create Your First Shipment
           </button>
@@ -144,20 +144,20 @@ export const CustomerDashboard: React.FC = () => {
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 animate-slide-up space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2 text-navy-900 font-bold text-base">
-                <Send className="w-5 h-5 text-teal-600" />
+                <Send className="w-5 h-5 text-yellow-500" />
                 <span>Book Parcel Shipment</span>
               </div>
               <button
                 onClick={() => setShowBookingModal(false)}
                 className="text-slate-400 hover:text-slate-600 text-sm font-semibold"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
             {bookingSuccess ? (
               <div className="py-8 text-center space-y-3">
-                <CheckCircle2 className="w-12 h-12 text-teal-600 mx-auto" />
+                <CheckCircle2 className="w-12 h-12 text-yellow-500 mx-auto" />
                 <h4 className="font-bold text-navy-900">Waybill Registered!</h4>
                 <p className="text-xs text-slate-500">
                   Consignment order dispatched. Scheduled for pickup.
@@ -175,7 +175,7 @@ export const CustomerDashboard: React.FC = () => {
                     placeholder="e.g. Michael Scott"
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-teal-600 outline-none"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-yellow-500 outline-none"
                   />
                 </div>
 
@@ -189,7 +189,7 @@ export const CustomerDashboard: React.FC = () => {
                     placeholder="e.g. 1725 Slough Avenue, Scranton, PA"
                     value={deliveryAddress}
                     onChange={(e) => setDeliveryAddress(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-teal-600 outline-none"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-yellow-500 outline-none"
                   />
                 </div>
 
@@ -203,7 +203,7 @@ export const CustomerDashboard: React.FC = () => {
                       step="0.1"
                       value={parcelWeight}
                       onChange={(e) => setParcelWeight(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-teal-600 outline-none"
+                      className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-yellow-500 outline-none"
                     />
                   </div>
                   <div>
@@ -213,7 +213,7 @@ export const CustomerDashboard: React.FC = () => {
                     <select
                       value={deliveryType}
                       onChange={(e) => setDeliveryType(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-teal-600 outline-none"
+                      className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-yellow-500 outline-none"
                     >
                       <option value="STANDARD">Standard (2-3 days)</option>
                       <option value="EXPRESS">Express (Next Day)</option>
@@ -225,7 +225,7 @@ export const CustomerDashboard: React.FC = () => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs shadow-md transition-all"
+                    className="w-full py-3 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white font-semibold text-xs shadow-md transition-all"
                   >
                     Confirm & Generate Waybill
                   </button>
@@ -238,3 +238,4 @@ export const CustomerDashboard: React.FC = () => {
     </div>
   );
 };
+

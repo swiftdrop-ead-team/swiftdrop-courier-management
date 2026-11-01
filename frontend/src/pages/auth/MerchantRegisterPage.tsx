@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../hooks/useAuth';
 import { Logo } from '../../components/ui/Logo';
+import { Notice } from '../../components/ui/Notice';
 import { 
   Building2, 
   User as UserIcon, 
@@ -15,10 +16,8 @@ import {
   Eye, 
   EyeOff, 
   ArrowRight, 
-  AlertCircle, 
   Loader2, 
   Clock, 
-  ShieldAlert 
 } from 'lucide-react';
 
 const merchantSchema = z.object({
@@ -26,7 +25,7 @@ const merchantSchema = z.object({
   contactPerson: z.string().min(2, 'Contact person name is required'),
   email: z.string().email('Please enter a valid business email address'),
   businessAddress: z.string().min(5, 'Business address is required'),
-  phoneNumber: z.string().regex(/^\+?[0-9]{7,15}$/, 'Please enter a valid phone number with digits'),
+  phoneNumber: z.string().regex(/^(?:0|(?:\+|00)94)7\d{8}$/, 'Enter a valid Sri Lankan mobile number, e.g. +94771234567'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -67,8 +66,25 @@ export const MerchantRegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center bg-[#F8FAFC]">
-      <div className="max-w-2xl w-full bg-white rounded-3xl shadow-xl border border-slate-100 p-8 sm:p-12">
+    <div className="min-h-[100dvh] bg-gradient-to-bl from-[#001a35] via-[#00274c] to-[#8c6504] p-5 sm:p-8 lg:h-[100dvh] lg:overflow-hidden lg:p-6">
+      <div className="mx-auto flex h-auto max-w-5xl overflow-hidden rounded-lg bg-white shadow-2xl shadow-navy-950/40 lg:h-[calc(100dvh-3rem)] lg:min-h-0 lg:flex-row">
+        <aside className="relative hidden overflow-hidden bg-gradient-to-bl from-[#001a35] via-[#00274c] to-[#8c6504] px-10 py-12 text-white lg:flex lg:w-[42%] lg:flex-col lg:justify-between xl:px-16">
+          <img src="/auth-abstract.svg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full -scale-y-100 object-cover opacity-90" />
+          <div className="relative">
+            <Link to="/">
+              <Logo variant="light" size="lg" />
+            </Link>
+          </div>
+          <div className="relative max-w-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-100">Join SwiftDrop</p>
+            <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight xl:text-5xl">Shipping made clear.</h2>
+            <p className="mt-5 text-sm leading-6 text-blue-100">Give your business a dependable workspace for every shipment and handoff.</p>
+          </div>
+          <p className="relative text-xs text-blue-100/70">Simple. Reliable. On time.</p>
+        </aside>
+
+        <main className="auth-form-panel flex min-h-full w-full items-start justify-center overflow-x-hidden overflow-y-auto px-4 py-8 sm:px-8 lg:w-[58%] lg:px-10 lg:py-8 xl:px-14">
+        <div className="auth-form-content w-full max-w-2xl bg-white p-2 sm:p-5">
         {/* Header */}
         <div className="text-center space-y-3 mb-8">
           <div className="flex justify-center">
@@ -76,22 +92,18 @@ export const MerchantRegisterPage: React.FC = () => {
               <Logo size="md" />
             </Link>
           </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold uppercase tracking-wider">
-            <Building2 className="w-3.5 h-3.5" />
-            <span>Commercial Merchant Partner Application</span>
-          </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight">
-            Register Your Business
+            Create Merchant Account
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-            Access bulk manifest dispatch, automated API keys, and tiered volume discounts.
+            Apply for business shipping tools, bulk dispatch, and delivery management.
           </p>
         </div>
 
         {/* Workflow Notice Banner */}
-        <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 flex items-start gap-3">
           <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="space-y-1">
+          <div className="min-w-0 space-y-1">
             <p className="font-bold">Important Approval Workflow Notice</p>
             <p className="text-amber-800 leading-relaxed">
               In accordance with enterprise compliance policies, all new merchant registrations are initialized in a <span className="font-semibold underline">PENDING</span> status until reviewed and approved by a SwiftDrop Administrator.
@@ -101,13 +113,9 @@ export const MerchantRegisterPage: React.FC = () => {
 
         {/* Server Error Alert */}
         {serverError && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm flex items-start gap-3 animate-fade-in">
-            <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-semibold">Application Submission Error</p>
-              <p className="text-xs text-red-700 mt-0.5">{serverError}</p>
-            </div>
-          </div>
+          <Notice title="Application Submission Error" className="mb-6 animate-fade-in">
+            {serverError}
+          </Notice>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -128,12 +136,12 @@ export const MerchantRegisterPage: React.FC = () => {
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.businessName
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
               </div>
               {errors.businessName && (
-                <p className="text-xs text-red-600 mt-1">{errors.businessName.message}</p>
+                <p className="mt-1 break-words text-xs text-red-600">{errors.businessName.message}</p>
               )}
             </div>
 
@@ -152,12 +160,12 @@ export const MerchantRegisterPage: React.FC = () => {
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.contactPerson
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
               </div>
               {errors.contactPerson && (
-                <p className="text-xs text-red-600 mt-1">{errors.contactPerson.message}</p>
+                <p className="mt-1 break-words text-xs text-red-600">{errors.contactPerson.message}</p>
               )}
             </div>
           </div>
@@ -179,12 +187,12 @@ export const MerchantRegisterPage: React.FC = () => {
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.email
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
               </div>
               {errors.email && (
-                <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>
+                <p className="mt-1 break-words text-xs text-red-600">{errors.email.message}</p>
               )}
             </div>
 
@@ -198,17 +206,17 @@ export const MerchantRegisterPage: React.FC = () => {
                 </div>
                 <input
                   type="tel"
-                  placeholder="+18005550199"
+                  placeholder="+94771234567"
                   {...register('phoneNumber')}
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.phoneNumber
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
               </div>
               {errors.phoneNumber && (
-                <p className="text-xs text-red-600 mt-1">{errors.phoneNumber.message}</p>
+                <p className="mt-1 break-words text-xs text-red-600">{errors.phoneNumber.message}</p>
               )}
             </div>
           </div>
@@ -229,12 +237,12 @@ export const MerchantRegisterPage: React.FC = () => {
                 className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                   errors.businessAddress
                     ? 'border-red-300 focus:border-red-500'
-                    : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                 }`}
               />
             </div>
             {errors.businessAddress && (
-              <p className="text-xs text-red-600 mt-1">{errors.businessAddress.message}</p>
+              <p className="mt-1 break-words text-xs text-red-600">{errors.businessAddress.message}</p>
             )}
           </div>
 
@@ -255,7 +263,7 @@ export const MerchantRegisterPage: React.FC = () => {
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.password
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
                 <button
@@ -267,7 +275,7 @@ export const MerchantRegisterPage: React.FC = () => {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>
+                <p className="mt-1 break-words text-xs text-red-600">{errors.password.message}</p>
               )}
             </div>
 
@@ -286,7 +294,7 @@ export const MerchantRegisterPage: React.FC = () => {
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.confirmPassword
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
                 <button
@@ -298,7 +306,7 @@ export const MerchantRegisterPage: React.FC = () => {
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-xs text-red-600 mt-1">{errors.confirmPassword.message}</p>
+                <p className="mt-1 break-words text-xs text-red-600">{errors.confirmPassword.message}</p>
               )}
             </div>
           </div>
@@ -307,7 +315,7 @@ export const MerchantRegisterPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-4 py-3.5 px-4 rounded-xl bg-navy-900 hover:bg-navy-800 active:bg-navy-950 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full mt-4 py-3.5 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600 text-navy-950 font-extrabold text-sm shadow-lg shadow-yellow-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>
@@ -332,11 +340,13 @@ export const MerchantRegisterPage: React.FC = () => {
           </p>
           <p>
             Personal retail shipments only?{' '}
-            <Link to="/register" className="font-semibold text-teal-700 hover:underline">
+            <Link to="/register" className="font-semibold text-yellow-600 hover:underline">
               Register as Individual Customer
             </Link>
           </p>
         </div>
+      </div>
+      </main>
       </div>
     </div>
   );

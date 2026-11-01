@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,7 +37,7 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-16 px-4 flex items-center justify-center bg-[#F8FAFC]">
+    <div className="min-h-[100dvh] bg-gradient-to-bl from-[#001a35] via-[#00274c] to-[#8c6504] py-12 px-4 flex items-center justify-center">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-100 p-8 sm:p-10">
         <div className="text-center space-y-2 mb-8">
           <div className="flex justify-center mb-4">
@@ -54,18 +54,18 @@ export const ForgotPasswordPage: React.FC = () => {
         </div>
 
         {successMessage ? (
-          <div className="p-5 rounded-2xl bg-teal-50 border border-teal-200 text-teal-900 space-y-4 animate-fade-in">
+          <div className="p-5 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 text-navy-900 space-y-4 animate-fade-in">
             <div className="flex items-center gap-2 font-bold text-sm">
-              <CheckCircle2 className="w-5 h-5 text-teal-600" />
+              <CheckCircle2 className="w-5 h-5 text-yellow-500" />
               <span>Reset Request Dispatched</span>
             </div>
-            <p className="text-xs text-teal-800 leading-relaxed">
+            <p className="text-xs text-yellow-700 leading-relaxed">
               {successMessage}
             </p>
             <div className="pt-2">
               <Link
                 to="/login"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-yellow-600 hover:underline"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Return to Sign In</span>
@@ -93,7 +93,7 @@ export const ForgotPasswordPage: React.FC = () => {
                   type="email"
                   placeholder="name@company.com"
                   {...register('email')}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100 text-sm text-slate-900 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 text-sm text-slate-900 outline-none transition-all"
                 />
               </div>
               {errors.email && (
@@ -104,7 +104,7 @@ export const ForgotPasswordPage: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 px-4 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+              className="w-full py-3 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-navy-950 font-extrabold font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70"
             >
               {isSubmitting ? (
                 <>

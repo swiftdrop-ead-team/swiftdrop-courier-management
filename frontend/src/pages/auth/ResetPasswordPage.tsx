@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -50,7 +50,7 @@ export const ResetPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-16 px-4 flex items-center justify-center bg-[#F8FAFC]">
+    <div className="min-h-screen py-16 px-4 flex items-center justify-center bg-[#EDEDED]">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-100 p-8 sm:p-10">
         <div className="text-center space-y-2 mb-8">
           <div className="flex justify-center mb-4">
@@ -67,18 +67,18 @@ export const ResetPasswordPage: React.FC = () => {
         </div>
 
         {success ? (
-          <div className="p-5 rounded-2xl bg-teal-50 border border-teal-200 text-teal-900 space-y-4 animate-fade-in text-center">
-            <div className="w-12 h-12 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center mx-auto">
+          <div className="p-5 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 text-navy-900 space-y-4 animate-fade-in text-center">
+            <div className="w-12 h-12 rounded-full bg-yellow-400/20 text-yellow-600 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-base">Password Updated Successfully</h3>
-            <p className="text-xs text-teal-800">
+            <p className="text-xs text-yellow-700">
               Your password has been changed. You can now sign in with your new credentials.
             </p>
             <div className="pt-2">
               <Link
                 to="/login"
-                className="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-sm"
+                className="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-semibold text-xs shadow-sm"
               >
                 Proceed to Sign In
               </Link>
@@ -105,7 +105,7 @@ export const ResetPasswordPage: React.FC = () => {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   {...register('newPassword')}
-                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100 text-sm outline-none transition-all"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 text-sm outline-none transition-all"
                 />
                 <button
                   type="button"
@@ -132,7 +132,7 @@ export const ResetPasswordPage: React.FC = () => {
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   {...register('confirmPassword')}
-                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100 text-sm outline-none transition-all"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 text-sm outline-none transition-all"
                 />
                 <button
                   type="button"

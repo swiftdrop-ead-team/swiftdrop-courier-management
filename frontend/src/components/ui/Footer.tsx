@@ -1,6 +1,6 @@
 import React from 'react';
 import { Logo } from './Logo';
-import { ShieldCheck, Truck, Clock, Heart } from 'lucide-react';
+import { ShieldCheck, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Footer: React.FC = () => {
@@ -14,33 +14,33 @@ export const Footer: React.FC = () => {
             <p className="text-sm text-slate-300 leading-relaxed">
               Delivering trust, every mile. Next-generation microservices parcel logistics platform built for modern commerce.
             </p>
-            <div className="flex items-center gap-3 text-xs text-teal-400 font-medium">
+            <div className="flex items-center gap-3 text-xs text-yellow-400 font-medium">
               <span className="flex items-center gap-1">
-                <ShieldCheck className="w-4 h-4" /> Enterprise Security
+                <ShieldCheck className="w-4 h-4 text-yellow-400" /> Enterprise Security
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" /> 99.9% On-Time
+                <Clock className="w-4 h-4 text-yellow-400" /> 99.9% On-Time
               </span>
             </div>
           </div>
 
           {/* Col 2: Platform Links */}
           <div>
-            <h4 className="text-sm font-semibold tracking-wider uppercase text-teal-400 mb-4">
+            <h4 className="text-sm font-semibold tracking-wider uppercase text-yellow-400 mb-4">
               Platform
             </h4>
             <ul className="space-y-2.5 text-sm text-slate-300">
-              <li><Link to="/" className="hover:text-white transition-colors">Parcel Tracking</Link></li>
-              <li><Link to="/register" className="hover:text-white transition-colors">Individual Shipping</Link></li>
-              <li><Link to="/merchant/register" className="hover:text-white transition-colors">Merchant Solutions</Link></li>
-              <li><a href="#services" className="hover:text-white transition-colors">Rate Calculator</a></li>
+              <li><Link to="/" className="hover:text-yellow-400 transition-colors">Parcel Tracking</Link></li>
+              <li><Link to="/register" className="hover:text-yellow-400 transition-colors">Individual Shipping</Link></li>
+              <li><Link to="/merchant/register" className="hover:text-yellow-400 transition-colors">Merchant Solutions</Link></li>
+              <li><a href="#services" className="hover:text-yellow-400 transition-colors">Rate Calculator</a></li>
             </ul>
           </div>
 
           {/* Col 3: Microservices Team */}
           <div>
-            <h4 className="text-sm font-semibold tracking-wider uppercase text-teal-400 mb-4">
+            <h4 className="text-sm font-semibold tracking-wider uppercase text-yellow-400 mb-4">
               Architecture
             </h4>
             <ul className="space-y-2.5 text-sm text-slate-300">
@@ -54,19 +54,19 @@ export const Footer: React.FC = () => {
 
           {/* Col 4: University Project Notice */}
           <div>
-            <h4 className="text-sm font-semibold tracking-wider uppercase text-teal-400 mb-4">
+            <h4 className="text-sm font-semibold tracking-wider uppercase text-yellow-400 mb-4">
               Project Information
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed mb-3">
               SwiftDrop is developed as an Enterprise Application Development group assignment by Team 10.
             </p>
-            <div className="p-3 rounded-lg bg-navy-800/80 border border-navy-700 text-xs text-slate-300">
+            <div className="p-3 rounded-lg bg-navy-800 border border-navy-700 text-xs text-slate-300">
               <p className="font-semibold text-white">Repository:</p>
               <a 
                 href="https://github.com/swiftdrop-ead-team/swiftdrop-courier-management" 
                 target="_blank" 
                 rel="noreferrer"
-                className="text-teal-400 hover:underline break-all"
+                className="text-yellow-400 hover:text-yellow-300 hover:underline break-all"
               >
                 swiftdrop-ead-team/swiftdrop-courier-management
               </a>
