@@ -299,7 +299,7 @@ export const AdminDashboard: React.FC = () => {
                     {u.email}
                   </td>
                   <td className="py-3.5 px-4 text-slate-500">
-                    {u.phoneNumber || 'â€”'}
+                    {u.phoneNumber || '-'}
                   </td>
                   <td className="py-3.5 px-4">
                     <div className="flex flex-wrap gap-1">
@@ -346,4 +346,3 @@ export const AdminDashboard: React.FC = () => {
     </div>
   );
 };
-

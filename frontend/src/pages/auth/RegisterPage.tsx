@@ -24,8 +24,8 @@ const registerSchema = z.object({
   phoneNumber: z.string().regex(/^(?:0|(?:\+|00)94)7\d{8}$/, 'Enter a valid Sri Lankan mobile number, e.g. +94771234567'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
-  acceptTerms: z.literal(true, {
-    errorMap: () => ({ message: 'You must accept the terms and conditions' }),
+  acceptTerms: z.boolean().refine((value) => value, {
+    message: 'You must accept the terms and conditions',
   }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
@@ -53,7 +53,7 @@ export const RegisterPage: React.FC = () => {
       phoneNumber: '',
       password: '',
       confirmPassword: '',
-      acceptTerms: false as any,
+      acceptTerms: false,
     },
   });
 
