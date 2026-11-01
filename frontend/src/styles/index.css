@@ -3,9 +3,49 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-brand-navy: #00274c;
+    --color-brand-blue: #11296b;
+    --color-brand-yellow: #ffcb05;
+    --color-brand-yellow-light: #ffdb57;
+    --color-surface: #ededed;
+    --color-surface-raised: #fcfcfc;
+    --color-border: #cbd5e1;
+    --color-text: #1e293b;
+    --color-text-muted: #64748b;
+    --focus-ring: #2563eb;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-width: 320px;
+    background-color: var(--color-surface);
+  }
+
   body {
-    @apply text-slate-800 bg-[#EDEDED];
+    @apply antialiased;
+    min-width: 320px;
+    min-height: 100vh;
+    color: var(--color-text);
+    background-color: var(--color-surface);
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
   }
 }
 
@@ -15,12 +55,12 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #EDEDED;
+  background: var(--color-surface);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-border);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--color-text-muted);
 }
