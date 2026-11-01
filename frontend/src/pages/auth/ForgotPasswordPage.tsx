@@ -37,7 +37,7 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-16 px-4 flex items-center justify-center bg-[#EDEDED]">
+    <div className="min-h-[100dvh] bg-gradient-to-bl from-[#001a35] via-[#00274c] to-[#8c6504] py-12 px-4 flex items-center justify-center">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-100 p-8 sm:p-10">
         <div className="text-center space-y-2 mb-8">
           <div className="flex justify-center mb-4">
@@ -134,4 +134,3 @@ export const ForgotPasswordPage: React.FC = () => {
     </div>
   );
 };
-
