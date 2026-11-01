@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, type LinkProps } from 'react-router-dom';
+import { twMerge } from 'tailwind-merge';
 import type { ButtonVariant } from './Button';
 
 interface ActionLinkProps extends LinkProps {
@@ -17,7 +18,12 @@ const variantClasses: Record<ButtonVariant, string> = {
 
 export const ActionLink: React.FC<ActionLinkProps> = ({ children, variant = 'primary', fullWidth = false, className = '', ...props }) => (
   <Link
-    className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-bold transition-all duration-200 ${variantClasses[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
+    className={twMerge(
+      'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-bold transition-all duration-200',
+      variantClasses[variant],
+      fullWidth && 'w-full',
+      className
+    )}
     {...props}
   >
     {children}
