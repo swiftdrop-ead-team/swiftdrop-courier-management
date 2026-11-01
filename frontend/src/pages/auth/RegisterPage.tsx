@@ -21,7 +21,7 @@ import {
 const registerSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
-  phoneNumber: z.string().regex(/^\+?[0-9]{7,15}$/, 'Please enter a valid phone number with digits'),
+  phoneNumber: z.string().regex(/^(?:0|(?:\+|00)94)7\d{8}$/, 'Enter a valid Sri Lankan mobile number, e.g. +94771234567'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   acceptTerms: z.literal(true, {
@@ -147,7 +147,7 @@ export const RegisterPage: React.FC = () => {
           <TextField
             label="Phone Number"
             type="tel"
-            placeholder="+14155552671"
+            placeholder="+94771234567"
             icon={<Phone className="h-4 w-4" />}
             error={errors.phoneNumber?.message}
             {...register('phoneNumber')}
@@ -165,7 +165,7 @@ export const RegisterPage: React.FC = () => {
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   {...register('password')}
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.password
@@ -196,7 +196,7 @@ export const RegisterPage: React.FC = () => {
                 </div>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   {...register('confirmPassword')}
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.confirmPassword

@@ -18,7 +18,6 @@ import {
   ArrowRight, 
   Loader2, 
   Clock, 
-  ShieldAlert 
 } from 'lucide-react';
 
 const merchantSchema = z.object({
@@ -26,7 +25,7 @@ const merchantSchema = z.object({
   contactPerson: z.string().min(2, 'Contact person name is required'),
   email: z.string().email('Please enter a valid business email address'),
   businessAddress: z.string().min(5, 'Business address is required'),
-  phoneNumber: z.string().regex(/^\+?[0-9]{7,15}$/, 'Please enter a valid phone number with digits'),
+  phoneNumber: z.string().regex(/^(?:0|(?:\+|00)94)7\d{8}$/, 'Enter a valid Sri Lankan mobile number, e.g. +94771234567'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -207,7 +206,7 @@ export const MerchantRegisterPage: React.FC = () => {
                 </div>
                 <input
                   type="tel"
-                  placeholder="+18005550199"
+                  placeholder="+94771234567"
                   {...register('phoneNumber')}
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.phoneNumber
@@ -259,7 +258,7 @@ export const MerchantRegisterPage: React.FC = () => {
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   {...register('password')}
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.password
@@ -290,7 +289,7 @@ export const MerchantRegisterPage: React.FC = () => {
                 </div>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   {...register('confirmPassword')}
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.confirmPassword

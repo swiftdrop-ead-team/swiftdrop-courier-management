@@ -22,7 +22,7 @@ describe('RegisterPage Component', () => {
     expect(screen.getByText('Create Customer Account')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Jane Doe')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('jane@example.com')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('+14155552671')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('+94771234567')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /complete customer registration/i })).toBeInTheDocument();
   });
 
