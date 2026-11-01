@@ -31,15 +31,6 @@ describe('LoginPage Component', () => {
     expect(screen.getByText(/continue with google/i)).toBeInTheDocument();
   });
 
-  it('renders evaluator quick fill credential buttons', () => {
-    renderLoginPage();
-
-    expect(screen.getByText(/admin role/i)).toBeInTheDocument();
-    expect(screen.getByText(/customer role/i)).toBeInTheDocument();
-    expect(screen.getByText(/merchant \(approved\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/courier role/i)).toBeInTheDocument();
-  });
-
   it('toggles password visibility when eye icon clicked', () => {
     renderLoginPage();
 

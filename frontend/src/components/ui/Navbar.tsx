@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Logo } from './Logo';
 import { 
@@ -16,6 +16,11 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isLanding = pathname === '/';
+  const navLinkClass = isLanding
+    ? 'text-sm font-medium text-slate-300 hover:text-white transition-colors'
+    : 'text-sm font-medium text-slate-600 hover:text-navy-900 transition-colors';
 
   const handleLogout = async () => {
     await logout();
@@ -25,26 +30,26 @@ export const Navbar: React.FC = () => {
   const dashboardRoute = getDefaultDashboardRoute();
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all">
+    <nav className={`sticky top-0 z-50 backdrop-blur-md transition-all ${isLanding ? 'bg-gradient-to-r from-ink-soft via-ink to-ink-deep text-white' : 'border-b border-slate-200 bg-white/90 shadow-sm'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Left Brand Logo */}
           <Link to="/" className="flex items-center">
-            <Logo size="md" />
+            <Logo size="md" variant={isLanding ? 'light' : 'dark'} />
           </Link>
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-sm font-medium text-slate-600 hover:text-navy-900 transition-colors">
+            <Link to="/" className={navLinkClass}>
               Home
             </Link>
-            <a href="#services" className="text-sm font-medium text-slate-600 hover:text-navy-900 transition-colors">
+            <a href="#services" className={navLinkClass}>
               Services
             </a>
-            <a href="#tracking" className="text-sm font-medium text-slate-600 hover:text-navy-900 transition-colors">
+            <a href="#tracking" className={navLinkClass}>
               Track Parcel
             </a>
-            <Link to="/merchant/register" className="text-sm font-medium text-navy-900 hover:text-yellow-600 flex items-center gap-1.5 transition-colors">
+            <Link to="/merchant/register" className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${isLanding ? 'text-white hover:text-yellow-300' : 'text-navy-900 hover:text-yellow-600'}`}>
               <Building2 className="w-4 h-4 text-yellow-500" />
               For Merchants
             </Link>
@@ -106,7 +111,7 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-navy-900 transition-colors"
+                  className={`px-4 py-2 text-sm font-semibold transition-colors ${isLanding ? 'text-slate-200 hover:text-white' : 'text-slate-700 hover:text-navy-900'}`}
                 >
                   Sign In
                 </Link>

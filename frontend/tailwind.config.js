@@ -101,7 +101,18 @@ export default {
           yellowLight: '#FFDB57',
           surface: '#EDEDED',
           bg: '#EDEDED',
-        }
+        },
+        ink: {
+          DEFAULT: '#00274C',
+          deep: '#001a35',
+          soft: '#11296B',
+        },
+        accent: {
+          DEFAULT: '#FFCB05',
+          bright: '#FFDB57',
+          pale: '#fff9cc',
+        },
+        canvas: '#EDEDED',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
