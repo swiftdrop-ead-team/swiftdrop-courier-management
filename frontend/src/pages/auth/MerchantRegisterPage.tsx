@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -67,7 +67,7 @@ export const MerchantRegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center bg-[#F8FAFC]">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center bg-[#EDEDED]">
       <div className="max-w-2xl w-full bg-white rounded-3xl shadow-xl border border-slate-100 p-8 sm:p-12">
         {/* Header */}
         <div className="text-center space-y-3 mb-8">
@@ -128,7 +128,7 @@ export const MerchantRegisterPage: React.FC = () => {
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.businessName
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
               </div>
@@ -152,7 +152,7 @@ export const MerchantRegisterPage: React.FC = () => {
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.contactPerson
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
               </div>
@@ -179,7 +179,7 @@ export const MerchantRegisterPage: React.FC = () => {
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.email
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
               </div>
@@ -203,7 +203,7 @@ export const MerchantRegisterPage: React.FC = () => {
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.phoneNumber
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
               </div>
@@ -229,7 +229,7 @@ export const MerchantRegisterPage: React.FC = () => {
                 className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                   errors.businessAddress
                     ? 'border-red-300 focus:border-red-500'
-                    : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                 }`}
               />
             </div>
@@ -250,12 +250,12 @@ export const MerchantRegisterPage: React.FC = () => {
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   {...register('password')}
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.password
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
                 <button
@@ -281,12 +281,12 @@ export const MerchantRegisterPage: React.FC = () => {
                 </div>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   {...register('confirmPassword')}
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.confirmPassword
                       ? 'border-red-300 focus:border-red-500'
-                      : 'border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      : 'border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20'
                   }`}
                 />
                 <button
@@ -307,7 +307,7 @@ export const MerchantRegisterPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-4 py-3.5 px-4 rounded-xl bg-navy-900 hover:bg-navy-800 active:bg-navy-950 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full mt-4 py-3.5 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600 text-navy-950 font-extrabold text-sm shadow-lg shadow-yellow-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>
@@ -332,7 +332,7 @@ export const MerchantRegisterPage: React.FC = () => {
           </p>
           <p>
             Personal retail shipments only?{' '}
-            <Link to="/register" className="font-semibold text-teal-700 hover:underline">
+            <Link to="/register" className="font-semibold text-yellow-600 hover:underline">
               Register as Individual Customer
             </Link>
           </p>
@@ -341,3 +341,4 @@ export const MerchantRegisterPage: React.FC = () => {
     </div>
   );
 };
+

@@ -1,11 +1,8 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Package, 
   Truck, 
-  ShieldCheck, 
-  Clock, 
-  MapPin, 
   ArrowRight, 
   Building2, 
   Sparkles, 
@@ -30,20 +27,20 @@ export const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-950 via-navy-900 to-navy-900 text-white pt-20 pb-28">
         {/* Subtle background route grid art */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#0D9488_1px,transparent_1px)] [background-size:24px_24px]"></div>
+        <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#FFCB05_1px,transparent_1px)] [background-size:24px_24px]"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content Column */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold tracking-wide uppercase">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-semibold tracking-wide uppercase">
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
                 <span>Enterprise Logistics Microservices Platform</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
                 Delivering trust, <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-200">
                   every single mile.
                 </span>
               </h1>
@@ -56,7 +53,7 @@ export const LandingPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
                 <Link
                   to="/register"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-white bg-teal-600 hover:bg-teal-500 shadow-lg shadow-teal-900/30 transition-all hover:translate-y-[-1px]"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-navy-950 bg-yellow-500 hover:bg-yellow-400 shadow-lg shadow-yellow-500/20 transition-all hover:translate-y-[-1px]"
                 >
                   <span>Ship a Parcel</span>
                   <ArrowRight className="w-4 h-4" />
@@ -66,7 +63,7 @@ export const LandingPage: React.FC = () => {
                   to="/merchant/register"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-slate-200 bg-navy-800/80 hover:bg-navy-800 border border-slate-700 transition-all"
                 >
-                  <Building2 className="w-4 h-4 text-teal-400" />
+                  <Building2 className="w-4 h-4 text-yellow-400" />
                   <span>Merchant Portal</span>
                 </Link>
 
@@ -85,11 +82,11 @@ export const LandingPage: React.FC = () => {
                   <div className="text-xs text-slate-400 font-medium mt-0.5">Secure JWT Auth</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-teal-400">10</div>
+                  <div className="text-2xl font-bold text-yellow-400">10</div>
                   <div className="text-xs text-slate-400 font-medium mt-0.5">Collaborative Services</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-emerald-400">Sub-sec</div>
+                  <div className="text-2xl font-bold text-yellow-400">Sub-sec</div>
                   <div className="text-xs text-slate-400 font-medium mt-0.5">Gateway Latency</div>
                 </div>
               </div>
@@ -99,8 +96,8 @@ export const LandingPage: React.FC = () => {
             <div id="tracking" className="lg:col-span-5">
               <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-100 text-slate-800">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2.5 rounded-xl bg-teal-50 text-teal-700">
-                    <Search className="w-6 h-6" />
+                  <div className="p-2.5 rounded-xl bg-yellow-500/10 text-yellow-600">
+                    <Search className="w-6 h-6 text-yellow-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-navy-900">Track Your Shipment</h3>
@@ -119,7 +116,7 @@ export const LandingPage: React.FC = () => {
                         placeholder="e.g. SD-9842-8721-LK"
                         value={trackingNumber}
                         onChange={(e) => setTrackingNumber(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -150,8 +147,8 @@ export const LandingPage: React.FC = () => {
 
                 <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                   <span>Supported format: SD-XXXX-XXXX-XX</span>
-                  <Link to="/login" className="text-teal-700 font-semibold hover:underline">
-                    View in Dashboard →
+                  <Link to="/login" className="text-yellow-600 font-semibold hover:underline">
+                    View in Dashboard â†’
                   </Link>
                 </div>
               </div>
@@ -164,7 +161,7 @@ export const LandingPage: React.FC = () => {
       <section id="services" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-xs font-bold text-teal-700 uppercase tracking-widest mb-2">
+            <h2 className="text-xs font-bold text-yellow-600 uppercase tracking-widest mb-2">
               End-to-End Delivery Architecture
             </h2>
             <h3 className="text-3xl font-bold text-navy-900">
@@ -179,7 +176,7 @@ export const LandingPage: React.FC = () => {
             {/* Card 1: Retail Customers */}
             <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all hover:shadow-lg hover:shadow-slate-200/50 flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-yellow-500/15 text-yellow-600 flex items-center justify-center mb-6">
                   <Package className="w-6 h-6" />
                 </div>
                 <h4 className="text-xl font-bold text-navy-900 mb-2">Individual Shippers</h4>
@@ -188,22 +185,22 @@ export const LandingPage: React.FC = () => {
                 </p>
                 <ul className="space-y-2 text-xs text-slate-700">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                    <CheckCircle2 className="w-4 h-4 text-yellow-500" />
                     <span>Real-time shipping rate estimates</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                    <CheckCircle2 className="w-4 h-4 text-yellow-500" />
                     <span>Flexible drop-off or home pickup</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                    <CheckCircle2 className="w-4 h-4 text-yellow-500" />
                     <span>SMS and email delivery confirmation</span>
                   </li>
                 </ul>
               </div>
 
               <div className="pt-6 mt-6 border-t border-slate-200/70">
-                <Link to="/register" className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:text-teal-800">
+                <Link to="/register" className="inline-flex items-center gap-1.5 text-sm font-bold text-yellow-600 hover:text-yellow-700">
                   <span>Sign Up as Customer</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -213,13 +210,13 @@ export const LandingPage: React.FC = () => {
             {/* Card 2: Commercial Merchants */}
             <div className="p-8 rounded-2xl bg-navy-900 text-white relative overflow-hidden flex flex-col justify-between shadow-xl">
               <div className="absolute top-0 right-0 p-4">
-                <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
                   B2B Commerce
                 </span>
               </div>
 
               <div>
-                <div className="w-12 h-12 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-yellow-500/20 text-yellow-400 flex items-center justify-center mb-6">
                   <Building2 className="w-6 h-6" />
                 </div>
                 <h4 className="text-xl font-bold text-white mb-2">Commercial Merchants</h4>
@@ -228,22 +225,22 @@ export const LandingPage: React.FC = () => {
                 </p>
                 <ul className="space-y-2 text-xs text-slate-300">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-teal-400" />
+                    <CheckCircle2 className="w-4 h-4 text-yellow-400" />
                     <span>Admin verification & compliance review</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-teal-400" />
+                    <CheckCircle2 className="w-4 h-4 text-yellow-400" />
                     <span>Dedicated Merchant API integration keys</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-teal-400" />
+                    <CheckCircle2 className="w-4 h-4 text-yellow-400" />
                     <span>Tiered volume shipping discounts</span>
                   </li>
                 </ul>
               </div>
 
               <div className="pt-6 mt-6 border-t border-navy-800">
-                <Link to="/merchant/register" className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-400 hover:text-teal-300">
+                <Link to="/merchant/register" className="inline-flex items-center gap-1.5 text-sm font-semibold text-yellow-400 hover:text-yellow-300">
                   <span>Register Merchant Account</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -253,7 +250,7 @@ export const LandingPage: React.FC = () => {
             {/* Card 3: Field Couriers */}
             <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all hover:shadow-lg hover:shadow-slate-200/50 flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-navy-100 text-navy-800 flex items-center justify-center mb-6">
                   <Truck className="w-6 h-6" />
                 </div>
                 <h4 className="text-xl font-bold text-navy-900 mb-2">Courier Network</h4>
@@ -262,22 +259,22 @@ export const LandingPage: React.FC = () => {
                 </p>
                 <ul className="space-y-2 text-xs text-slate-700">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                    <CheckCircle2 className="w-4 h-4 text-navy-700" />
                     <span>Smart zone dispatch allocation</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                    <CheckCircle2 className="w-4 h-4 text-navy-700" />
                     <span>Photo proof-of-delivery</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                    <CheckCircle2 className="w-4 h-4 text-navy-700" />
                     <span>Mobile-first courier console</span>
                   </li>
                 </ul>
               </div>
 
               <div className="pt-6 mt-6 border-t border-slate-200/70">
-                <Link to="/login" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800">
+                <Link to="/login" className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-800 hover:text-navy-900">
                   <span>Courier Login</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -288,24 +285,24 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Banner Section */}
-      <section className="bg-teal-700 text-white py-14">
+      <section className="bg-gradient-to-r from-navy-950 via-navy-900 to-navy-800 text-white py-14 border-y border-navy-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div>
             <h3 className="text-2xl font-bold">Ready to dispatch your first shipment?</h3>
-            <p className="text-teal-100 text-sm mt-1">
+            <p className="text-slate-300 text-sm mt-1">
               Join thousands of businesses and individuals trusting SwiftDrop every day.
             </p>
           </div>
           <div className="flex items-center gap-4">
             <Link
               to="/register"
-              className="px-6 py-3 rounded-xl bg-white text-teal-800 hover:bg-slate-100 font-bold text-sm shadow-md transition-all"
+              className="px-6 py-3 rounded-xl bg-yellow-500 text-navy-950 hover:bg-yellow-400 font-bold text-sm shadow-md transition-all"
             >
               Create Free Account
             </Link>
             <Link
               to="/login"
-              className="px-6 py-3 rounded-xl border border-teal-500 hover:bg-teal-600 text-white font-semibold text-sm transition-all"
+              className="px-6 py-3 rounded-xl border border-yellow-500/50 hover:bg-navy-800 text-yellow-400 font-semibold text-sm transition-all"
             >
               Sign In
             </Link>
@@ -315,3 +312,4 @@ export const LandingPage: React.FC = () => {
     </div>
   );
 };
+

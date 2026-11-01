@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { 
   Building2, 
@@ -36,7 +36,7 @@ export const MerchantDashboard: React.FC = () => {
       <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-teal-600" />
+            <Building2 className="w-5 h-5 text-yellow-500" />
             <h2 className="text-2xl font-bold text-navy-900">
               Commercial Merchant Portal
             </h2>
@@ -49,8 +49,8 @@ export const MerchantDashboard: React.FC = () => {
         {/* Status Badge */}
         <div>
           {isApproved ? (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-sm">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-navy-900 text-xs font-bold shadow-sm">
+              <CheckCircle2 className="w-4 h-4 text-yellow-500" />
               <span>COMMERCIAL ACCOUNT: APPROVED</span>
             </div>
           ) : isPending ? (
@@ -89,8 +89,8 @@ export const MerchantDashboard: React.FC = () => {
       )}
 
       {isApproved && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-3">
-          <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+        <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-navy-900 text-xs flex items-center gap-3">
+          <ShieldCheck className="w-5 h-5 text-yellow-500 shrink-0" />
           <span>
             Your commercial merchant credentials are fully verified. All bulk shipping endpoints and merchant rates are enabled.
           </span>
@@ -107,7 +107,7 @@ export const MerchantDashboard: React.FC = () => {
 
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
           <span className="text-xs text-slate-500 font-medium">Pending Pickups</span>
-          <h4 className="text-2xl font-bold text-teal-600 mt-1">0</h4>
+          <h4 className="text-2xl font-bold text-yellow-500 mt-1">0</h4>
           <span className="text-[11px] text-slate-400">Awaiting hub pickup</span>
         </div>
 
@@ -119,7 +119,7 @@ export const MerchantDashboard: React.FC = () => {
 
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
           <span className="text-xs text-slate-500 font-medium">API Ingestion Rate</span>
-          <h4 className="text-2xl font-bold text-emerald-600 mt-1">100 req/s</h4>
+          <h4 className="text-2xl font-bold text-yellow-500 mt-1">100 req/s</h4>
           <span className="text-[11px] text-slate-400">Rate limit quota</span>
         </div>
       </div>
@@ -127,7 +127,7 @@ export const MerchantDashboard: React.FC = () => {
       {/* API Key Provisioning Card */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-4">
         <div className="flex items-center gap-2 text-navy-900 font-bold text-base">
-          <Key className="w-5 h-5 text-teal-600" />
+          <Key className="w-5 h-5 text-yellow-500" />
           <span>E-Commerce Integration API Key</span>
         </div>
         <p className="text-xs text-slate-500">
@@ -143,7 +143,7 @@ export const MerchantDashboard: React.FC = () => {
               onClick={copyApiKey}
               className="w-full sm:w-auto px-4 py-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all shrink-0"
             >
-              {copiedKey ? <Check className="w-4 h-4 text-teal-400" /> : <Copy className="w-4 h-4" />}
+              {copiedKey ? <Check className="w-4 h-4 text-yellow-400" /> : <Copy className="w-4 h-4" />}
               <span>{copiedKey ? 'Copied Key!' : 'Copy Key'}</span>
             </button>
           </div>
@@ -164,7 +164,7 @@ export const MerchantDashboard: React.FC = () => {
           </div>
           <button
             disabled={!isApproved}
-            className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold flex items-center gap-1.5"
+            className="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold flex items-center gap-1.5"
           >
             <FileSpreadsheet className="w-4 h-4" />
             <span>Upload Manifest CSV</span>
@@ -182,3 +182,4 @@ export const MerchantDashboard: React.FC = () => {
     </div>
   );
 };
+
