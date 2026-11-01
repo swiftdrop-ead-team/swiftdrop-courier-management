@@ -103,7 +103,7 @@ export const ResetPasswordPage: React.FC = () => {
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   {...register('newPassword')}
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 text-sm outline-none transition-all"
                 />
@@ -130,7 +130,7 @@ export const ResetPasswordPage: React.FC = () => {
                 </div>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   {...register('confirmPassword')}
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 text-sm outline-none transition-all"
                 />
@@ -170,4 +170,3 @@ export const ResetPasswordPage: React.FC = () => {
     </div>
   );
 };
-
