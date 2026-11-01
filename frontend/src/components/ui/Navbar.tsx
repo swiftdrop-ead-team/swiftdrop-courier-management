@@ -4,14 +4,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { Logo } from './Logo';
 import { 
   LogOut, 
-  User as UserIcon, 
   LayoutDashboard, 
   Menu, 
   X, 
   ChevronDown, 
-  PackageCheck,
-  Building2,
-  ShieldCheck
+  Building2 
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -47,8 +44,8 @@ export const Navbar: React.FC = () => {
             <a href="#tracking" className="text-sm font-medium text-slate-600 hover:text-navy-900 transition-colors">
               Track Parcel
             </a>
-            <Link to="/merchant/register" className="text-sm font-medium text-teal-700 hover:text-teal-800 flex items-center gap-1.5 transition-colors">
-              <Building2 className="w-4 h-4" />
+            <Link to="/merchant/register" className="text-sm font-medium text-navy-900 hover:text-yellow-600 flex items-center gap-1.5 transition-colors">
+              <Building2 className="w-4 h-4 text-yellow-500" />
               For Merchants
             </Link>
           </div>
@@ -61,14 +58,14 @@ export const Navbar: React.FC = () => {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-slate-200 hover:border-slate-300 bg-slate-50 transition-all text-left"
                 >
-                  <div className="w-8 h-8 rounded-full bg-navy-900 text-white flex items-center justify-center font-bold text-xs uppercase">
+                  <div className="w-8 h-8 rounded-full bg-navy-900 text-yellow-400 flex items-center justify-center font-bold text-xs uppercase">
                     {user.fullName.charAt(0)}
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs font-semibold text-navy-900 leading-tight">
                       {user.fullName}
                     </span>
-                    <span className="text-[10px] font-medium text-teal-600 uppercase tracking-wide">
+                    <span className="text-[10px] font-bold text-yellow-600 uppercase tracking-wide">
                       {user.roles[0] || 'USER'}
                     </span>
                   </div>
@@ -89,7 +86,7 @@ export const Navbar: React.FC = () => {
                     <Link
                       to={dashboardRoute}
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-yellow-600 transition-colors"
                     >
                       <LayoutDashboard className="w-4 h-4" />
                       Dashboard
@@ -115,7 +112,7 @@ export const Navbar: React.FC = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm hover:shadow transition-all"
+                  className="px-4 py-2 text-sm font-bold text-navy-950 bg-yellow-500 hover:bg-yellow-400 rounded-lg shadow-sm hover:shadow transition-all"
                 >
                   Get Started
                 </Link>
@@ -155,7 +152,7 @@ export const Navbar: React.FC = () => {
           <Link
             to="/merchant/register"
             onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 text-base font-medium text-teal-700 hover:bg-teal-50 rounded-lg"
+            className="block px-3 py-2 text-base font-medium text-yellow-600 hover:bg-yellow-50 rounded-lg"
           >
             Merchant Registration
           </Link>
@@ -192,7 +189,7 @@ export const Navbar: React.FC = () => {
                 <Link
                   to="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-center px-4 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-lg"
+                  className="text-center px-4 py-2.5 text-sm font-bold text-navy-950 bg-yellow-500 rounded-lg"
                 >
                   Sign Up
                 </Link>

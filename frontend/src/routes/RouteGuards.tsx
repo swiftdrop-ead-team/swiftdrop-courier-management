@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole } from '../types/auth';
@@ -10,8 +10,8 @@ export const ProtectedRoute: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#EDEDED]">
+        <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
       </div>
     );
   }
@@ -32,8 +32,8 @@ export const RoleRoute: React.FC<RoleRouteProps> = ({ requiredRole }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#EDEDED]">
+        <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
       </div>
     );
   }
@@ -51,8 +51,8 @@ export const GuestRoute: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#EDEDED]">
+        <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
       </div>
     );
   }
@@ -63,3 +63,4 @@ export const GuestRoute: React.FC = () => {
 
   return <Outlet />;
 };
+
