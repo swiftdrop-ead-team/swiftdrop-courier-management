@@ -6,7 +6,7 @@ spring:
     name: identity-service
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:swiftdrop_identity}}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:swiftdrop_identity}}
     username: ${SPRING_DATASOURCE_USERNAME:${POSTGRES_USER:swiftdrop_user}}
     password: ${SPRING_DATASOURCE_PASSWORD:${POSTGRES_PASSWORD:swiftdrop_secure_pass_2026!}}
     driver-class-name: org.postgresql.Driver
