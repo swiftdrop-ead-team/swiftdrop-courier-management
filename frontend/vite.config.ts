@@ -9,6 +9,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      components: path.resolve(__dirname, './src/soft-ui/components'),
+      examples: path.resolve(__dirname, './src/soft-ui/examples'),
+      assets: path.resolve(__dirname, './src/soft-ui/assets'),
+      context: path.resolve(__dirname, './src/soft-ui/context'),
     },
   },
   server: {
