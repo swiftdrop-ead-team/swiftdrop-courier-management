@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Logo } from '../ui/Logo';
-import { SoftCard } from '../ui/SoftUI';
+import { Sidebar, Menu, MenuItem, Logo } from '../ui/MuiSidebar';
 import { 
   LayoutDashboard, 
   Package, 
@@ -12,12 +11,11 @@ import {
   CheckCircle2, 
   Clock, 
   LogOut, 
-  Bell, 
   Settings,
-  ChevronRight,
   Building2,
   Truck
 } from 'lucide-react';
+import { Box } from '@mui/material';
 
 export const DashboardLayout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -30,14 +28,9 @@ export const DashboardLayout: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-
     const scrollToTarget = () => {
-      document.getElementById(targetId)?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
-
     const frame = window.requestAnimationFrame(scrollToTarget);
     return () => window.cancelAnimationFrame(frame);
   }, [location.pathname, location.hash]);
@@ -51,118 +44,161 @@ export const DashboardLayout: React.FC = () => {
   const isCustomerPreview = location.pathname.startsWith('/customer/dashboard-preview');
   const customerDashboardPath = isCustomerPreview ? '/customer/dashboard-preview' : '/customer/dashboard';
 
-  const getNavigationItems = () => {
+  const getMenuSections = () => {
     switch (role) {
       case 'ADMIN':
         return [
-          { name: 'Admin Overview', path: '/admin/dashboard', icon: LayoutDashboard },
-          { name: 'Pending Approvals', path: '/admin/dashboard#merchants', icon: Clock },
-          { name: 'User Management', path: '/admin/dashboard#users', icon: Users },
+          {
+            heading: 'ADMINISTRATION',
+            items: [
+              { name: 'Admin Overview', path: '/admin/dashboard', icon: LayoutDashboard },
+              { name: 'Pending Approvals', path: '/admin/dashboard#merchants', icon: Clock, badge: 'Live' },
+              { name: 'User Management', path: '/admin/dashboard#users', icon: Users },
+            ],
+          },
         ];
       case 'MERCHANT':
         return [
-          { name: 'Merchant Portal', path: '/merchant/dashboard', icon: LayoutDashboard },
-          { name: 'Parcel Orders', path: '/merchant/dashboard#orders', icon: Package },
-          { name: 'Business Profile', path: '/merchant/dashboard#profile', icon: Building2 },
+          {
+            heading: 'MERCHANT PORTAL',
+            items: [
+              { name: 'Merchant Portal', path: '/merchant/dashboard', icon: LayoutDashboard },
+              { name: 'Parcel Orders', path: '/merchant/dashboard#orders', icon: Package },
+              { name: 'Business Profile', path: '/merchant/dashboard#profile', icon: Building2 },
+            ],
+          },
         ];
       case 'COURIER':
         return [
-          { name: 'Courier Console', path: '/courier/dashboard', icon: LayoutDashboard },
-          { name: 'Assigned Drops', path: '/courier/dashboard#deliveries', icon: Truck },
-          { name: 'Active Route', path: '/courier/dashboard#route', icon: MapPin },
+          {
+            heading: 'DISPATCH CONSOLE',
+            items: [
+              { name: 'Courier Console', path: '/courier/dashboard', icon: LayoutDashboard },
+              { name: 'Assigned Drops', path: '/courier/dashboard#deliveries', icon: Truck },
+              { name: 'Active Route', path: '/courier/dashboard#route', icon: MapPin },
+            ],
+          },
         ];
       case 'CUSTOMER':
       default:
         return [
-          { name: 'Overview', path: `${customerDashboardPath}/overview`, icon: LayoutDashboard },
-          { name: 'Send Parcel', path: `${customerDashboardPath}/send`, icon: Send },
-          { name: 'Track Shipment', path: `${customerDashboardPath}/track`, icon: MapPin },
-          { name: 'Delivery History', path: `${customerDashboardPath}/history`, icon: CheckCircle2 },
-          { name: 'Profile & Settings', path: `${customerDashboardPath}/settings`, icon: Settings },
+          {
+            heading: 'HOME',
+            items: [
+              { name: 'Overview', path: `${customerDashboardPath}/overview`, icon: LayoutDashboard },
+            ],
+          },
+          {
+            heading: 'DELIVERIES',
+            items: [
+              { name: 'Send Parcel', path: `${customerDashboardPath}/send`, icon: Send, badge: 'New' },
+              { name: 'Track Shipment', path: `${customerDashboardPath}/track`, icon: MapPin },
+              { name: 'Delivery History', path: `${customerDashboardPath}/history`, icon: CheckCircle2 },
+            ],
+          },
+          {
+            heading: 'ACCOUNT',
+            items: [
+              { name: 'Profile & Settings', path: `${customerDashboardPath}/settings`, icon: Settings },
+            ],
+          },
         ];
     }
   };
 
-  const navItems = getNavigationItems();
+  const menuSections = getMenuSections();
 
   const getRoleBadgeColor = () => {
     switch (role) {
-      case 'ADMIN': return 'bg-purple-100 text-purple-700 border-purple-200';
-      case 'MERCHANT': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'COURIER': return 'bg-amber-100 text-amber-700 border-amber-200';
-      default: return 'bg-yellow-400/20 text-yellow-700 border-yellow-500/30';
+      case 'ADMIN':    return 'bg-purple-100 text-purple-800 border border-purple-200';
+      case 'MERCHANT': return 'bg-blue-100   text-blue-800   border border-blue-200';
+      case 'COURIER':  return 'bg-amber-100  text-amber-800  border border-amber-200';
+      default:         return 'bg-blue-100 text-blue-900 border border-blue-200';
     }
   };
 
   return (
-    <div className="soft-ui-shell min-h-screen flex flex-col md:flex-row">
-      {/* Sidebar (Desktop) */}
-      <aside className="soft-ui-sidebar w-full md:w-64 flex flex-col shrink-0">
-        {/* Brand header */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-200/70">
-          <Link to="/">
-            <Logo size="md" />
-          </Link>
-        </div>
+    <div className="soft-ui-shell min-h-screen flex flex-col md:flex-row bg-[#f8fafc]">
+
+      {/* ── Material UI Sidebar Container (270px, fits the page flush) ── */}
+      <Sidebar
+        width="270px"
+        sx={{
+          m: 0,
+          height: '100vh',
+          borderRadius: 0,
+          border: 0,
+          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: 'none',
+        }}
+      >
+        {/* Logo Component */}
+        <Logo
+          icon={<Package size={20} />}
+          subtitle="Logistics Platform"
+          link="/"
+        >
+          SwiftDrop
+        </Logo>
 
         {/* User Card */}
-        <SoftCard className="p-4 mx-3 my-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-navy-900 text-white font-bold text-sm flex items-center justify-center shrink-0">
+        <Box sx={{ p: 1.5, mx: 2, my: 1.5, borderRadius: 2.5, bgcolor: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 text-navy-950 font-extrabold text-xs flex items-center justify-center shrink-0 shadow-md">
             {user?.fullName.charAt(0)}
           </div>
-          <div className="overflow-hidden">
-            <h4 className="text-sm font-semibold text-navy-900 truncate">{user?.fullName}</h4>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getRoleBadgeColor()}`}>
-                {role}
-              </span>
-            </div>
+          <div className="overflow-hidden min-w-0">
+            <h4 className="text-xs font-bold text-white truncate">{user?.fullName}</h4>
+            <span className={`mt-0.5 inline-block text-[9px] font-bold px-1.5 py-0.2 rounded-full ${getRoleBadgeColor()}`}>
+              {role}
+            </span>
           </div>
-        </SoftCard>
+        </Box>
 
-        {/* Navigation items */}
-        <nav className="flex-1 px-3 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const [itemPath, itemHash] = item.path.split('#');
-            const isActive = location.pathname === itemPath && (!itemHash || location.hash === `#${itemHash}`);
-            return (
-              <Link
-                key={item.name}
-                to={item.path}
-                aria-current={isActive ? 'page' : undefined}
-                className={`soft-ui-nav-item flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-navy-900 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-navy-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-yellow-400' : 'text-slate-400'}`} />
-                  <span>{item.name}</span>
-                </div>
-                {isActive && <ChevronRight className="w-3.5 h-3.5 text-yellow-400" />}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Dynamic MUI Menu Sections */}
+        <Box sx={{ flex: 1, py: 1 }}>
+          {menuSections.map((section) => (
+            <Menu key={section.heading} subHeading={section.heading}>
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                const [itemPath, itemHash] = item.path.split('#');
+                const isActive =
+                  location.pathname === itemPath &&
+                  (!itemHash || location.hash === `#${itemHash}`);
 
-        {/* Bottom logout action */}
-        <div className="p-4 border-t border-slate-200">
+                return (
+                  <MenuItem
+                    key={item.name}
+                    link={item.path}
+                    icon={<Icon size={18} />}
+                    active={isActive}
+                    badge={item.badge}
+                    badgeColor="primary"
+                  >
+                    {item.name}
+                  </MenuItem>
+                );
+              })}
+            </Menu>
+          ))}
+        </Box>
+
+        {/* Logout at bottom */}
+        <Box sx={{ p: 2, mt: 'auto', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl border border-red-300/30 bg-red-950/25 text-xs font-bold text-red-200 hover:bg-red-600/35 hover:border-red-200/50 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>
           </button>
-        </div>
-      </aside>
+        </Box>
+      </Sidebar>
 
-      {/* Main Content Area */}
+      {/* ── Main Content Area ── */}
       <div className="flex-1 flex flex-col min-w-0">
+
         {/* Top Header bar */}
-        <header className="soft-ui-header h-16 px-6 flex items-center justify-between">
+        <header className="soft-ui-header h-16 px-6 flex items-center justify-between bg-white border-b border-slate-200">
           <div>
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
               SwiftDrop Logistics Platform
@@ -173,9 +209,13 @@ export const DashboardLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
-              <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+            <div className="hidden sm:flex items-center gap-2 text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-200 font-medium">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               <span>Identity Service Connected</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs bg-blue-50 text-blue-900 px-3 py-1.5 rounded-full border border-blue-200 font-semibold">
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              <span>SwiftDrop</span>
             </div>
           </div>
         </header>

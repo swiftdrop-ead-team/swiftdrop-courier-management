@@ -1,7 +1,7 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
 
-type SoftColor = 'primary' | 'info' | 'success' | 'warning' | 'dark';
+type SoftColor = 'primary' | 'info' | 'success' | 'warning' | 'danger' | 'dark';
 
 interface SoftCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
