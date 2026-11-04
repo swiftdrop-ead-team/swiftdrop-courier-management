@@ -2,7 +2,6 @@ package com.swiftdrop.dispatch.service;
 
 import com.swiftdrop.dispatch.event.CourierAssignedEvent;
 import com.swiftdrop.dispatch.event.DeliveryStatusUpdatedEvent;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
  * from Notification Service, Tracking Service, and Merchant Webhooks.
  */
 @Service
-@RequiredArgsConstructor
 public class EventPublisherService {
 
     private static final Logger log = LoggerFactory.getLogger(EventPublisherService.class);
