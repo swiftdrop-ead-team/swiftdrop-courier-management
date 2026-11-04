@@ -21,6 +21,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implementation of DispatchAssignmentService.
+ * Coordinates courier parcel allocation, lifecycle state progression,
+ * Proof of Delivery recording, and RabbitMQ event notifications.
+ */
 @Service
 @RequiredArgsConstructor
 public class DispatchAssignmentServiceImpl implements DispatchAssignmentService {
@@ -32,6 +37,7 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
     private final ProofOfDeliveryRepository proofOfDeliveryRepository;
     private final EventPublisherService eventPublisherService;
 
+    // List of active delivery statuses that consume a courier's delivery capacity
     private static final List<AssignmentStatus> ACTIVE_STATUSES = List.of(
             AssignmentStatus.ASSIGNED,
             AssignmentStatus.PICKED_UP,
@@ -39,18 +45,30 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
             AssignmentStatus.OUT_FOR_DELIVERY
     );
 
+    /**
+     * Assigns a parcel to an available courier.
+     * 1. Checks courier exists in database.
+     * 2. Checks courier is not OFFLINE.
+     * 3. Checks courier has not exceeded maximum active delivery capacity.
+     * 4. Checks parcel is not already actively assigned.
+     * 5. Saves assignment, increments courier's active delivery count.
+     * 6. Publishes CourierAssignedEvent to RabbitMQ.
+     */
     @Override
     @Transactional
     public DispatchAssignmentResponse assignCourier(AssignCourierRequest request) {
         log.info("Assigning parcel: {} to courierId: {}", request.getParcelId(), request.getCourierId());
 
+        // Step 1: Verify courier exists
         Courier courier = courierRepository.findById(request.getCourierId())
                 .orElseThrow(() -> new ResourceNotFoundException("Courier not found with id: " + request.getCourierId()));
 
+        // Step 2: Verify courier is online
         if (courier.getStatus() == CourierStatus.OFFLINE) {
             throw new CourierUnavailableException("Courier '" + courier.getFullName() + "' is currently OFFLINE");
         }
 
+        // Step 3: Validate workload capacity (prevents overloading courier)
         if (!courier.canAcceptMoreDeliveries()) {
             throw new CourierOverloadException(String.format(
                     "Courier '%s' has reached maximum active delivery limit (%d/%d)",
@@ -58,13 +76,14 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
             ));
         }
 
-        // Check if parcel is already actively assigned
+        // Step 4: Verify parcel is not already assigned and active
         Optional<DispatchAssignment> existingAssignment = assignmentRepository.findByParcelId(request.getParcelId());
         if (existingAssignment.isPresent() && ACTIVE_STATUSES.contains(existingAssignment.get().getStatus())) {
             throw new InvalidAssignmentException("Parcel '" + request.getParcelId() + "' is already assigned to a courier with status: "
                     + existingAssignment.get().getStatus());
         }
 
+        // Step 5: Create and save assignment record
         DispatchAssignment assignment = DispatchAssignment.builder()
                 .parcelId(request.getParcelId())
                 .courier(courier)
@@ -78,11 +97,12 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
                 .assignedAt(LocalDateTime.now())
                 .build();
 
+        // Increment active delivery count for the courier
         courier.incrementDeliveries();
         courierRepository.save(courier);
         DispatchAssignment savedAssignment = assignmentRepository.save(assignment);
 
-        // Publish event to RabbitMQ
+        // Step 6: Publish event to RabbitMQ for Notification Service
         CourierAssignedEvent event = CourierAssignedEvent.builder()
                 .assignmentId(savedAssignment.getId())
                 .parcelId(savedAssignment.getParcelId())
@@ -102,6 +122,11 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
         return mapToResponse(savedAssignment);
     }
 
+    /**
+     * Updates delivery lifecycle status (e.g. IN_TRANSIT, DELIVERED, FAILED).
+     * If reaching terminal status (DELIVERED, FAILED, CANCELLED), decrements courier's active load.
+     * Publishes DeliveryStatusUpdatedEvent to RabbitMQ.
+     */
     @Override
     @Transactional
     public DispatchAssignmentResponse updateAssignmentStatus(Long assignmentId, UpdateAssignmentStatusRequest request) {
@@ -118,6 +143,7 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
             assignment.setNotes(request.getNotes());
         }
 
+        // Require failure reason if status is FAILED
         if (newStatus == AssignmentStatus.FAILED) {
             if (request.getFailureReason() == null || request.getFailureReason().isBlank()) {
                 throw new InvalidAssignmentException("Failure reason is mandatory when marking delivery as FAILED");
@@ -125,7 +151,7 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
             assignment.setFailureReason(request.getFailureReason());
         }
 
-        // If completed or failed, decrement courier deliveries
+        // If transitioning from active to terminal state, free up courier capacity
         boolean wasActive = ACTIVE_STATUSES.contains(previousStatus);
         boolean isNowTerminal = !ACTIVE_STATUSES.contains(newStatus);
 
@@ -157,6 +183,11 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
         return mapToResponse(updated);
     }
 
+    /**
+     * Submits Proof of Delivery (POD) when recipient receives package.
+     * Records recipient name, signature URL, photo URL.
+     * Sets assignment status to DELIVERED and frees courier workload.
+     */
     @Override
     @Transactional
     public ProofOfDeliveryResponse submitProofOfDelivery(Long assignmentId, ProofOfDeliveryRequest request) {
@@ -169,6 +200,7 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
             throw new InvalidAssignmentException("Proof of delivery already recorded for assignment: " + assignmentId);
         }
 
+        // Build and save ProofOfDelivery record
         ProofOfDelivery pod = ProofOfDelivery.builder()
                 .assignment(assignment)
                 .recipientName(request.getRecipientName())
@@ -182,7 +214,7 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
         ProofOfDelivery savedPod = proofOfDeliveryRepository.save(pod);
         assignment.setProofOfDelivery(savedPod);
 
-        // Update status to DELIVERED if not already
+        // Complete delivery lifecycle if not already DELIVERED
         if (assignment.getStatus() != AssignmentStatus.DELIVERED) {
             AssignmentStatus prevStatus = assignment.getStatus();
             assignment.setStatus(AssignmentStatus.DELIVERED);
@@ -191,6 +223,7 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
             courierRepository.save(assignment.getCourier());
             assignmentRepository.save(assignment);
 
+            // Publish status event to RabbitMQ
             eventPublisherService.publishDeliveryStatusUpdated(DeliveryStatusUpdatedEvent.builder()
                     .assignmentId(assignment.getId())
                     .parcelId(assignment.getParcelId())
@@ -206,6 +239,9 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
         return mapToProofResponse(savedPod);
     }
 
+    /**
+     * Retrieves all dispatch assignments.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<DispatchAssignmentResponse> getAllAssignments() {
@@ -214,6 +250,9 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
                 .toList();
     }
 
+    /**
+     * Retrieves an assignment by ID.
+     */
     @Override
     @Transactional(readOnly = true)
     public DispatchAssignmentResponse getAssignmentById(Long id) {
@@ -222,6 +261,9 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
         return mapToResponse(assignment);
     }
 
+    /**
+     * Retrieves an assignment by its tracking number.
+     */
     @Override
     @Transactional(readOnly = true)
     public DispatchAssignmentResponse getAssignmentByTrackingNumber(String trackingNumber) {
@@ -230,6 +272,9 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
         return mapToResponse(assignment);
     }
 
+    /**
+     * Retrieves all assignments for a courier.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<DispatchAssignmentResponse> getAssignmentsByCourier(Long courierId) {
@@ -238,6 +283,9 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
                 .toList();
     }
 
+    /**
+     * Retrieves in-progress / active assignments for a courier.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<DispatchAssignmentResponse> getActiveAssignmentsByCourier(Long courierId) {
@@ -246,6 +294,9 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
                 .toList();
     }
 
+    /**
+     * Retrieves Proof of Delivery details for an assignment.
+     */
     @Override
     @Transactional(readOnly = true)
     public ProofOfDeliveryResponse getProofOfDelivery(Long assignmentId) {
@@ -254,6 +305,9 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
         return mapToProofResponse(pod);
     }
 
+    /**
+     * Helper method to map DispatchAssignment JPA entity to DispatchAssignmentResponse DTO.
+     */
     private DispatchAssignmentResponse mapToResponse(DispatchAssignment a) {
         return DispatchAssignmentResponse.builder()
                 .id(a.getId())
@@ -276,6 +330,9 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
                 .build();
     }
 
+    /**
+     * Helper method to map ProofOfDelivery JPA entity to ProofOfDeliveryResponse DTO.
+     */
     private ProofOfDeliveryResponse mapToProofResponse(ProofOfDelivery p) {
         return ProofOfDeliveryResponse.builder()
                 .id(p.getId())
@@ -289,4 +346,3 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
                 .build();
     }
 }
-
