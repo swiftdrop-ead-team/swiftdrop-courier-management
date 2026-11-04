@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { SoftCard, SoftStatCard } from '../../components/ui/SoftUI';
 import { 
   Building2, 
   Clock, 
@@ -33,7 +34,7 @@ export const MerchantDashboard: React.FC = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Business Header & Status */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <SoftCard className="p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Building2 className="w-5 h-5 text-yellow-500" />
@@ -65,7 +66,7 @@ export const MerchantDashboard: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
+      </SoftCard>
 
       {/* Approval Status Workflow Banner */}
       {isPending && (
@@ -99,33 +100,14 @@ export const MerchantDashboard: React.FC = () => {
 
       {/* Merchant Overview Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Monthly Shipments</span>
-          <h4 className="text-2xl font-bold text-navy-900 mt-1">0</h4>
-          <span className="text-[11px] text-slate-400">Current billing cycle</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Pending Pickups</span>
-          <h4 className="text-2xl font-bold text-yellow-500 mt-1">0</h4>
-          <span className="text-[11px] text-slate-400">Awaiting hub pickup</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Volume Tier</span>
-          <h4 className="text-2xl font-bold text-navy-900 mt-1">Tier 1</h4>
-          <span className="text-[11px] text-slate-400">5% base rebate</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">API Ingestion Rate</span>
-          <h4 className="text-2xl font-bold text-yellow-500 mt-1">100 req/s</h4>
-          <span className="text-[11px] text-slate-400">Rate limit quota</span>
-        </div>
+        <SoftStatCard label="Monthly Shipments" value="0" helper="Current billing cycle" icon={Package} color="info" />
+        <SoftStatCard label="Pending Pickups" value="0" helper="Awaiting hub pickup" icon={Clock} color="warning" />
+        <SoftStatCard label="Volume Tier" value="Tier 1" helper="5% base rebate" icon={TrendingUp} color="success" />
+        <SoftStatCard label="API Ingestion Rate" value="100 req/s" helper="Rate limit quota" icon={ShieldCheck} color="primary" />
       </div>
 
       {/* API Key Provisioning Card */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-4">
+      <SoftCard className="p-6 sm:p-8 space-y-4">
         <div className="flex items-center gap-2 text-navy-900 font-bold text-base">
           <Key className="w-5 h-5 text-yellow-500" />
           <span>E-Commerce Integration API Key</span>
@@ -153,10 +135,10 @@ export const MerchantDashboard: React.FC = () => {
             <span>API keys are locked until commercial verification is approved by administrator.</span>
           </div>
         )}
-      </div>
+      </SoftCard>
 
       {/* Bulk Orders Placeholder */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+      <SoftCard className="p-6 sm:p-8">
         <div className="flex justify-between items-center pb-6 border-b border-slate-100">
           <div>
             <h3 className="text-lg font-bold text-navy-900">Bulk Manifest Ingestion</h3>
@@ -178,8 +160,7 @@ export const MerchantDashboard: React.FC = () => {
             Upload CSV shipment manifests to batch-create hundreds of parcel waybills simultaneously.
           </p>
         </div>
-      </div>
+      </SoftCard>
     </div>
   );
 };
-

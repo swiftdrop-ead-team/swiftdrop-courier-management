@@ -82,6 +82,13 @@ export const LandingPage: React.FC = () => {
                 Merchant solutions
               </Link>
             </div>
+            <Link
+              to="/customer/dashboard-preview"
+              className="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-slate-300 transition-colors hover:text-accent"
+            >
+              Preview customer dashboard
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
 
             <div className="mt-12 flex items-end gap-3">
               <div className="w-28 border border-white/10 bg-white/10 px-4 py-4 backdrop-blur-sm">

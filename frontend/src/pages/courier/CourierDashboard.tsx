@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { SoftBadge, SoftCard, SoftStatCard } from '../../components/ui/SoftUI';
 import { 
   Truck, 
   MapPin, 
@@ -20,7 +21,7 @@ export const CourierDashboard: React.FC = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header & Online Status Toggle */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+      <SoftCard className="p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Truck className="w-5 h-5 text-amber-600" />
@@ -43,39 +44,41 @@ export const CourierDashboard: React.FC = () => {
           <Power className={`w-4 h-4 ${isOnline ? 'text-yellow-500' : 'text-slate-400'}`} />
           <span>{isOnline ? 'ONLINE: ACCEPTING DROPS' : 'OFFLINE'}</span>
         </button>
-      </div>
+      </SoftCard>
 
       {/* Real-Time Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Assigned Manifest Drops</span>
-          <h4 className="text-2xl font-bold text-navy-900 mt-1">0</h4>
-          <span className="text-[11px] text-slate-400">Current run sequence</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Delivered Today</span>
-          <h4 className="text-2xl font-bold text-yellow-500 mt-1">0</h4>
-          <span className="text-[11px] text-slate-400">100% on-time rating</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Estimated Distance</span>
-          <h4 className="text-2xl font-bold text-navy-900 mt-1">0.0 km</h4>
-          <span className="text-[11px] text-slate-400">Route optimization active</span>
-        </div>
+        <SoftStatCard
+          label="Assigned Manifest Drops"
+          value="0"
+          helper="Current run sequence"
+          icon={Layers}
+          color="info"
+        />
+        <SoftStatCard
+          label="Delivered Today"
+          value="0"
+          helper="100% on-time rating"
+          icon={CheckCircle2}
+          color="success"
+        />
+        <SoftStatCard
+          label="Estimated Distance"
+          value="0.0 km"
+          helper="Route optimization active"
+          icon={MapPin}
+          color="warning"
+        />
       </div>
 
       {/* Assigned Deliveries Manifest Placeholder */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+      <SoftCard className="p-6 sm:p-8">
         <div className="flex justify-between items-center pb-6 border-b border-slate-100">
           <div>
             <h3 className="text-lg font-bold text-navy-900">Current Run Manifest</h3>
             <p className="text-xs text-slate-500">Scheduled for Member 5's Dispatch & Route Optimization Service</p>
           </div>
-          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-            Route Standby
-          </span>
+          <SoftBadge color="warning">Route Standby</SoftBadge>
         </div>
 
         {/* Empty state */}
@@ -88,7 +91,7 @@ export const CourierDashboard: React.FC = () => {
             When sorting hubs batch-assign delivery manifests to your vehicle, turn-by-turn waypoints and recipient signatures will show here.
           </p>
         </div>
-      </div>
+      </SoftCard>
     </div>
   );
 };

@@ -2,6 +2,7 @@
 import { useAuth } from '../../hooks/useAuth';
 import { adminService } from '../../services/authService';
 import { User, PendingMerchant } from '../../types/auth';
+import { SoftBadge, SoftCard, SoftStatCard } from '../../components/ui/SoftUI';
 import { 
   Users, 
   CheckCircle, 
@@ -99,7 +100,7 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Admin Header */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-navy-900 text-white shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+      <div className="soft-ui-hero">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-yellow-400" />
@@ -140,37 +141,16 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Admin Summary Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Total Registered Users</span>
-          <h4 className="text-2xl font-bold text-navy-900 mt-1">{users.length}</h4>
-          <span className="text-[11px] text-slate-400">Database user accounts</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Pending Merchant Approvals</span>
-          <h4 className="text-2xl font-bold text-amber-600 mt-1">{pendingMerchants.length}</h4>
-          <span className="text-[11px] text-slate-400">Action required</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Field Couriers</span>
-          <h4 className="text-2xl font-bold text-navy-900 mt-1">
-            {users.filter(u => u.roles.includes('COURIER')).length}
-          </h4>
-          <span className="text-[11px] text-slate-400">Active personnel</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Identity Service Status</span>
-          <h4 className="text-2xl font-bold text-yellow-500 mt-1">HEALTHY</h4>
-          <span className="text-[11px] text-slate-400">Spring Boot 3.4.3 on Port 8081</span>
-        </div>
+        <SoftStatCard label="Total Registered Users" value={users.length} helper="Database user accounts" icon={Users} color="info" />
+        <SoftStatCard label="Pending Merchant Approvals" value={pendingMerchants.length} helper="Action required" icon={Clock} color="warning" />
+        <SoftStatCard label="Field Couriers" value={users.filter(u => u.roles.includes('COURIER')).length} helper="Active personnel" icon={ShieldCheck} color="success" />
+        <SoftStatCard label="Identity Service Status" value="HEALTHY" helper="Spring Boot identity service" icon={CheckCircle} color="success" />
       </div>
 
       {/* ==================================================================== */}
       {/* 1. Pending Merchant Approvals Table (Live Action)                    */}
       {/* ==================================================================== */}
-      <div id="merchants" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-5">
+      <SoftCard id="merchants" className="p-6 sm:p-8 space-y-5">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-100 gap-2">
           <div>
             <div className="flex items-center gap-2">
@@ -218,9 +198,7 @@ export const AdminDashboard: React.FC = () => {
                       {merchant.businessAddress}
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                        PENDING
-                      </span>
+                      <SoftBadge color="warning">PENDING</SoftBadge>
                     </td>
                     <td className="py-3.5 px-4 text-right space-x-2 whitespace-nowrap">
                       <button
@@ -246,12 +224,12 @@ export const AdminDashboard: React.FC = () => {
             </table>
           </div>
         )}
-      </div>
+      </SoftCard>
 
       {/* ==================================================================== */}
       {/* 2. Registered Users Management Table                                 */}
       {/* ==================================================================== */}
-      <div id="users" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-5">
+      <SoftCard id="users" className="p-6 sm:p-8 space-y-5">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-100 gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -342,7 +320,7 @@ export const AdminDashboard: React.FC = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </SoftCard>
     </div>
   );
 };

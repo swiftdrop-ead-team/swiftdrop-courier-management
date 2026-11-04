@@ -1,7 +1,8 @@
-﻿import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Logo } from '../ui/Logo';
+import { SoftCard } from '../ui/SoftUI';
 import { 
   LayoutDashboard, 
   Package, 
@@ -14,7 +15,6 @@ import {
   Bell, 
   Settings,
   ChevronRight,
-  ShieldCheck,
   Building2,
   Truck
 } from 'lucide-react';
@@ -24,12 +24,32 @@ export const DashboardLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    const targetId = location.hash.slice(1);
+    if (!targetId) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const scrollToTarget = () => {
+      document.getElementById(targetId)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    };
+
+    const frame = window.requestAnimationFrame(scrollToTarget);
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.pathname, location.hash]);
+
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
 
   const role = user?.roles[0] || 'CUSTOMER';
+  const isCustomerPreview = location.pathname.startsWith('/customer/dashboard-preview');
+  const customerDashboardPath = isCustomerPreview ? '/customer/dashboard-preview' : '/customer/dashboard';
 
   const getNavigationItems = () => {
     switch (role) {
@@ -54,9 +74,11 @@ export const DashboardLayout: React.FC = () => {
       case 'CUSTOMER':
       default:
         return [
-          { name: 'My Deliveries', path: '/customer/dashboard', icon: LayoutDashboard },
-          { name: 'Send Parcel', path: '/customer/dashboard#book', icon: Send },
-          { name: 'Live Tracking', path: '/customer/dashboard#track', icon: MapPin },
+          { name: 'Overview', path: `${customerDashboardPath}/overview`, icon: LayoutDashboard },
+          { name: 'Send Parcel', path: `${customerDashboardPath}/send`, icon: Send },
+          { name: 'Track Shipment', path: `${customerDashboardPath}/track`, icon: MapPin },
+          { name: 'Delivery History', path: `${customerDashboardPath}/history`, icon: CheckCircle2 },
+          { name: 'Profile & Settings', path: `${customerDashboardPath}/settings`, icon: Settings },
         ];
     }
   };
@@ -73,18 +95,18 @@ export const DashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#EDEDED] flex flex-col md:flex-row">
+    <div className="soft-ui-shell min-h-screen flex flex-col md:flex-row">
       {/* Sidebar (Desktop) */}
-      <aside className="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
+      <aside className="soft-ui-sidebar w-full md:w-64 flex flex-col shrink-0">
         {/* Brand header */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-200">
+        <div className="h-16 flex items-center px-6 border-b border-slate-200/70">
           <Link to="/">
             <Logo size="md" />
           </Link>
         </div>
 
         {/* User Card */}
-        <div className="p-4 mx-3 my-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3">
+        <SoftCard className="p-4 mx-3 my-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-navy-900 text-white font-bold text-sm flex items-center justify-center shrink-0">
             {user?.fullName.charAt(0)}
           </div>
@@ -96,18 +118,20 @@ export const DashboardLayout: React.FC = () => {
               </span>
             </div>
           </div>
-        </div>
+        </SoftCard>
 
         {/* Navigation items */}
         <nav className="flex-1 px-3 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const [itemPath, itemHash] = item.path.split('#');
+            const isActive = location.pathname === itemPath && (!itemHash || location.hash === `#${itemHash}`);
             return (
               <Link
                 key={item.name}
                 to={item.path}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                aria-current={isActive ? 'page' : undefined}
+                className={`soft-ui-nav-item flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   isActive
                     ? 'bg-navy-900 text-white shadow-sm'
                     : 'text-slate-600 hover:text-navy-900 hover:bg-slate-50'
@@ -138,7 +162,7 @@ export const DashboardLayout: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header bar */}
-        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
+        <header className="soft-ui-header h-16 px-6 flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
               SwiftDrop Logistics Platform
@@ -157,11 +181,10 @@ export const DashboardLayout: React.FC = () => {
         </header>
 
         {/* Dynamic Outlet */}
-        <main className="flex-1 p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="soft-ui-dashboard flex-1 p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
       </div>
     </div>
   );
 };
-

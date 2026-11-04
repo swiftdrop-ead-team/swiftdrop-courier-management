@@ -1,23 +1,44 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { MainLayout } from '../components/layout/MainLayout';
-import { DashboardLayout } from '../components/layout/DashboardLayout';
-import { ProtectedRoute, RoleRoute, GuestRoute } from './RouteGuards';
+import React, { lazy, Suspense } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { MainLayout } from "../components/layout/MainLayout";
+import { DashboardLayout } from "../components/layout/DashboardLayout";
+import { ProtectedRoute, RoleRoute, GuestRoute } from "./RouteGuards";
 
 // Pages
-import { LandingPage } from '../pages/LandingPage';
-import { LoginPage } from '../pages/auth/LoginPage';
-import { RegisterPage } from '../pages/auth/RegisterPage';
-import { MerchantRegisterPage } from '../pages/auth/MerchantRegisterPage';
-import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage';
-import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage';
-import { AuthCallbackPage } from '../pages/auth/AuthCallbackPage';
+import { LandingPage } from "../pages/LandingPage";
+import { LoginPage } from "../pages/auth/LoginPage";
+import { RegisterPage } from "../pages/auth/RegisterPage";
+import { MerchantRegisterPage } from "../pages/auth/MerchantRegisterPage";
+import { ForgotPasswordPage } from "../pages/auth/ForgotPasswordPage";
+import { ResetPasswordPage } from "../pages/auth/ResetPasswordPage";
+import { AuthCallbackPage } from "../pages/auth/AuthCallbackPage";
 
 // Dashboards
-import { CustomerDashboard } from '../pages/customer/CustomerDashboard';
-import { MerchantDashboard } from '../pages/merchant/MerchantDashboard';
-import { CourierDashboard } from '../pages/courier/CourierDashboard';
-import { AdminDashboard } from '../pages/admin/AdminDashboard';
+import { MerchantDashboard } from "../pages/merchant/MerchantDashboard";
+import { CourierDashboard } from "../pages/courier/CourierDashboard";
+import { AdminDashboard } from "../pages/admin/AdminDashboard";
+
+const CustomerDashboardLayout = lazy(() =>
+  import("../components/layout/CustomerDashboardLayout").then((module) => ({
+    default: module.CustomerDashboardLayout,
+  })),
+);
+const CustomerDashboard = lazy(() =>
+  import("../pages/customer/CustomerDashboard").then((module) => ({
+    default: module.CustomerDashboard,
+  })),
+);
+const customerLayout = (
+  <Suspense
+    fallback={
+      <div role="status" className="p-8">
+        Loading your workspace...
+      </div>
+    }
+  >
+    <CustomerDashboardLayout />
+  </Suspense>
+);
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -39,14 +60,36 @@ export const AppRoutes: React.FC = () => {
       {/* OAuth2 Callback Handler */}
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
+      {/* Temporary frontend-only customer dashboard preview */}
+      <Route element={customerLayout}>
+        <Route
+          path="/customer/dashboard-preview"
+          element={
+            <Navigate to="/customer/dashboard-preview/overview" replace />
+          }
+        />
+        <Route
+          path="/customer/dashboard-preview/:tab"
+          element={<CustomerDashboard previewMode />}
+        />
+      </Route>
+
       {/* Authenticated Dashboard Routes */}
       <Route element={<ProtectedRoute />}>
-        <Route element={<DashboardLayout />}>
+        <Route element={customerLayout}>
           {/* Customer Dashboard */}
           <Route element={<RoleRoute requiredRole="CUSTOMER" />}>
-            <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+            <Route
+              path="/customer/dashboard"
+              element={<Navigate to="/customer/dashboard/overview" replace />}
+            />
+            <Route
+              path="/customer/dashboard/:tab"
+              element={<CustomerDashboard />}
+            />
           </Route>
-
+        </Route>
+        <Route element={<DashboardLayout />}>
           {/* Merchant Dashboard */}
           <Route element={<RoleRoute requiredRole="MERCHANT" />}>
             <Route path="/merchant/dashboard" element={<MerchantDashboard />} />
