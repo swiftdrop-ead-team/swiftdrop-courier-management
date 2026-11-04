@@ -26,6 +26,27 @@ services:
       - swiftdrop-net
 
   # ==============================================================================
+  # Message Broker — RabbitMQ 3
+  # ==============================================================================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: swiftdrop-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - swiftdrop-net
+
+  # ==============================================================================
   # Identity Microservice — Spring Boot 3.4.x / Java 21 (Port 8081)
   # ==============================================================================
   identity-service:
@@ -60,6 +81,40 @@ services:
       - swiftdrop-net
 
   # ==============================================================================
+  # Dispatch Microservice — Spring Boot 3.4.x / Java 21 (Port 8084 - Member 5)
+  # ==============================================================================
+  dispatch-service:
+    build:
+      context: ./services/dispatch-service
+      dockerfile: Dockerfile
+    container_name: swiftdrop-dispatch-service
+    restart: unless-stopped
+    ports:
+      - "${DISPATCH_SERVICE_PORT:-8084}:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DISPATCH_DB:-swiftdrop_dispatch}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    networks:
+      - swiftdrop-net
+
+  # ==============================================================================
   # API Gateway — Spring Cloud Gateway (Port 8080)
   # ==============================================================================
   gateway:
@@ -73,9 +128,12 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       IDENTITY_SERVICE_URL: http://identity-service:8081
+      DISPATCH_SERVICE_URL: http://dispatch-service:8084
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     depends_on:
       identity-service:
+        condition: service_healthy
+      dispatch-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
