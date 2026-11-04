@@ -28,6 +28,10 @@ public class CourierServiceImpl implements CourierService {
 
     private final CourierRepository courierRepository;
 
+    public CourierServiceImpl(CourierRepository courierRepository) {
+        this.courierRepository = courierRepository;
+    }
+
     /**
      * Registers a new courier in the system.
      * Validates that the userId is not already taken.

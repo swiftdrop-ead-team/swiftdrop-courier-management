@@ -37,6 +37,17 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
     private final ProofOfDeliveryRepository proofOfDeliveryRepository;
     private final EventPublisherService eventPublisherService;
 
+    public DispatchAssignmentServiceImpl(
+            DispatchAssignmentRepository assignmentRepository,
+            CourierRepository courierRepository,
+            ProofOfDeliveryRepository proofOfDeliveryRepository,
+            EventPublisherService eventPublisherService) {
+        this.assignmentRepository = assignmentRepository;
+        this.courierRepository = courierRepository;
+        this.proofOfDeliveryRepository = proofOfDeliveryRepository;
+        this.eventPublisherService = eventPublisherService;
+    }
+
     // List of active delivery statuses that consume a courier's delivery capacity
     private static final List<AssignmentStatus> ACTIVE_STATUSES = List.of(
             AssignmentStatus.ASSIGNED,

@@ -24,6 +24,10 @@ public class CourierController {
 
     private final CourierService courierService;
 
+    public CourierController(CourierService courierService) {
+        this.courierService = courierService;
+    }
+
     /**
      * Registers a new courier profile.
      * HTTP POST /api/v1/dispatch/couriers

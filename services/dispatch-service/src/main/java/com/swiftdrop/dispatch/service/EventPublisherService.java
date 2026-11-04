@@ -23,6 +23,10 @@ public class EventPublisherService {
     // RabbitTemplate injected by Spring AMQP for publishing messages
     private final RabbitTemplate rabbitTemplate;
 
+    public EventPublisherService(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
+    }
+
     // Exchange name configured in application.yml
     @Value("${swiftdrop.dispatch.exchange:dispatch.exchange}")
     private String dispatchExchange;
