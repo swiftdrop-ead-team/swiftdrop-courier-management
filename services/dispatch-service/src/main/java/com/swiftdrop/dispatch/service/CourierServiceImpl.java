@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Implementation of CourierService containing business logic for courier management.
+ */
 @Service
 @RequiredArgsConstructor
 public class CourierServiceImpl implements CourierService {
@@ -25,14 +28,21 @@ public class CourierServiceImpl implements CourierService {
 
     private final CourierRepository courierRepository;
 
+    /**
+     * Registers a new courier in the system.
+     * Validates that the userId is not already taken.
+     */
     @Override
     @Transactional
     public CourierResponse registerCourier(CourierCreateRequest request) {
         log.info("Registering courier with userId: {}", request.getUserId());
+
+        // Check if a courier with this userId already exists
         if (courierRepository.findByUserId(request.getUserId()).isPresent()) {
             throw new InvalidAssignmentException("Courier with userId '" + request.getUserId() + "' already exists");
         }
 
+        // Build new Courier entity with default available status
         Courier courier = Courier.builder()
                 .userId(request.getUserId())
                 .fullName(request.getFullName())
@@ -45,10 +55,14 @@ public class CourierServiceImpl implements CourierService {
                 .currentActiveDeliveries(0)
                 .build();
 
+        // Persist to PostgreSQL database
         Courier saved = courierRepository.save(courier);
         return mapToResponse(saved);
     }
 
+    /**
+     * Retrieves courier details by database ID.
+     */
     @Override
     @Transactional(readOnly = true)
     public CourierResponse getCourierById(Long id) {
@@ -57,6 +71,9 @@ public class CourierServiceImpl implements CourierService {
         return mapToResponse(courier);
     }
 
+    /**
+     * Retrieves courier details by user account ID.
+     */
     @Override
     @Transactional(readOnly = true)
     public CourierResponse getCourierByUserId(String userId) {
@@ -65,6 +82,9 @@ public class CourierServiceImpl implements CourierService {
         return mapToResponse(courier);
     }
 
+    /**
+     * Returns all registered couriers in the system.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<CourierResponse> getAllCouriers() {
@@ -73,6 +93,9 @@ public class CourierServiceImpl implements CourierService {
                 .toList();
     }
 
+    /**
+     * Returns only couriers who are AVAILABLE and below their maximum active workload.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<CourierResponse> getAvailableCouriers() {
@@ -81,14 +104,20 @@ public class CourierServiceImpl implements CourierService {
                 .toList();
     }
 
+    /**
+     * Computes real-time workload statistics for all couriers.
+     * Calculates capacity utilization percentage (e.g. 2 active / 5 max = 40.0%).
+     */
     @Override
     @Transactional(readOnly = true)
     public List<CourierWorkloadResponse> getCourierWorkloads() {
         return courierRepository.findAll().stream()
                 .map(c -> {
+                    // Calculate percentage of capacity utilized
                     double utilization = c.getMaxActiveDeliveries() > 0
                             ? ((double) c.getCurrentActiveDeliveries() / c.getMaxActiveDeliveries()) * 100.0
                             : 0.0;
+
                     return CourierWorkloadResponse.builder()
                             .courierId(c.getId())
                             .courierName(c.getFullName())
@@ -105,6 +134,9 @@ public class CourierServiceImpl implements CourierService {
                 .toList();
     }
 
+    /**
+     * Updates courier operational status (e.g. from AVAILABLE to OFFLINE).
+     */
     @Override
     @Transactional
     public CourierResponse updateCourierStatus(Long id, CourierStatusUpdateRequest request) {
@@ -117,6 +149,9 @@ public class CourierServiceImpl implements CourierService {
         return mapToResponse(updated);
     }
 
+    /**
+     * Helper method to map Courier JPA entity to CourierResponse DTO.
+     */
     private CourierResponse mapToResponse(Courier c) {
         return CourierResponse.builder()
                 .id(c.getId())
@@ -135,4 +170,3 @@ public class CourierServiceImpl implements CourierService {
                 .build();
     }
 }
-
