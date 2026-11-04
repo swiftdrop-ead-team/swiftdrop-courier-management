@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider, type Theme } from "@mui/material/styles";
 import {
   Alert,
   Avatar,
   Box,
   Breadcrumbs,
-  Divider,
   Drawer,
   IconButton,
-  List,
   ScopedCssBaseline,
   useMediaQuery,
 } from "@mui/material";
@@ -18,7 +16,7 @@ import {
   LayoutDashboard,
   LogOut,
   MapPin,
-  Menu,
+  Menu as MenuIcon,
   Package,
   Search,
   Send,
@@ -27,12 +25,11 @@ import {
 } from "lucide-react";
 import theme from "assets/theme";
 import { SoftUIControllerProvider } from "context";
-import SoftBox from "components/SoftBox";
 import SoftTypography from "components/SoftTypography";
 import SoftButton from "components/SoftButton";
 import SoftInput from "components/SoftInput";
-import SidenavCollapse from "examples/Sidenav/SidenavCollapse";
 import TemplateDashboardLayout from "examples/LayoutContainers/DashboardLayout";
+import { Sidebar, Menu, MenuItem, Logo } from "../ui/MuiSidebar";
 import { useAuth } from "../../hooks/useAuth";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
@@ -53,7 +50,7 @@ function CustomerShell() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const desktop = useMediaQuery(theme.breakpoints.up("xl"));
+  const desktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [logoutError, setLogoutError] = useState("");
@@ -80,166 +77,272 @@ function CustomerShell() {
 
   return (
     <ScopedCssBaseline
-      sx={{ minHeight: "100vh", backgroundColor: "#f8f9fa", color: "#344767" }}
+      className="customer-dashboard-shell"
+      sx={() => ({
+        minHeight: "100vh",
+        backgroundColor: "#f8fafc", // Very light grey similar to white
+        color: "#00274c",
+      })}
     >
       <Box
         component="a"
         href="#customer-main"
-        sx={{
+        sx={(theme: Theme) => ({
           position: "absolute",
           left: -10000,
           "&:focus": {
             left: 16,
             top: 8,
             zIndex: 1500,
-            background: "#fff",
+            background: theme.palette.brand.surfaceRaised,
             p: 1,
           },
-        }}
+        })}
       >
         Skip to content
       </Box>
+
+      {/* MUI Sidebar Drawer (Fits the page with 0 margins and 0 border radius) */}
       <Drawer
         variant={desktop ? "permanent" : "temporary"}
         open={desktop || menuOpen}
         onClose={() => setMenuOpen(false)}
         PaperProps={{
           id: "customer-navigation",
-          sx: {
-            width: 250,
-            m: desktop ? 2 : 0,
-            height: desktop ? "calc(100% - 32px)" : "100%",
-            border: 0,
-            borderRadius: desktop ? 4 : 0,
-            background: desktop ? "transparent" : "#fff",
-            boxShadow: "none",
-          },
+          sx: () => ({
+            width: 270,
+            m: "0 !important", // Fits page without margins
+            height: "100vh !important",
+            borderRadius: "0 !important", // No card look, flush with page edge
+            border: "0 !important",
+            borderRight: "1px solid rgba(255, 255, 255, 0.08) !important",
+            background: "linear-gradient(180deg, #001a35 0%, #00274c 55%, #08213f 100%) !important",
+            boxShadow: "none !important",
+            overflow: "hidden",
+          }),
         }}
       >
-        <Box
-          sx={{ px: 3, py: 3, display: "flex", alignItems: "center", gap: 1.5 }}
+        <Sidebar
+          width="100%"
+          sx={{
+            height: "100%",
+            borderRight: "none",
+            boxShadow: "none",
+            background: "transparent",
+          }}
         >
-          <SoftBox
-            variant="gradient"
-            bgColor="info"
-            borderRadius="lg"
-            color="white"
-            p={1}
-            display="flex"
-          >
-            <Package size={23} />
-          </SoftBox>
-          <Box component={Link} to="/" sx={{ textDecoration: "none" }}>
-            <SoftTypography variant="h6" fontWeight="bold">
-              SwiftDrop
-            </SoftTypography>
-            <SoftTypography variant="caption" color="text">
-              Customer workspace
-            </SoftTypography>
-          </Box>
-          {!desktop && (
-            <IconButton
-              aria-label="Close navigation"
-              onClick={() => setMenuOpen(false)}
-              sx={{ ml: "auto" }}
+          {/* Logo Component with White text & Yellow Icon */}
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pr: 1.5 }}>
+            <Logo
+              icon={<Package size={20} />}
+              subtitle="Customer workspace"
+              link="/"
             >
-              <X size={18} />
-            </IconButton>
-          )}
-        </Box>
-        <Divider />
-        <Box component="nav" aria-label="Customer navigation">
-          <List sx={{ py: 1 }}>
-            {navigation.map(({ tab, label, icon: Icon }) => (
-              <SidenavCollapse
-                key={tab}
-                component={Link}
-                to={`${base}/${tab}`}
-                name={label}
-                icon={<Icon size={17} />}
-                color="info"
-                active={active.tab === tab}
-                aria-current={active.tab === tab ? "page" : undefined}
-              />
-            ))}
-          </List>
-        </Box>
-        <Box sx={{ px: 3, mt: 3 }}>
-          <SoftTypography variant="caption" fontWeight="bold" color="text">
-            YOUR ACCOUNT
-          </SoftTypography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 2 }}>
-            <Avatar
+              SwiftDrop
+            </Logo>
+            {!desktop && (
+              <IconButton
+                aria-label="Close navigation"
+                onClick={() => setMenuOpen(false)}
+                size="small"
+                sx={{ color: "#ffffff" }}
+              >
+                <X size={18} />
+              </IconButton>
+            )}
+          </Box>
+
+          {/* MUI Menu Section: HOME */}
+          <Menu subHeading="HOME">
+            <MenuItem
+              link={`${base}/overview`}
+              icon={<LayoutDashboard size={18} />}
+              active={active.tab === "overview"}
+            >
+              Dashboard
+            </MenuItem>
+          </Menu>
+
+          {/* MUI Menu Section: DELIVERIES */}
+          <Menu subHeading="DELIVERIES">
+            <MenuItem
+              link={`${base}/send`}
+              icon={<Send size={18} />}
+              active={active.tab === "send"}
+              badge="New"
+              badgeColor="primary"
+            >
+              Send a parcel
+            </MenuItem>
+            <MenuItem
+              link={`${base}/track`}
+              icon={<MapPin size={18} />}
+              active={active.tab === "track"}
+            >
+              Track shipment
+            </MenuItem>
+            <MenuItem
+              link={`${base}/history`}
+              icon={<Package size={18} />}
+              active={active.tab === "history"}
+            >
+              Shipment history
+            </MenuItem>
+          </Menu>
+
+          {/* MUI Menu Section: ACCOUNT */}
+          <Menu subHeading="ACCOUNT">
+            <MenuItem
+              link={`${base}/settings`}
+              icon={<Settings size={18} />}
+              active={active.tab === "settings"}
+            >
+              Profile & addresses
+            </MenuItem>
+          </Menu>
+
+          {/* Account Profile snippet (Matched to Blue Sidebar) */}
+          <Box sx={{ px: 2, mt: 2 }}>
+            <Box
               sx={{
-                background: "linear-gradient(310deg, #141727, #3a416f)",
-                width: 38,
-                height: 38,
+                p: 1.5,
+                borderRadius: 2.5,
+                bgcolor: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
               }}
             >
-              {name.charAt(0)}
-            </Avatar>
-            <Box sx={{ minWidth: 0 }}>
+              <Avatar
+                sx={{
+                  background: "#001a35",
+                  border: "2px solid #ffcb05",
+                  width: 36,
+                  height: 36,
+                  color: "#ffcb05",
+                  fontWeight: "bold",
+                  fontSize: "0.85rem",
+                }}
+              >
+                {name.charAt(0)}
+              </Avatar>
+              <Box sx={{ minWidth: 0 }}>
+                <SoftTypography
+                  variant="button"
+                  fontWeight="bold"
+                  display="block"
+                  noWrap
+                  sx={{ fontSize: "0.85rem", color: "#ffffff !important" }}
+                >
+                  {name}
+                </SoftTypography>
+                <SoftTypography
+                  variant="caption"
+                  sx={{ fontSize: "0.72rem", color: "#94a3b8 !important" }}
+                >
+                  {preview ? "Preview account" : "Personal account"}
+                </SoftTypography>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Bottom Card & Action */}
+          <Box sx={{ mt: "auto", p: 2 }}>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2.5,
+                background: "linear-gradient(135deg, rgba(255, 203, 5, 0.14) 0%, rgba(255, 219, 87, 0.04) 100%)",
+                border: "1px solid rgba(255, 203, 5, 0.35)",
+                mb: 2,
+              }}
+            >
               <SoftTypography
                 variant="button"
                 fontWeight="bold"
                 display="block"
-                noWrap
+                sx={{ color: "#ffcb05 !important" }}
               >
-                {name}
+                Ready to send?
               </SoftTypography>
-              <SoftTypography variant="caption" color="text">
-                {preview ? "Preview account" : "Personal account"}
+              <SoftTypography
+                variant="caption"
+                sx={{ display: "block", mt: 0.25, color: "#cbd5e1 !important" }}
+              >
+                A little package. A big connection.
               </SoftTypography>
+              <SoftButton
+                fullWidth
+                variant="gradient"
+                color="primary"
+                size="small"
+                onClick={() => navigate(`${base}/send`)}
+                sx={{
+                  mt: 1.5,
+                  py: 0.75,
+                  fontSize: "0.75rem",
+                  color: "#00274c !important",
+                  fontWeight: "bold",
+                  background: "linear-gradient(135deg, #ffcb05 0%, #ffdb57 100%)",
+                  boxShadow: "0 3px 10px rgba(0, 39, 76, 0.14)",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #ffdb57 0%, #ffe866 100%)",
+                  },
+                }}
+              >
+                Create a shipment
+              </SoftButton>
             </Box>
+
+            {preview ? (
+              <SoftButton
+                component={Link}
+                to="/login"
+                fullWidth
+                variant="gradient"
+                color="primary"
+                sx={{
+                  color: "#00274c !important",
+                  fontWeight: "bold",
+                  background: "linear-gradient(135deg, #ffcb05 0%, #ffdb57 100%)",
+                  boxShadow: "0 5px 14px rgba(0, 39, 76, 0.16)",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #ffdb57 0%, #ffe866 100%)",
+                  },
+                }}
+              >
+                Sign in to SwiftDrop
+              </SoftButton>
+            ) : (
+              <SoftButton
+                fullWidth
+                variant="text"
+                onClick={signOut}
+                sx={{
+                  color: "#fecaca !important",
+                  fontWeight: "bold",
+                  border: "1px solid rgba(248, 113, 113, 0.35)",
+                  backgroundColor: "rgba(127, 29, 29, 0.28)",
+                  "&:hover": {
+                    backgroundColor: "rgba(220, 38, 38, 0.38)",
+                    borderColor: "rgba(252, 165, 165, 0.55)",
+                  },
+                }}
+              >
+                <LogOut size={16} style={{ marginRight: 8 }} />
+                Sign out
+              </SoftButton>
+            )}
+            {logoutError && <Alert severity="error">{logoutError}</Alert>}
           </Box>
-        </Box>
-        <Box sx={{ mt: "auto", p: 2 }}>
-          <SoftBox
-            variant="gradient"
-            bgColor="dark"
-            borderRadius="lg"
-            p={2.5}
-            mb={2}
-          >
-            <SoftTypography variant="h6" color="white" fontWeight="bold">
-              Ready to send?
-            </SoftTypography>
-            <SoftTypography variant="caption" color="white" opacity={0.8}>
-              A little package. A big connection.
-            </SoftTypography>
-            <SoftButton
-              fullWidth
-              color="white"
-              size="small"
-              onClick={() => navigate(`${base}/send`)}
-              sx={{ mt: 2 }}
-            >
-              Create a shipment
-            </SoftButton>
-          </SoftBox>
-          {preview ? (
-            <SoftButton
-              component={Link}
-              to="/login"
-              fullWidth
-              variant="gradient"
-              color="info"
-            >
-              Sign in to SwiftDrop
-            </SoftButton>
-          ) : (
-            <SoftButton fullWidth variant="text" color="dark" onClick={signOut}>
-              <LogOut size={16} style={{ marginRight: 8 }} />
-              Sign out
-            </SoftButton>
-          )}
-          {logoutError && <Alert severity="error">{logoutError}</Alert>}
-        </Box>
+        </Sidebar>
       </Drawer>
+
       <TemplateDashboardLayout>
         <Box
           component="header"
-          sx={{
+          sx={() => ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -247,7 +350,8 @@ function CustomerShell() {
             flexWrap: "wrap",
             px: 1,
             pb: 3,
-          }}
+            borderBottom: "1px solid rgba(0, 39, 76, 0.08)",
+          })}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {!desktop && (
@@ -257,7 +361,7 @@ function CustomerShell() {
                 aria-expanded={menuOpen}
                 onClick={() => setMenuOpen(true)}
               >
-                <Menu size={21} />
+                <MenuIcon size={21} />
               </IconButton>
             )}
             <Box>
@@ -314,7 +418,7 @@ function CustomerShell() {
             SwiftDrop · A simpler way to send.
           </SoftTypography>
           <SoftTypography variant="caption" color="text">
-            Design system: Soft UI Dashboard by Creative Tim
+            Material UI React Dashboard
           </SoftTypography>
         </Box>
       </TemplateDashboardLayout>

@@ -15,18 +15,36 @@ Coded by www.creative-tim.com
 
 /**
  * The base colors for the Soft UI Dashboard React.
- * You can add new color using this file.
- * You can customized the colors for the entire Soft UI Dashboard React using thie file.
+ * Customised for SwiftDrop:
+ * - Brand Yellow (#FFCB05, #FFDB57) as energetic primary
+ * - Logistics Blue (#2563EB, #11296B) for in-transit & necessary components
+ * - Semantic colors (Green success, Red error, Amber warning) for standard status
+ * - Middle-Gray (#EDEDED) surface for sleek, soothing dashboard backgrounds
  */
 
+const brand = {
+  navy: "#00274c",
+  blue: "#11296b",
+  yellow: "#ffcb05",
+  yellowLight: "#ffdb57",
+  surface: "#f8fafc",       // Very light grey similar to white (clean & airy)
+  surfaceRaised: "#ffffff", // Pure white for cards to pop
+  border: "#e2e8f0",
+  text: "#1e293b",
+  textMuted: "#64748b",
+  focusRing: "#ffcb05",
+};
+
 const colors = {
+  brand,
+
   background: {
-    default: "#f8f9fa",
+    default: brand.surface,
   },
 
   text: {
-    main: "#67748e",
-    focus: "#67748e",
+    main: brand.textMuted,
+    focus: brand.navy,
   },
 
   transparent: {
@@ -44,34 +62,39 @@ const colors = {
     focus: "#000000",
   },
 
+  // ✦ Primary is now Vibrant Brand Yellow!
   primary: {
-    main: "#cb0c9f",
-    focus: "#ad0a87",
+    main: brand.yellow,
+    focus: "#e6b800",
   },
 
   secondary: {
-    main: "#8392ab",
-    focus: "#96a2b8",
+    main: brand.blue,
+    focus: brand.navy,
   },
 
+  // ✦ Info is now Energetic Logistics Blue (used for in-transit & active status)
   info: {
-    main: "#17c1e8",
-    focus: "#3acaeb",
+    main: "#2563eb",
+    focus: "#1d4ed8",
   },
 
+  // ✦ Success is standard Green (delivered, active, verified)
   success: {
-    main: "#82d616",
-    focus: "#95dc39",
+    main: "#16a34a",
+    focus: "#15803d",
   },
 
+  // ✦ Warning is standard Amber (awaiting, pending review)
   warning: {
-    main: "#fbcf33",
-    focus: "#fcd652",
+    main: "#f59e0b",
+    focus: "#d97706",
   },
 
+  // ✦ Error is standard Red
   error: {
-    main: "#ea0606",
-    focus: "#c70505",
+    main: "#dc2626",
+    focus: "#b91c1c",
   },
 
   light: {
@@ -80,8 +103,8 @@ const colors = {
   },
 
   dark: {
-    main: "#344767",
-    focus: "#344767",
+    main: brand.navy,
+    focus: brand.blue,
   },
 
   grey: {
@@ -97,34 +120,39 @@ const colors = {
   },
 
   gradients: {
+    // ✦ Vibrant Golden Yellow Gradient for primary buttons, highlights & cards
     primary: {
-      main: "#7928ca",
-      state: "#ff0080",
+      main: brand.yellow,
+      state: brand.yellowLight,
     },
 
     secondary: {
-      main: "#627594",
-      state: "#a8b8d8",
+      main: brand.blue,
+      state: brand.navy,
     },
 
+    // ✦ Vibrant Logistics Blue Gradient for in-transit, maps, route optimization
     info: {
-      main: "#2152ff",
-      state: "#21d4fd",
+      main: "#3b82f6",
+      state: "#1d4ed8",
     },
 
+    // ✦ Pure Green Gradient for success & delivered states
     success: {
-      main: "#17ad37",
-      state: "#98ec2d",
+      main: "#22c55e",
+      state: "#15803d",
     },
 
+    // ✦ Warm Amber Gradient for pending / warnings
     warning: {
-      main: "#f53939",
-      state: "#fbcf33",
+      main: "#f59e0b",
+      state: "#fbbf24",
     },
 
+    // ✦ Red Gradient for errors / cancellations
     error: {
-      main: "#ea0606",
-      state: "#ff667c",
+      main: "#ef4444",
+      state: "#dc2626",
     },
 
     light: {
@@ -133,8 +161,8 @@ const colors = {
     },
 
     dark: {
-      main: "#141727",
-      state: "#3a416f",
+      main: brand.navy,
+      state: brand.blue,
     },
   },
 
@@ -143,57 +171,46 @@ const colors = {
       main: "#3b5998",
       dark: "#344e86",
     },
-
     twitter: {
       main: "#55acee",
       dark: "#3ea1ec",
     },
-
     instagram: {
       main: "#125688",
       dark: "#0e456d",
     },
-
     linkedin: {
       main: "#0077b5",
       dark: "#00669c",
     },
-
     pinterest: {
       main: "#cc2127",
       dark: "#b21d22",
     },
-
     youtube: {
       main: "#e52d27",
       dark: "#d41f1a",
     },
-
     vimeo: {
       main: "#1ab7ea",
       dark: "#13a3d2",
     },
-
     slack: {
       main: "#3aaf85",
       dark: "#329874",
     },
-
     dribbble: {
       main: "#ea4c89",
       dark: "#e73177",
     },
-
     github: {
       main: "#24292e",
       dark: "#171a1d",
     },
-
     reddit: {
       main: "#ff4500",
       dark: "#e03d00",
     },
-
     tumblr: {
       main: "#35465c",
       dark: "#2a3749",
@@ -202,9 +219,9 @@ const colors = {
 
   alertColors: {
     primary: {
-      main: "#7928ca",
-      state: "#d6006c",
-      border: "#efb6e2",
+      main: brand.yellow,
+      state: brand.yellowLight,
+      border: brand.yellowLight,
     },
 
     secondary: {
@@ -214,27 +231,27 @@ const colors = {
     },
 
     info: {
-      main: "#2152ff",
-      state: "#02c6f3",
-      border: "#b9ecf8",
+      main: "#2563eb",
+      state: "#1d4ed8",
+      border: "#93c5fd",
     },
 
     success: {
-      main: "#17ad37",
-      state: "#84dc14",
-      border: "#daf3b9",
+      main: "#16a34a",
+      state: "#15803d",
+      border: "#86efac",
     },
 
     warning: {
-      main: "#f53939",
-      state: "#fac60b",
-      border: "#fef1c2",
+      main: "#f59e0b",
+      state: "#d97706",
+      border: "#fcd34d",
     },
 
     error: {
-      main: "#ea0606",
-      state: "#ff3d59",
-      border: "#f9b4b4",
+      main: "#dc2626",
+      state: "#b91c1c",
+      border: "#fca5a5",
     },
 
     light: {
@@ -244,57 +261,58 @@ const colors = {
     },
 
     dark: {
-      main: "#141727",
-      state: "#2c3154",
-      border: "#c2c8d1",
+      main: brand.navy,
+      state: brand.blue,
+      border: brand.border,
     },
   },
 
+  // ✦ Standard badge colors: Green for success, Amber for warning, Blue for info, Yellow for primary
   badgeColors: {
     primary: {
-      background: "#f883dd",
-      text: "#a3017e",
+      background: "#fff9cc",
+      text: brand.navy,
     },
 
     secondary: {
-      background: "#e4e8ed",
-      text: "#5974a2",
+      background: brand.surface,
+      text: brand.navy,
     },
 
     info: {
-      background: "#abe9f7",
-      text: "#08a1c4",
+      background: "#dbeafe",
+      text: "#1e40af",
     },
 
     success: {
-      background: "#cdf59b",
-      text: "#67b108",
+      background: "#dcfce7",
+      text: "#15803d",
     },
 
     warning: {
-      background: "#fef5d3",
-      text: "#fbc400",
+      background: "#fef3c7",
+      text: "#b45309",
     },
 
     error: {
-      background: "#fc9797",
-      text: "#bd0000",
+      background: "#fee2e2",
+      text: "#b91c1c",
     },
 
     light: {
       background: "#ffffff",
-      text: "#c7d3de",
+      text: "#475569",
     },
 
     dark: {
-      background: "#8097bf",
-      text: "#1e2e4a",
+      background: brand.navy,
+      text: "#ffffff",
     },
   },
 
   inputColors: {
-    borderColor: { main: "#d2d6da", focus: "#35d1f5" },
-    boxShadow: "#81e3f9",
+    borderColor: { main: brand.border, focus: brand.yellow },
+    boxShadow: "rgba(0, 39, 76, 0.14)",
     error: "#fd5c70",
     success: "#66d432",
   },

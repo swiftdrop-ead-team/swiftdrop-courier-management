@@ -255,10 +255,10 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
       line: {
         labels,
         datasets: [
-          { label: "Booked", color: "info", data: weeks.map((w) => w.length) },
+          { label: "Booked", color: "primary", data: weeks.map((w) => w.length) },
           {
             label: "Delivered from these bookings",
-            color: "dark",
+            color: "info",
             data: weeks.map(
               (w) => w.filter((s) => s.status === "Delivered").length,
             ),
@@ -335,12 +335,16 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
             >
               <SoftBox
                 component="span"
-                bgColor="grey-100"
+                bgColor="primary"
                 borderRadius="lg"
                 p={1}
                 display="flex"
+                sx={{
+                  color: "#00274c",
+                  boxShadow: "0 3px 10px rgba(0, 39, 76, 0.12)",
+                }}
               >
-                <Package size={18} color="#344767" />
+                <Package size={18} color="#00274c" />
               </SoftBox>
               <Box component="span">
                 <SoftTypography
@@ -384,10 +388,11 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
           action: (
             <SoftButton
               variant="text"
-              color="info"
+              color="dark"
               size="small"
               aria-label={`Track ${s.id}`}
               onClick={() => track(s.id)}
+              sx={{ fontWeight: "bold" }}
             >
               Details <ArrowRight size={13} style={{ marginLeft: 5 }} />
             </SoftButton>
@@ -400,17 +405,17 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
     return (
       <Grid container spacing={3}>
         {[
-          ["Total shipments", data.shipments.length, "inventory_2"],
-          ["On the way", active.length, "local_shipping"],
-          ["Delivered", delivered.length, "task_alt"],
-          ["Shipping spend", currency(total), "account_balance_wallet"],
-        ].map(([title, count, icon]) => (
+          { title: "Total shipments", count: data.shipments.length, icon: "inventory_2", color: "primary" },
+          { title: "On the way", count: active.length, icon: "local_shipping", color: "info" },
+          { title: "Delivered", count: delivered.length, icon: "task_alt", color: "success" },
+          { title: "Shipping spend", count: currency(total), icon: "account_balance_wallet", color: "warning" },
+        ].map(({ title, count, icon, color }) => (
           <Grid item xs={12} sm={6} xl={3} key={title}>
             <MiniStatisticsCard
               title={{ text: title, fontWeight: "medium" }}
               count={count}
               percentage={{ color: "secondary", text: "" }}
-              icon={{ color: "info", component: icon }}
+              icon={{ color: color as any, component: icon }}
             />
           </Grid>
         ))}
@@ -441,13 +446,20 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
                     it needs to go, with SwiftDrop.
                   </SoftTypography>
                   <SoftButton
-                    variant="text"
-                    color="dark"
+                    variant="gradient"
+                    color="primary"
                     onClick={() => {
                       setCreated(null);
                       go("send");
                     }}
-                    sx={{ mt: "auto", alignSelf: "flex-start", px: 0 }}
+                    sx={{
+                      mt: "auto",
+                      alignSelf: "flex-start",
+                      color: "#00274c !important",
+                      fontWeight: "bold",
+                      px: 2.5,
+                      boxShadow: "0 4px 14px rgba(0, 39, 76, 0.14)",
+                    }}
                   >
                     Send a parcel{" "}
                     <ArrowRight size={16} style={{ marginLeft: 8 }} />
@@ -457,7 +469,7 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
               <Grid item xs={12} sm={5}>
                 <SoftBox
                   variant="gradient"
-                  bgColor="info"
+                  bgColor="primary"
                   borderRadius="lg"
                   sx={{
                     height: "100%",
@@ -465,6 +477,7 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
                     display: "grid",
                     placeItems: "center",
                     overflow: "hidden",
+                    boxShadow: "0 8px 24px rgba(0, 39, 76, 0.12)",
                   }}
                 >
                   <Box
@@ -486,10 +499,11 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
                 p: 3,
                 minHeight: 250,
                 height: "100%",
-                backgroundImage: `linear-gradient(310deg, rgba(20,23,39,.94), rgba(58,65,111,.65)), url(${landscape})`,
+                backgroundImage: `linear-gradient(310deg, rgba(0,39,76,.95), rgba(17,41,107,.75)), url(${landscape})`,
                 backgroundSize: "cover",
                 display: "flex",
                 flexDirection: "column",
+                boxShadow: "0 8px 24px rgba(0, 39, 76, 0.12)",
               }}
             >
               <SoftTypography variant="h5" fontWeight="bold" color="white">
@@ -506,12 +520,19 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
                 milestone and keep the important details close.
               </SoftTypography>
               <SoftButton
-                variant="text"
-                color="white"
+                variant="gradient"
+                color="primary"
                 onClick={() =>
                   active[0] ? track(active[0].id) : go("history")
                 }
-                sx={{ mt: "auto", alignSelf: "flex-start", px: 0 }}
+                sx={{
+                  mt: "auto",
+                  alignSelf: "flex-start",
+                  color: "#00274c !important",
+                  fontWeight: "bold",
+                  px: 2.5,
+                  boxShadow: "0 4px 14px rgba(0, 39, 76, 0.14)",
+                }}
               >
                 View your deliveries{" "}
                 <ArrowRight size={16} style={{ marginLeft: 8 }} />
@@ -526,7 +547,7 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
             chart={charts.bar}
             items={[
               {
-                icon: { color: "info", component: "inventory_2" },
+                icon: { color: "primary", component: "inventory_2" },
                 label: "Parcels",
                 progress: {
                   content: String(data.shipments.length),
@@ -544,7 +565,7 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
                 },
               },
               {
-                icon: { color: "warning", component: "local_shipping" },
+                icon: { color: "info", component: "local_shipping" },
                 label: "Active",
                 progress: {
                   content: String(active.length),
@@ -554,7 +575,7 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
                 },
               },
               {
-                icon: { color: "primary", component: "place" },
+                icon: { color: "warning", component: "place" },
                 label: "Addresses",
                 progress: {
                   content: String(data.addresses.length),
@@ -598,8 +619,9 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
               <SoftButton
                 size="small"
                 variant="text"
-                color="info"
+                color="dark"
                 onClick={() => go("history")}
+                sx={{ fontWeight: "bold" }}
               >
                 View all
               </SoftButton>
@@ -660,8 +682,9 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
           >
             <SoftButton
               variant="gradient"
-              color="info"
+              color="primary"
               onClick={() => track(created.id)}
+              sx={{ color: "#00274c !important", fontWeight: "bold" }}
             >
               Track this shipment
             </SoftButton>
@@ -829,7 +852,12 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <SoftButton type="submit" variant="gradient" color="info">
+                  <SoftButton
+                    type="submit"
+                    variant="gradient"
+                    color="primary"
+                    sx={{ color: "#00274c !important", fontWeight: "bold" }}
+                  >
                     Review shipment{" "}
                     <ArrowRight size={16} style={{ marginLeft: 8 }} />
                   </SoftButton>
@@ -870,7 +898,9 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
                   borderRadius: 2,
                   border: "1px solid",
                   borderColor:
-                    booking.pickup === address.address ? "#17c1e8" : "#e9ecef",
+                    booking.pickup === address.address
+                      ? "var(--color-brand-blue)"
+                      : "var(--color-surface)",
                   background: "#fff",
                   cursor: "pointer",
                 }}
@@ -892,8 +922,9 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
             ))}
             <SoftButton
               variant="text"
-              color="info"
+              color="dark"
               onClick={() => go("settings")}
+              sx={{ fontWeight: "bold" }}
             >
               Manage addresses
             </SoftButton>
@@ -959,8 +990,13 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
             <SoftButton
               type="submit"
               variant="gradient"
-              color="info"
-              sx={{ alignSelf: "end" }}
+              color="primary"
+              sx={{
+                alignSelf: "end",
+                color: "#00274c !important",
+                fontWeight: "bold",
+                boxShadow: "0 4px 14px rgba(0, 39, 76, 0.14)",
+              }}
             >
               Track shipment
             </SoftButton>
@@ -1030,8 +1066,8 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
                 />
                 <SoftButton
                   variant="outlined"
-                  color="info"
-                  sx={{ mt: 3 }}
+                  color="dark"
+                  sx={{ mt: 3, fontWeight: "bold" }}
                   onClick={async () => {
                     try {
                       await navigator.clipboard.writeText(selected.id);
@@ -1178,9 +1214,10 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
             <SoftButton
               size="small"
               variant="gradient"
-              color="info"
+              color="primary"
               disabled={currentPage >= pageCount - 1}
               onClick={() => setPage(currentPage + 1)}
+              sx={{ color: "#00274c !important", fontWeight: "bold" }}
             >
               Next
             </SoftButton>
@@ -1250,9 +1287,9 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
               />
               <SoftButton
                 variant="gradient"
-                color="info"
+                color="primary"
                 type="submit"
-                sx={{ justifySelf: "start" }}
+                sx={{ justifySelf: "start", color: "#00274c !important", fontWeight: "bold" }}
               >
                 Save demo profile
               </SoftButton>
@@ -1352,7 +1389,8 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
               </Box>
               <SoftButton
                 variant="gradient"
-                color="info"
+                color="primary"
+                sx={{ color: "#00274c !important", fontWeight: "bold" }}
                 onClick={() =>
                   setEditingAddress({
                     id: crypto.randomUUID(),
@@ -1500,10 +1538,11 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
             Back to edit
           </SoftButton>
           <SoftButton
-            color="info"
+            color="primary"
             variant="gradient"
             disabled={!accepted}
             onClick={confirmBooking}
+            sx={{ color: "#00274c !important", fontWeight: "bold" }}
           >
             Create demo shipment
           </SoftButton>
@@ -1586,7 +1625,12 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
             >
               Cancel
             </SoftButton>
-            <SoftButton type="submit" variant="gradient" color="info">
+            <SoftButton
+              type="submit"
+              variant="gradient"
+              color="primary"
+              sx={{ color: "#00274c !important", fontWeight: "bold" }}
+            >
               Save address
             </SoftButton>
           </DialogActions>

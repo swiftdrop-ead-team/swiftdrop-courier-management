@@ -36,7 +36,7 @@ function MiniStatisticsCard({ bgColor, title, count, percentage, icon, direction
                 <SoftBox
                   variant="gradient"
                   bgColor={bgColor === "white" ? icon.color : "white"}
-                  color={bgColor === "white" ? "white" : "dark"}
+                  color={bgColor === "white" ? (icon.color === "primary" ? "dark" : "white") : "dark"}
                   width="3rem"
                   height="3rem"
                   borderRadius="md"
@@ -79,7 +79,7 @@ function MiniStatisticsCard({ bgColor, title, count, percentage, icon, direction
                 <SoftBox
                   variant="gradient"
                   bgColor={bgColor === "white" ? icon.color : "white"}
-                  color={bgColor === "white" ? "white" : "dark"}
+                  color={bgColor === "white" ? (icon.color === "primary" ? "dark" : "white") : "dark"}
                   width="3rem"
                   height="3rem"
                   marginLeft="auto"

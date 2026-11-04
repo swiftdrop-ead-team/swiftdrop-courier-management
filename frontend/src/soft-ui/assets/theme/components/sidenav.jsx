@@ -27,23 +27,24 @@ const { borderRadius } = borders;
 const sidenav = {
   styleOverrides: {
     root: {
-      width: pxToRem(250),
+      width: pxToRem(270),
       whiteSpace: "nowrap",
       border: "none",
     },
 
     paper: {
-      width: pxToRem(250),
-      backgroundColor: rgba(white.main, 0.8),
-      backdropFilter: `saturate(200%) blur(${pxToRem(30)})`,
-      height: `calc(100vh - ${pxToRem(32)})`,
-      margin: pxToRem(16),
-      borderRadius: borderRadius.xl,
+      width: pxToRem(270),
+      backgroundColor: "#001a35",
+      height: "100vh",
+      margin: 0,
+      borderRadius: 0,
       border: "none",
+      borderRight: "1px solid rgba(255, 255, 255, 0.08)",
+      boxShadow: "none",
     },
 
     paperAnchorDockedLeft: {
-      borderRight: "none",
+      borderRight: "1px solid rgba(255, 255, 255, 0.08)",
     },
   },
 };
