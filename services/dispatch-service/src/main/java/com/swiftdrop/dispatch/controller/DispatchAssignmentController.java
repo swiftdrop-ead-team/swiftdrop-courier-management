@@ -25,6 +25,10 @@ public class DispatchAssignmentController {
 
     private final DispatchAssignmentService assignmentService;
 
+    public DispatchAssignmentController(DispatchAssignmentService assignmentService) {
+        this.assignmentService = assignmentService;
+    }
+
     /**
      * Assigns a parcel to an available courier.
      * HTTP POST /api/v1/dispatch/assignments
