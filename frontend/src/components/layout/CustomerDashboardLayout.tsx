@@ -30,6 +30,7 @@ import SoftButton from "components/SoftButton";
 import SoftInput from "components/SoftInput";
 import TemplateDashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import { Sidebar, Menu, MenuItem, Logo } from "../ui/MuiSidebar";
+import { DashboardQuickLinks } from "../ui/DashboardQuickLinks";
 import { useAuth } from "../../hooks/useAuth";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
@@ -376,6 +377,9 @@ function CustomerShell() {
                 {active.label}
               </SoftTypography>
             </Box>
+          </Box>
+          <Box sx={{ display: { xs: "none", xl: "block" } }}>
+            <DashboardQuickLinks />
           </Box>
           <Box
             component="form"

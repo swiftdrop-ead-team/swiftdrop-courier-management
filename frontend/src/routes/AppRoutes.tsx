@@ -90,6 +90,11 @@ export const AppRoutes: React.FC = () => {
           </Route>
         </Route>
         <Route element={<DashboardLayout />}>
+          {/* Temporary cross-role dashboard previews for local development */}
+          <Route path="/dashboard-preview/admin" element={<AdminDashboard />} />
+          <Route path="/dashboard-preview/merchant" element={<MerchantDashboard />} />
+          <Route path="/dashboard-preview/courier" element={<CourierDashboard />} />
+
           {/* Merchant Dashboard */}
           <Route element={<RoleRoute requiredRole="MERCHANT" />}>
             <Route path="/merchant/dashboard" element={<MerchantDashboard />} />

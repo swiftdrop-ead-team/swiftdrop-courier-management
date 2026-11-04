@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Sidebar, Menu, MenuItem, Logo } from '../ui/MuiSidebar';
+import { DashboardQuickLinks } from '../ui/DashboardQuickLinks';
 import { 
   LayoutDashboard, 
   Package, 
@@ -209,6 +210,9 @@ export const DashboardLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <div className="hidden xl:block">
+              <DashboardQuickLinks />
+            </div>
             <div className="hidden sm:flex items-center gap-2 text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-200 font-medium">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               <span>Identity Service Connected</span>
