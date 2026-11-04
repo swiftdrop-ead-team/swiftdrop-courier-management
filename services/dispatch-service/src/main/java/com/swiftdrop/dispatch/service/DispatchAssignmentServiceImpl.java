@@ -53,8 +53,7 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
             AssignmentStatus.ASSIGNED,
             AssignmentStatus.PICKED_UP,
             AssignmentStatus.IN_TRANSIT,
-            AssignmentStatus.OUT_FOR_DELIVERY
-    );
+            AssignmentStatus.OUT_FOR_DELIVERY);
 
     /**
      * Assigns a parcel to an available courier.
@@ -72,7 +71,8 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
 
         // Step 1: Verify courier exists
         Courier courier = courierRepository.findById(request.getCourierId())
-                .orElseThrow(() -> new ResourceNotFoundException("Courier not found with id: " + request.getCourierId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Courier not found with id: " + request.getCourierId()));
 
         // Step 2: Verify courier is online
         if (courier.getStatus() == CourierStatus.OFFLINE) {
@@ -83,15 +83,15 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
         if (!courier.canAcceptMoreDeliveries()) {
             throw new CourierOverloadException(String.format(
                     "Courier '%s' has reached maximum active delivery limit (%d/%d)",
-                    courier.getFullName(), courier.getCurrentActiveDeliveries(), courier.getMaxActiveDeliveries()
-            ));
+                    courier.getFullName(), courier.getCurrentActiveDeliveries(), courier.getMaxActiveDeliveries()));
         }
 
         // Step 4: Verify parcel is not already assigned and active
         Optional<DispatchAssignment> existingAssignment = assignmentRepository.findByParcelId(request.getParcelId());
         if (existingAssignment.isPresent() && ACTIVE_STATUSES.contains(existingAssignment.get().getStatus())) {
-            throw new InvalidAssignmentException("Parcel '" + request.getParcelId() + "' is already assigned to a courier with status: "
-                    + existingAssignment.get().getStatus());
+            throw new InvalidAssignmentException(
+                    "Parcel '" + request.getParcelId() + "' is already assigned to a courier with status: "
+                            + existingAssignment.get().getStatus());
         }
 
         // Step 5: Create and save assignment record
@@ -135,7 +135,8 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
 
     /**
      * Updates delivery lifecycle status (e.g. IN_TRANSIT, DELIVERED, FAILED).
-     * If reaching terminal status (DELIVERED, FAILED, CANCELLED), decrements courier's active load.
+     * If reaching terminal status (DELIVERED, FAILED, CANCELLED), decrements
+     * courier's active load.
      * Publishes DeliveryStatusUpdatedEvent to RabbitMQ.
      */
     @Override
@@ -279,7 +280,8 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
     @Transactional(readOnly = true)
     public DispatchAssignmentResponse getAssignmentByTrackingNumber(String trackingNumber) {
         DispatchAssignment assignment = assignmentRepository.findByTrackingNumber(trackingNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found for tracking: " + trackingNumber));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Assignment not found for tracking: " + trackingNumber));
         return mapToResponse(assignment);
     }
 
@@ -312,12 +314,14 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
     @Transactional(readOnly = true)
     public ProofOfDeliveryResponse getProofOfDelivery(Long assignmentId) {
         ProofOfDelivery pod = proofOfDeliveryRepository.findByAssignmentId(assignmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Proof of delivery not found for assignment: " + assignmentId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Proof of delivery not found for assignment: " + assignmentId));
         return mapToProofResponse(pod);
     }
 
     /**
-     * Helper method to map DispatchAssignment JPA entity to DispatchAssignmentResponse DTO.
+     * Helper method to map DispatchAssignment JPA entity to
+     * DispatchAssignmentResponse DTO.
      */
     private DispatchAssignmentResponse mapToResponse(DispatchAssignment a) {
         return DispatchAssignmentResponse.builder()
@@ -342,7 +346,8 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
     }
 
     /**
-     * Helper method to map ProofOfDelivery JPA entity to ProofOfDeliveryResponse DTO.
+     * Helper method to map ProofOfDelivery JPA entity to ProofOfDeliveryResponse
+     * DTO.
      */
     private ProofOfDeliveryResponse mapToProofResponse(ProofOfDelivery p) {
         return ProofOfDeliveryResponse.builder()
