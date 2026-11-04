@@ -11,7 +11,6 @@ import com.swiftdrop.dispatch.exception.ResourceNotFoundException;
 import com.swiftdrop.dispatch.repository.CourierRepository;
 import com.swiftdrop.dispatch.repository.DispatchAssignmentRepository;
 import com.swiftdrop.dispatch.repository.ProofOfDeliveryRepository;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,6 @@ import java.util.Optional;
  * Proof of Delivery recording, and RabbitMQ event notifications.
  */
 @Service
-@RequiredArgsConstructor
 public class DispatchAssignmentServiceImpl implements DispatchAssignmentService {
 
     private static final Logger log = LoggerFactory.getLogger(DispatchAssignmentServiceImpl.class);
