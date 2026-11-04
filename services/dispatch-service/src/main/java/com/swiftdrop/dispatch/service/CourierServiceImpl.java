@@ -9,7 +9,6 @@ import com.swiftdrop.dispatch.entity.CourierStatus;
 import com.swiftdrop.dispatch.exception.InvalidAssignmentException;
 import com.swiftdrop.dispatch.exception.ResourceNotFoundException;
 import com.swiftdrop.dispatch.repository.CourierRepository;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ import java.util.List;
  * Implementation of CourierService containing business logic for courier management.
  */
 @Service
-@RequiredArgsConstructor
 public class CourierServiceImpl implements CourierService {
 
     private static final Logger log = LoggerFactory.getLogger(CourierServiceImpl.class);
