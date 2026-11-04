@@ -1,0 +1,219 @@
+{
+  "info": {
+    "name": "SwiftDrop — Dispatch Service APIs (Member 5)",
+    "description": "Postman Collection for testing Courier Workload Balancing, Parcel Assignments, and Proof of Delivery (POD)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Couriers",
+      "item": [
+        {
+          "name": "Get All Couriers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/couriers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "couriers"]
+            }
+          }
+        },
+        {
+          "name": "Get Available Couriers (With Capacity)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/couriers/available",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "couriers", "available"]
+            }
+          }
+        },
+        {
+          "name": "Get Courier Workloads & Utilization",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/couriers/workloads",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "couriers", "workloads"]
+            }
+          }
+        },
+        {
+          "name": "Register New Courier",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"courier-demo-01\",\n  \"fullName\": \"Saman Kumara\",\n  \"phoneNumber\": \"+94771239999\",\n  \"vehicleType\": \"MOTORBIKE\",\n  \"licensePlate\": \"WP BEF-2026\",\n  \"assignedZone\": \"COLOMBO_CENTRAL\",\n  \"maxActiveDeliveries\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/couriers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "couriers"]
+            }
+          }
+        },
+        {
+          "name": "Update Courier Status (OFFLINE / AVAILABLE)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"OFFLINE\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/couriers/1/status",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "couriers", "1", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Dispatch Assignments",
+      "item": [
+        {
+          "name": "Assign Parcel to Courier",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parcelId\": \"parcel-demo-1001\",\n  \"courierId\": 1,\n  \"trackingNumber\": \"SWIFT-COL-1001\",\n  \"pickupAddress\": \"SwiftDrop Colombo Hub, Colombo 03\",\n  \"deliveryAddress\": \"45 Galle Road, Dehiwala\",\n  \"recipientName\": \"Nimal Fernando\",\n  \"recipientPhone\": \"+94712345678\",\n  \"notes\": \"Handle with care - fragile electronics\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/assignments",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "assignments"]
+            }
+          }
+        },
+        {
+          "name": "Get All Assignments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/assignments",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "assignments"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Assignments for Courier",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/assignments/courier/1/active",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "assignments", "courier", "1", "active"]
+            }
+          }
+        },
+        {
+          "name": "Update Status (e.g. IN_TRANSIT)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_TRANSIT\",\n  \"notes\": \"Picked up from hub, currently en route\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/assignments/1/status",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "assignments", "1", "status"]
+            }
+          }
+        },
+        {
+          "name": "Submit Proof of Delivery (POD)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientName\": \"Nimal Fernando\",\n  \"recipientNic\": \"199212345678\",\n  \"signatureUrl\": \"https://s3.swiftdrop.lk/pod/sig-1001.png\",\n  \"photoUrl\": \"https://s3.swiftdrop.lk/pod/photo-1001.jpg\",\n  \"deliveryNotes\": \"Delivered directly to recipient\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/assignments/1/proof",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "assignments", "1", "proof"]
+            }
+          }
+        },
+        {
+          "name": "Get Proof of Delivery Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8084/api/v1/dispatch/assignments/1/proof",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["api", "v1", "dispatch", "assignments", "1", "proof"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+
