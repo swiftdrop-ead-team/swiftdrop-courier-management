@@ -46,6 +46,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         color: "#ffffff",
         overflowY: "auto",
         overflowX: "hidden",
+        "&::-webkit-scrollbar": { display: "none" },
+        msOverflowStyle: "none" as string,
+        scrollbarWidth: "none" as string,
         ...sx,
       }}
     >
