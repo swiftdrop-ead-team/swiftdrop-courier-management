@@ -119,7 +119,7 @@ swiftdrop-courier-management/
 │   ├── merchant-service/         # Reserved (Member 4) — Bulk manifests & merchant profiles
 │   ├── dispatch-service/         # Reserved (Member 5) — Route optimization & courier matching
 │   ├── pricing-service/          # Reserved (Member 6) — Dynamic pricing calculation engine
-│   ├── tracking-service/         # Reserved (Member 7) — GPS telemetry & WebSockets/SSE
+│   ├── tracking-service/         # Event-fed parcel tracking read model & SSE
 │   ├── notification-service/     # Reserved (Member 8) — Email/SMS/Push RabbitMQ listeners
 │   └── ai-assistant-service/     # Reserved (Member 9) — Python FastAPI & Google Gemini API
 │
@@ -157,7 +157,7 @@ Each of the 10 microservices is assigned to an individual team member with a ded
 | **Member 4** | Merchant Service | `feature/merchant-service` | `services/merchant-service/` | `8083` | ⏳ Phase 2 |
 | **Member 5** | Dispatch Service | `feature/dispatch-service` | `services/dispatch-service/` | `8084` | ⏳ Phase 2 |
 | **Member 6** | Pricing Service | `feature/pricing-service` | `services/pricing-service/` | `8085` | ⏳ Phase 2 |
-| **Member 7** | Tracking Service | `feature/tracking-service` | `services/tracking-service/` | `8086` | ⏳ Phase 2 |
+| **Member 7** | Tracking Service | `feature/tracking-service` | `services/tracking-service/` | `8086` | ✅ Implemented |
 | **Member 8** | Notification Service | `feature/notification-service` | `services/notification-service/` | `8087` | ⏳ Phase 2 |
 | **Member 9** | AI Assistant (Gemini) | `feature/ai-assistant` | `services/ai-assistant-service/` | `8088` | ⏳ Phase 2 |
 | **Member 10** | API Gateway & DevOps | `feature/gateway-devops` | `gateway/` | `8080` | ✅ Active Milestone |

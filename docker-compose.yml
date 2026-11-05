@@ -1,3 +1,4 @@
+
 version: '3.8'
 
 services:
@@ -81,7 +82,7 @@ services:
       - swiftdrop-net
 
   # ==============================================================================
-  # Dispatch Microservice — Spring Boot 3.4.x / Java 21 (Port 8084 - Member 5)
+  # Dispatch Microservice — Spring Boot 3.4.x / Java 21 (Port 8084)
   # ==============================================================================
   dispatch-service:
     build:
@@ -115,6 +116,47 @@ services:
       - swiftdrop-net
 
   # ==============================================================================
+  # Tracking Microservice — Spring Boot 3.4.x / Java 21 (Port 8086)
+  # ==============================================================================
+  tracking-service:
+    build:
+      context: ./services/tracking-service
+      dockerfile: Dockerfile
+    container_name: swiftdrop-tracking-service
+    restart: unless-stopped
+    ports:
+      - "${TRACKING_SERVICE_PORT:-8086}:8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+      # Same database used by Identity Service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-swiftdrop_identity}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
+
+      # RabbitMQ
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    networks:
+      - swiftdrop-net
+
+  # ==============================================================================
   # API Gateway — Spring Cloud Gateway (Port 8080)
   # ==============================================================================
   gateway:
@@ -129,11 +171,14 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       IDENTITY_SERVICE_URL: http://identity-service:8081
       DISPATCH_SERVICE_URL: http://dispatch-service:8084
+      TRACKING_SERVICE_URL: http://tracking-service:8086
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     depends_on:
       identity-service:
         condition: service_healthy
       dispatch-service:
+        condition: service_healthy
+      tracking-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
@@ -163,10 +208,16 @@ services:
     networks:
       - swiftdrop-net
 
+# ==============================================================================
+# Networks
+# ==============================================================================
 networks:
   swiftdrop-net:
     driver: bridge
 
+# ==============================================================================
+# Volumes
+# ==============================================================================
 volumes:
   postgres_data:
     driver: local
