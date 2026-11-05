@@ -1,0 +1,95 @@
+{
+  "info": {
+    "name": "SwiftDrop Notification Service API",
+    "description": "Collection for testing and demonstrating the SwiftDrop Notification Service (Member 8)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8087/actuator/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8087",
+          "path": ["actuator", "health"]
+        }
+      }
+    },
+    {
+      "name": "Get Notification History (All)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8087/api/v1/notifications/history",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8087",
+          "path": ["api", "v1", "notifications", "history"]
+        }
+      }
+    },
+    {
+      "name": "Get Notification History for Parcel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8087/api/v1/notifications/history?parcelId=PRC-2026-001",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8087",
+          "path": ["api", "v1", "notifications", "history"],
+          "query": [
+            {
+              "key": "parcelId",
+              "value": "PRC-2026-001"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Notification by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8087/api/v1/notifications/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8087",
+          "path": ["api", "v1", "notifications", "1"]
+        }
+      }
+    },
+    {
+      "name": "Send On-Demand Test Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"parcelId\": \"PRC-TEST-9901\",\n  \"trackingNumber\": \"SWIFT-COL-9901\",\n  \"recipientEmail\": \"customer@swiftdrop.io\",\n  \"recipientName\": \"Alice Fernando\",\n  \"notificationType\": \"OUT_FOR_DELIVERY\",\n  \"customMessage\": \"Driver Dave is 10 minutes away.\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8087/api/v1/notifications/send",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8087",
+          "path": ["api", "v1", "notifications", "send"]
+        }
+      }
+    }
+  ]
+}
+
