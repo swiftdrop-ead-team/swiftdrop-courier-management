@@ -27,7 +27,7 @@
 | **Merchant Service** | `/api/v1/merchants/**` | `http://merchant-service:8083` | Reserved |
 | **Dispatch Service** | `/api/v1/dispatch/**` | `http://dispatch-service:8084` | Reserved |
 | **Pricing Service** | `/api/v1/pricing/**` | `http://pricing-service:8085` | Reserved |
-| **Tracking Service** | `/api/v1/tracking/**` | `http://tracking-service:8086` | Reserved |
+| **Tracking Service** | `/api/v1/tracking/**` | `http://tracking-service:8086` | Implemented (REST + SSE) |
 | **Notification Service** | `/api/v1/notifications/**` | `http://notification-service:8087` | Reserved |
 | **AI Assistant Service** | `/api/v1/ai/**` | `http://ai-assistant-service:8088` | Reserved |
 
