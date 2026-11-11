@@ -8,12 +8,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface PromoCodeRepository extends JpaRepository<PromoCode, Long> {
     Optional<PromoCode> findByCode(String code);
     Optional<PromoCode> findByCodeAndIsActiveTrue(String code);
+    List<PromoCode> findByCodeIgnoreCase(String code);
 
     /**
      * Finds promo code by code string and acquires a pessimistic write lock to guarantee

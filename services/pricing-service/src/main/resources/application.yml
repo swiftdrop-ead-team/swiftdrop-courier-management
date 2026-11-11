@@ -32,6 +32,10 @@ springdoc:
     path: /swagger-ui.html
     operationsSorter: method
 
+pricing:
+  quote:
+    ttl-minutes: ${PRICING_QUOTE_TTL_MINUTES:30}
+
 management:
   endpoints:
     web:
