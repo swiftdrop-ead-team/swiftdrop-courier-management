@@ -10,6 +10,7 @@ import java.util.Optional;
 @Repository
 public interface DeliveryZoneRepository extends JpaRepository<DeliveryZone, Long> {
     Optional<DeliveryZone> findByZoneCode(String zoneCode);
+    Optional<DeliveryZone> findByZoneCodeIgnoreCase(String zoneCode);
     List<DeliveryZone> findByIsActiveTrue();
     boolean existsByZoneCode(String zoneCode);
 }
