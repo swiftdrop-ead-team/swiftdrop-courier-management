@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
-import { DashboardLayout } from "../components/layout/DashboardLayout";
+import { UnifiedDashboardLayout } from "../components/layout/UnifiedDashboardLayout";
 import { ProtectedRoute, RoleRoute, GuestRoute } from "./RouteGuards";
 
 // Pages
@@ -17,6 +17,7 @@ import { AuthCallbackPage } from "../pages/auth/AuthCallbackPage";
 import { MerchantDashboard } from "../pages/merchant/MerchantDashboard";
 import { CourierDashboard } from "../pages/courier/CourierDashboard";
 import { AdminDashboard } from "../pages/admin/AdminDashboard";
+import { DashboardPreviewPortal } from '../pages/DashboardPreviewPortal';
 
 const CustomerDashboardLayout = lazy(() =>
   import("../components/layout/CustomerDashboardLayout").then((module) => ({
@@ -43,6 +44,18 @@ const customerLayout = (
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
+      {import.meta.env.DEV && <>
+        <Route path="/dashboard-preview" element={<DashboardPreviewPortal />} />
+        <Route element={<UnifiedDashboardLayout role="ADMIN" basePath="/dashboard-preview/admin" />}>
+          <Route path="/dashboard-preview/admin" element={<AdminDashboard previewMode />} />
+        </Route>
+        <Route element={<UnifiedDashboardLayout role="COURIER" basePath="/dashboard-preview/courier" />}>
+          <Route path="/dashboard-preview/courier/:tab?" element={<CourierDashboard previewMode />} />
+        </Route>
+        <Route element={<UnifiedDashboardLayout role="MERCHANT" basePath="/dashboard-preview/merchant" />}>
+          <Route path="/dashboard-preview/merchant/:tab?/:id?" element={<MerchantDashboard previewMode />} />
+        </Route>
+      </>}
       {/* Public Pages with Main Navigation and Footer */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<LandingPage />} />
@@ -89,27 +102,26 @@ export const AppRoutes: React.FC = () => {
             />
           </Route>
         </Route>
-        <Route element={<DashboardLayout />}>
-          {/* Temporary cross-role dashboard previews for local development */}
-          <Route path="/dashboard-preview/admin" element={<AdminDashboard />} />
-          <Route path="/dashboard-preview/merchant" element={<MerchantDashboard />} />
-          <Route path="/dashboard-preview/courier" element={<CourierDashboard />} />
-
           {/* Merchant Dashboard */}
           <Route element={<RoleRoute requiredRole="MERCHANT" />}>
-            <Route path="/merchant/dashboard" element={<MerchantDashboard />} />
+            <Route element={<UnifiedDashboardLayout role="MERCHANT" basePath="/merchant/dashboard" />}>
+              <Route path="/merchant/dashboard/:tab?/:id?" element={<MerchantDashboard />} />
+            </Route>
           </Route>
 
           {/* Courier Dashboard */}
           <Route element={<RoleRoute requiredRole="COURIER" />}>
-            <Route path="/courier/dashboard" element={<CourierDashboard />} />
+            <Route element={<UnifiedDashboardLayout role="COURIER" basePath="/courier/dashboard" />}>
+              <Route path="/courier/dashboard/:tab?" element={<CourierDashboard />} />
+            </Route>
           </Route>
 
           {/* Admin Dashboard */}
           <Route element={<RoleRoute requiredRole="ADMIN" />}>
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route element={<UnifiedDashboardLayout role="ADMIN" basePath="/admin/dashboard" />}>
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            </Route>
           </Route>
-        </Route>
       </Route>
 
       {/* Catch-all fallback */}
