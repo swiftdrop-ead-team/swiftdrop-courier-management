@@ -56,6 +56,7 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="bg-canvas text-slate-900">
+      {import.meta.env.DEV && <div className="bg-blue-50 px-4 py-3 text-center text-sm"><Link to="/dashboard-preview" className="font-semibold text-blue-800">Open dashboard preview portal → No login needed</Link></div>}
       <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-ink text-white">
         <div className="absolute inset-0 bg-gradient-to-br from-ink-soft via-ink to-ink-deep" />
         <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:48px_48px]" />
