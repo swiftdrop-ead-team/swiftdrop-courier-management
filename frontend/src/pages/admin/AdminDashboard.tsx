@@ -17,7 +17,7 @@ import {
   Activity,
 } from 'lucide-react';
 
-export const AdminDashboard: React.FC = () => {
+export const AdminDashboard: React.FC<{ previewMode?: boolean }> = ({ previewMode = false }) => {
   const { user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [pendingMerchants, setPendingMerchants] = useState<PendingMerchant[]>([]);
@@ -27,6 +27,11 @@ export const AdminDashboard: React.FC = () => {
   const [userSearchTerm, setUserSearchTerm] = useState('');
 
   const loadData = useCallback(async () => {
+    if (previewMode) {
+      setUsers([{ id: 'preview-admin', fullName: 'Preview Admin', email: 'admin@example.com', roles: ['ADMIN'], status: 'ACTIVE' }]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setFeedbackMessage(null);
     try {
@@ -41,7 +46,7 @@ export const AdminDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [previewMode]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
