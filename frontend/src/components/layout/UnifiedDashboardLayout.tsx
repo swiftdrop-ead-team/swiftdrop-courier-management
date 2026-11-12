@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate, type Location } from "react-router-dom";
+import { type Location } from "react-router-dom";
 import {
   Bell,
   Building2,
@@ -23,6 +23,16 @@ import type { NavItem, NavSection } from "./RoleDashboardLayout";
 
 function buildNavigation(role: string, base: string): NavSection[] {
   switch (role) {
+    case "CUSTOMER":
+      return [
+        { heading: 'HOME', items: [{ tab: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: `${base}/overview` }] },
+        { heading: 'DELIVERIES', items: [
+          { tab: 'send', label: 'Send a parcel', icon: Send, path: `${base}/send`, badge: 'New' },
+          { tab: 'track', label: 'Track shipment', icon: MapPin, path: `${base}/track` },
+          { tab: 'history', label: 'Shipment history', icon: Package, path: `${base}/history` },
+        ] },
+        { heading: 'ACCOUNT', items: [{ tab: 'settings', label: 'Profile & addresses', icon: Settings, path: `${base}/settings` }] },
+      ];
     case "ADMIN":
       return [
         {
@@ -67,11 +77,13 @@ function buildNavigation(role: string, base: string): NavSection[] {
         {
           heading: "DISPATCH CONSOLE",
           items: [
-            { tab: "overview", label: "Courier Console", icon: LayoutDashboard, path: base },
-            { tab: "deliveries", label: "Assigned Drops", icon: Truck, path: `${base}#deliveries` },
-            { tab: "route", label: "Active Route", icon: MapPin, path: `${base}#route` },
+            { tab: "overview", label: "Overview", icon: LayoutDashboard, path: `${base}/overview` },
+            { tab: "deliveries", label: "Assigned Deliveries", icon: Truck, path: `${base}/deliveries` },
+            { tab: "route", label: "Active Route", icon: MapPin, path: `${base}/route` },
+            { tab: "history", label: "Delivery History", icon: Clock, path: `${base}/history` },
           ],
         },
+        { heading: 'ACCOUNT', items: [{ tab: 'profile', label: 'Courier Profile', icon: Users, path: `${base}/profile` }] },
       ];
     default:
       return [];
@@ -80,6 +92,8 @@ function buildNavigation(role: string, base: string): NavSection[] {
 
 function getRoleConfig(role: string) {
   switch (role) {
+    case "CUSTOMER":
+      return { subtitle: 'Customer workspace', profileLabel: 'Personal account', breadcrumbRole: 'Customer' };
     case "ADMIN":
       return { subtitle: "Administration", profileLabel: "Admin account", breadcrumbRole: "Admin" };
     case "MERCHANT":
@@ -93,8 +107,9 @@ function getRoleConfig(role: string) {
 
 function getActiveItem(location: Location<any>, navigation: NavSection[]): NavItem | undefined {
   const allItems = navigation.flatMap((s) => s.items);
-  return allItems.find(({ path }) => {
+  return [...allItems].sort((a, b) => b.path.length - a.path.length).find(({ path }) => {
     const [itemPath, itemHash] = path.split("#");
+    if (location.pathname.includes("/shipment-detail/") && path.endsWith("/shipments")) return true;
     // For hash-based nav, match exactly
     if (itemHash) {
       return location.pathname === itemPath && location.hash === `#${itemHash}`;
@@ -110,8 +125,6 @@ function getActiveItem(location: Location<any>, navigation: NavSection[]): NavIt
    ================================================================ */
 
 export const UnifiedDashboardLayout: React.FC<{ role: string; basePath: string }> = ({ role, basePath }) => {
-  const location = useLocation();
-
   const navigation = buildNavigation(role, basePath);
   const config = getRoleConfig(role);
 
