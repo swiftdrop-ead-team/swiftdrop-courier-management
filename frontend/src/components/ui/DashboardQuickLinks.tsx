@@ -10,8 +10,8 @@ const dashboardLinks = [
 
 const getCurrentDashboard = (pathname: string) => {
   if (pathname.startsWith('/admin/dashboard') || pathname === '/dashboard-preview/admin') return 'admin';
-  if (pathname.startsWith('/merchant/dashboard') || pathname === '/dashboard-preview/merchant') return 'merchant';
-  if (pathname.startsWith('/courier/dashboard') || pathname === '/dashboard-preview/courier') return 'courier';
+  if (pathname.startsWith('/merchant/dashboard') || pathname.startsWith('/dashboard-preview/merchant')) return 'merchant';
+  if (pathname.startsWith('/courier/dashboard') || pathname.startsWith('/dashboard-preview/courier')) return 'courier';
   if (pathname.startsWith('/customer/dashboard')) return 'customer';
   return null;
 };
@@ -19,9 +19,11 @@ const getCurrentDashboard = (pathname: string) => {
 export const DashboardQuickLinks: React.FC = () => {
   const { pathname } = useLocation();
   const currentDashboard = getCurrentDashboard(pathname);
+  if (!import.meta.env.DEV) return null;
 
   return (
     <nav aria-label="Temporary dashboard previews" className="flex flex-wrap items-center justify-end gap-1.5">
+      <Link to="/dashboard-preview" className="px-2 text-xs font-semibold text-blue-700">Portal</Link>
       <span className="mr-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
         Quick view
       </span>
