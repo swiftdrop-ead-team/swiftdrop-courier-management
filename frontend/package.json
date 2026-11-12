@@ -35,6 +35,9 @@
     "uuid": "^11.1.1",
     "zod": "^3.24.1"
   },
+  "overrides": {
+    "rollup": "npm:@rollup/wasm-node@4.67.3"
+  },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
