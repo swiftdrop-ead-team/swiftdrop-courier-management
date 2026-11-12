@@ -71,7 +71,6 @@ import {
   demoManifestOrders,
   manifestOrderStatusColor,
   shipmentStatusColor,
-  statusColor,
   statusIndex,
   trackingSteps,
 } from "./merchantData";
@@ -81,7 +80,7 @@ import {
   trackingService,
   notificationService,
   integrationService,
-  merchantService,
+  merchantUnavailableMessage,
   type CreateShipmentPayload,
 } from "../../services/merchantService";
 
@@ -469,14 +468,14 @@ function QuickActionCard({
   );
 }
 
-export const MerchantDashboard: React.FC = () => {
+export const MerchantDashboard: React.FC<{ previewMode?: boolean }> = ({ previewMode = false }) => {
   const { user } = useAuth();
   const { tab = "overview", id: detailId } = useParams();
   const activeTab: Tab = Object.prototype.hasOwnProperty.call(headings, tab)
     ? (tab as Tab)
     : "overview";
   const navigate = useNavigate();
-  const base = "/merchant/dashboard";
+  const base = previewMode ? "/dashboard-preview/merchant" : "/merchant/dashboard";
 
   const approvalStatus = user?.merchantApprovalStatus ?? undefined;
   const isApproved = approvalStatus === "APPROVED";
@@ -557,30 +556,39 @@ export const MerchantDashboard: React.FC = () => {
 
   // ── Load data ──
   useEffect(() => {
+    if (previewMode) return;
     if (!shipmentsLoaded) {
       shipmentService.listShipments().then((data) => {
         setShipments(data);
         setShipmentsLoaded(true);
+      }).catch(() => {
+        setShipmentsLoaded(true);
+        setMessage(merchantUnavailableMessage);
       });
     }
-  }, [shipmentsLoaded]);
+  }, [shipmentsLoaded, previewMode]);
 
   useEffect(() => {
+    if (previewMode) return;
     if (!notifsLoaded) {
       notificationService.getNotifications().then((data) => {
         setNotifications(data);
         setNotifsLoaded(true);
+      }).catch(() => {
+        setNotifsLoaded(true);
+        setMessage(merchantUnavailableMessage);
       });
     }
-  }, [notifsLoaded]);
+  }, [notifsLoaded, previewMode]);
 
   useEffect(() => {
+    if (previewMode) return;
     if (activeTab === "api" && !apiCredentials) {
       integrationService.getCredentials().then((data) => {
         setApiCredentials(data);
-      });
+      }).catch(() => setMessage(merchantUnavailableMessage));
     }
-  }, [activeTab, apiCredentials]);
+  }, [activeTab, apiCredentials, previewMode]);
 
   // ── Computed ──
   const activeShipments = shipments.filter(
@@ -2582,6 +2590,9 @@ export const MerchantDashboard: React.FC = () => {
   }
 
   function renderApi() {
+    if (!apiCredentials) {
+      return <Alert severity="info">{merchantUnavailableMessage}</Alert>;
+    }
     const creds =
       apiCredentials || {
         apiKey: "sd_live_9a8f21b74c8e3921049281a",
