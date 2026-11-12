@@ -1,0 +1,74 @@
+server:
+  port: ${MERCHANT_SERVICE_PORT:8083}
+
+spring:
+  application:
+    name: merchant-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:swiftdrop_merchant}}
+    username: ${SPRING_DATASOURCE_USERNAME:${POSTGRES_USER:swiftdrop_user}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${POSTGRES_PASSWORD:}}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:}
+    password: ${RABBITMQ_PASSWORD:}
+
+  jackson:
+    default-property-inclusion: non_null
+
+swiftdrop:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:}
+
+merchant:
+  parcel:
+    base-url: ${PARCEL_SERVICE_URL:http://localhost:8082}
+    order-path: ${PARCEL_ORDER_PATH:/api/v1/parcels}
+  rabbitmq:
+    exchange: ${MERCHANT_EVENT_EXCHANGE:dispatch.exchange}
+    queue: ${MERCHANT_STATUS_QUEUE:swiftdrop.merchant.status-updated.queue}
+    routing-key: ${MERCHANT_STATUS_ROUTING_KEY:dispatch.status.updated}
+  webhook:
+    encryption-key: ${WEBHOOK_ENCRYPTION_KEY:}
+    allow-localhost: ${WEBHOOK_ALLOW_LOCALHOST:false}
+    max-attempts: ${WEBHOOK_MAX_ATTEMPTS:5}
+    base-delay-seconds: ${WEBHOOK_RETRY_BASE_SECONDS:2}
+    max-delay-seconds: ${WEBHOOK_RETRY_MAX_SECONDS:300}
+    request-timeout-seconds: ${WEBHOOK_REQUEST_TIMEOUT_SECONDS:10}
+    scheduler-enabled: ${WEBHOOK_SCHEDULER_ENABLED:true}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
