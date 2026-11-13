@@ -37,3 +37,6 @@ jwt:
 logging:
   level:
     com.swiftdrop: DEBUG
+
+gemini:
+  api.key: ${GEMINI_API_KEY:}

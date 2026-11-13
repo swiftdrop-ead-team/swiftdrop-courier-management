@@ -130,7 +130,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
 
       # Same database used by Identity Service
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-swiftdrop_identity}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${TRACKING_DB:-swiftdrop_tracking}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
 
@@ -157,6 +157,41 @@ services:
       - swiftdrop-net
 
   # ==============================================================================
+  # AI Assistant & Reports Service — Spring Boot 3.4.x / Java 21 (Port 8089)
+  # ==============================================================================
+  ai-assistant-service:
+    build:
+      context: ./services/ai-assistant-service
+      dockerfile: Dockerfile
+    container_name: swiftdrop-ai-assistant-service
+    restart: unless-stopped
+    ports:
+      - "${AI_SERVICE_PORT:-8089}:8089"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/swiftdrop_reports
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8089/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - swiftdrop-net
+  # ==============================================================================
   # API Gateway — Spring Cloud Gateway (Port 8080)
   # ==============================================================================
   gateway:
@@ -172,6 +207,7 @@ services:
       IDENTITY_SERVICE_URL: http://identity-service:8081
       DISPATCH_SERVICE_URL: http://dispatch-service:8084
       TRACKING_SERVICE_URL: http://tracking-service:8086
+      AI_SERVICE_URL: http://ai-assistant-service:8089
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     depends_on:
       identity-service:
@@ -179,6 +215,8 @@ services:
       dispatch-service:
         condition: service_healthy
       tracking-service:
+        condition: service_healthy
+      ai-assistant-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
@@ -205,6 +243,12 @@ services:
     depends_on:
       gateway:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://127.0.0.1:80/ || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - swiftdrop-net
 
