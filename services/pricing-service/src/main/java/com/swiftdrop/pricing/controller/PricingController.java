@@ -50,7 +50,7 @@ public class PricingController {
     public ResponseEntity<ApiResponse<PricingResponseDto>> createQuote(
             @Valid @RequestBody PricingRequestDto request) {
 
-        // Step 7: Merchant tier is null (untrusted/no auth). Step 8 will extract authenticated merchant identity from JWT.
+        // Step 8: Keep merchant tier as null until trusted merchant identity source / claims are available.
         PricingResponseDto quoteDto = pricingFacadeService.calculateAndCreateQuote(request, null);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
