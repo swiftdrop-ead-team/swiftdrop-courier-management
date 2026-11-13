@@ -14,19 +14,16 @@ import { ResetPasswordPage } from "../pages/auth/ResetPasswordPage";
 import { AuthCallbackPage } from "../pages/auth/AuthCallbackPage";
 
 // Dashboards
-import { MerchantDashboard } from "../pages/merchant/MerchantDashboard";
-import { CourierDashboard } from "../pages/courier/CourierDashboard";
-import { AdminDashboard } from "../pages/admin/AdminDashboard";
-import { DashboardPreviewPortal } from '../pages/DashboardPreviewPortal';
+import {
+  AdminWorkspace,
+  DeliveryDashboard,
+} from "../features/delivery/DeliveryDashboard";
+import { PublicTrackingPage } from "../features/delivery/TrackingView";
+import { DashboardPreviewPortal } from "../pages/DashboardPreviewPortal";
 
 const CustomerDashboardLayout = lazy(() =>
   import("../components/layout/CustomerDashboardLayout").then((module) => ({
     default: module.CustomerDashboardLayout,
-  })),
-);
-const CustomerDashboard = lazy(() =>
-  import("../pages/customer/CustomerDashboard").then((module) => ({
-    default: module.CustomerDashboard,
   })),
 );
 const customerLayout = (
@@ -44,21 +41,78 @@ const customerLayout = (
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {import.meta.env.DEV && <>
-        <Route path="/dashboard-preview" element={<DashboardPreviewPortal />} />
-        <Route element={<UnifiedDashboardLayout role="ADMIN" basePath="/dashboard-preview/admin" />}>
-          <Route path="/dashboard-preview/admin/:tab?" element={<AdminDashboard previewMode />} />
-        </Route>
-        <Route element={<UnifiedDashboardLayout role="COURIER" basePath="/dashboard-preview/courier" />}>
-          <Route path="/dashboard-preview/courier/:tab?" element={<CourierDashboard previewMode />} />
-        </Route>
-        <Route element={<UnifiedDashboardLayout role="MERCHANT" basePath="/dashboard-preview/merchant" />}>
-          <Route path="/dashboard-preview/merchant/:tab?/:id?" element={<MerchantDashboard previewMode />} />
-        </Route>
-      </>}
+      {import.meta.env.DEV && (
+        <>
+          <Route
+            path="/dashboard-preview"
+            element={<DashboardPreviewPortal />}
+          />
+          <Route
+            element={
+              <UnifiedDashboardLayout
+                role="ADMIN"
+                basePath="/dashboard-preview/admin"
+              />
+            }
+          >
+            <Route
+              path="/dashboard-preview/admin/:tab?"
+              element={<AdminWorkspace previewMode />}
+            />
+          </Route>
+          <Route
+            element={
+              <UnifiedDashboardLayout
+                role="COURIER"
+                basePath="/dashboard-preview/courier"
+              />
+            }
+          >
+            <Route
+              path="/dashboard-preview/courier/:tab?"
+              element={<DeliveryDashboard role="COURIER" previewMode />}
+            />
+          </Route>
+          <Route
+            element={
+              <UnifiedDashboardLayout
+                role="MERCHANT"
+                basePath="/dashboard-preview/merchant"
+              />
+            }
+          >
+            <Route
+              path="/dashboard-preview/merchant/:tab?/:id?"
+              element={<DeliveryDashboard role="MERCHANT" previewMode />}
+            />
+          </Route>
+          <Route element={customerLayout}>
+            <Route
+              path="/customer/dashboard-preview"
+              element={
+                <Navigate to="/customer/dashboard-preview/overview" replace />
+              }
+            />
+            <Route
+              path="/customer/dashboard-preview/:tab"
+              element={<DeliveryDashboard role="CUSTOMER" previewMode />}
+            />
+          </Route>
+          <Route element={<MainLayout />}>
+            <Route
+              path="/tracking-preview/:trackingNumber?"
+              element={<PublicTrackingPage preview />}
+            />
+          </Route>
+        </>
+      )}
       {/* Public Pages with Main Navigation and Footer */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<LandingPage />} />
+        <Route
+          path="/track/:trackingNumber?"
+          element={<PublicTrackingPage />}
+        />
       </Route>
 
       {/* Guest-Only Auth Routes (Redirects if already signed in) */}
@@ -73,20 +127,6 @@ export const AppRoutes: React.FC = () => {
       {/* OAuth2 Callback Handler */}
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-      {/* Temporary frontend-only customer dashboard preview */}
-      <Route element={customerLayout}>
-        <Route
-          path="/customer/dashboard-preview"
-          element={
-            <Navigate to="/customer/dashboard-preview/overview" replace />
-          }
-        />
-        <Route
-          path="/customer/dashboard-preview/:tab"
-          element={<CustomerDashboard previewMode />}
-        />
-      </Route>
-
       {/* Authenticated Dashboard Routes */}
       <Route element={<ProtectedRoute />}>
         <Route element={customerLayout}>
@@ -98,30 +138,57 @@ export const AppRoutes: React.FC = () => {
             />
             <Route
               path="/customer/dashboard/:tab"
-              element={<CustomerDashboard />}
+              element={<DeliveryDashboard role="CUSTOMER" />}
             />
           </Route>
         </Route>
-          {/* Merchant Dashboard */}
-          <Route element={<RoleRoute requiredRole="MERCHANT" />}>
-            <Route element={<UnifiedDashboardLayout role="MERCHANT" basePath="/merchant/dashboard" />}>
-              <Route path="/merchant/dashboard/:tab?/:id?" element={<MerchantDashboard />} />
-            </Route>
+        {/* Merchant Dashboard */}
+        <Route element={<RoleRoute requiredRole="MERCHANT" />}>
+          <Route
+            element={
+              <UnifiedDashboardLayout
+                role="MERCHANT"
+                basePath="/merchant/dashboard"
+              />
+            }
+          >
+            <Route
+              path="/merchant/dashboard/:tab?/:id?"
+              element={<DeliveryDashboard role="MERCHANT" />}
+            />
           </Route>
+        </Route>
 
-          {/* Courier Dashboard */}
-          <Route element={<RoleRoute requiredRole="COURIER" />}>
-            <Route element={<UnifiedDashboardLayout role="COURIER" basePath="/courier/dashboard" />}>
-              <Route path="/courier/dashboard/:tab?" element={<CourierDashboard />} />
-            </Route>
+        {/* Courier Dashboard */}
+        <Route element={<RoleRoute requiredRole="COURIER" />}>
+          <Route
+            element={
+              <UnifiedDashboardLayout
+                role="COURIER"
+                basePath="/courier/dashboard"
+              />
+            }
+          >
+            <Route
+              path="/courier/dashboard/:tab?"
+              element={<DeliveryDashboard role="COURIER" />}
+            />
           </Route>
+        </Route>
 
-          {/* Admin Dashboard */}
-          <Route element={<RoleRoute requiredRole="ADMIN" />}>
-            <Route element={<UnifiedDashboardLayout role="ADMIN" basePath="/admin/dashboard" />}>
-              <Route path="/admin/dashboard/:tab?" element={<AdminDashboard />} />
-            </Route>
+        {/* Admin Dashboard */}
+        <Route element={<RoleRoute requiredRole="ADMIN" />}>
+          <Route
+            element={
+              <UnifiedDashboardLayout
+                role="ADMIN"
+                basePath="/admin/dashboard"
+              />
+            }
+          >
+            <Route path="/admin/dashboard/:tab?" element={<AdminWorkspace />} />
           </Route>
+        </Route>
       </Route>
 
       {/* Catch-all fallback */}

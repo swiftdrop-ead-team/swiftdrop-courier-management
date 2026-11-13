@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Building2,
@@ -45,12 +45,12 @@ const capabilities = [
 
 export const LandingPage: React.FC = () => {
   const [trackingNumber, setTrackingNumber] = useState('');
-  const [trackingSearched, setTrackingSearched] = useState(false);
+  const navigate = useNavigate();
 
   const handleTrackSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (trackingNumber.trim()) {
-      setTrackingSearched(true);
+      navigate(`/track/${encodeURIComponent(trackingNumber.trim().toUpperCase())}`);
     }
   };
 
@@ -141,7 +141,6 @@ export const LandingPage: React.FC = () => {
             <Button type="submit" variant="secondary" className="rounded-full px-6"><Search className="h-4 w-4" aria-hidden="true" />Track parcel</Button>
           </form>
         </div>
-        {trackingSearched && <div className="mx-auto mt-5 max-w-7xl px-4 sm:px-6 lg:px-8"><div role="status" className="flex items-start gap-2 text-xs text-amber-700"><Clock3 className="h-4 w-4" aria-hidden="true" />Tracking for <span className="font-mono font-bold">{trackingNumber}</span> is scheduled for the tracking service rollout.</div></div>}
       </section>
 
       <section id="services" className="bg-canvas py-20 sm:py-24">
