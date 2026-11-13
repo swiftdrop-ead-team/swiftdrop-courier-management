@@ -1,0 +1,244 @@
+{
+  "info": {
+    "name": "SwiftDrop — Merchant Service APIs (Member 4)",
+    "description": "Merchant registration, approvals, scoped API keys, order intake, dashboard, and signed webhooks.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8083" },
+    { "key": "merchantToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "merchantApiKey", "value": "" },
+    { "key": "merchantId", "value": "" },
+    { "key": "webhookId", "value": "" },
+    { "key": "deliveryId", "value": "" },
+    { "key": "idempotencyKey", "value": "merchant-demo-order-001" }
+  ],
+  "item": [
+    {
+      "name": "1. Merchant Profile and Approval",
+      "item": [
+        {
+          "name": "Register business profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{merchantToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"businessName\": \"Northwind Goods\",\n  \"contactPerson\": \"Demo Merchant\",\n  \"phoneNumber\": \"+94770000000\",\n  \"businessAddress\": \"1 Market Road\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/merchant/profile"
+          }
+        },
+        {
+          "name": "Get my profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchantToken}}" }],
+            "url": "{{baseUrl}}/api/v1/merchant/profile"
+          }
+        },
+        {
+          "name": "Update my profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{merchantToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"businessName\": \"Northwind Goods\",\n  \"contactPerson\": \"Demo Merchant\",\n  \"phoneNumber\": \"+94770000000\",\n  \"businessAddress\": \"2 Market Road\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/merchant/profile"
+          }
+        },
+        {
+          "name": "List pending merchant registrations",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/api/v1/merchant/admin/registrations/pending"
+          }
+        },
+        {
+          "name": "Approve merchant",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"notes\": \"Verified business registration\"\n}" },
+            "url": "{{baseUrl}}/api/v1/merchant/admin/registrations/{{merchantId}}/approve"
+          }
+        },
+        {
+          "name": "Reject merchant",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"notes\": \"Required documents were not supplied\"\n}" },
+            "url": "{{baseUrl}}/api/v1/merchant/admin/registrations/{{merchantId}}/reject"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. API Keys",
+      "item": [
+        {
+          "name": "Issue API key (copy once)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{merchantToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"scopes\": [\"orders:read\", \"orders:write\", \"dashboard:read\"]\n}" },
+            "url": "{{baseUrl}}/api/v1/merchant/api-keys"
+          }
+        },
+        {
+          "name": "List API key prefixes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchantToken}}" }],
+            "url": "{{baseUrl}}/api/v1/merchant/api-keys"
+          }
+        },
+        {
+          "name": "Revoke API key",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchantToken}}" }],
+            "url": "{{baseUrl}}/api/v1/merchant/api-keys/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Orders and Dashboard",
+      "item": [
+        {
+          "name": "Create order (idempotent)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-API-Key", "value": "{{merchantApiKey}}" },
+              { "key": "Idempotency-Key", "value": "{{idempotencyKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientName\": \"Sample Recipient\",\n  \"recipientPhone\": \"+94771111111\",\n  \"deliveryAddress\": \"4 Galle Road, Colombo\",\n  \"pickupAddress\": \"Northwind Warehouse, Colombo\",\n  \"description\": \"Books\",\n  \"weightKg\": 1.5\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/merchant/orders"
+          }
+        },
+        {
+          "name": "List own orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{merchantApiKey}}" }],
+            "url": "{{baseUrl}}/api/v1/merchant/orders"
+          }
+        },
+        {
+          "name": "Dashboard summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{merchantApiKey}}" }],
+            "url": "{{baseUrl}}/api/v1/merchant/orders/dashboard/summary"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Webhooks",
+      "item": [
+        {
+          "name": "Create webhook (copy secret once)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{merchantToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetUrl\": \"https://merchant.example.com/swiftdrop-hook\",\n  \"eventTypes\": [\"parcel.status.changed\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/merchant/webhooks"
+          }
+        },
+        {
+          "name": "List webhooks",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchantToken}}" }],
+            "url": "{{baseUrl}}/api/v1/merchant/webhooks"
+          }
+        },
+        {
+          "name": "Update webhook and rotate secret",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{merchantToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetUrl\": \"https://merchant.example.com/swiftdrop-hook-v2\",\n  \"eventTypes\": [\"parcel.status.changed\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/merchant/webhooks/{{webhookId}}"
+          }
+        },
+        {
+          "name": "View webhook deliveries",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchantToken}}" }],
+            "url": "{{baseUrl}}/api/v1/merchant/webhooks/{{webhookId}}/deliveries"
+          }
+        },
+        {
+          "name": "Manually redeliver failed webhook",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchantToken}}" }],
+            "url": "{{baseUrl}}/api/v1/merchant/webhooks/{{webhookId}}/deliveries/{{deliveryId}}/redeliver"
+          }
+        },
+        {
+          "name": "Disable webhook",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchantToken}}" }],
+            "url": "{{baseUrl}}/api/v1/merchant/webhooks/{{webhookId}}"
+          }
+        },
+        {
+          "name": "Demo webhook receiver",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-SwiftDrop-Event-Id", "value": "demo-event-id" },
+              { "key": "X-SwiftDrop-Signature", "value": "sha256=demo-signature" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"parcel.status.changed\",\n  \"status\": \"IN_TRANSIT\"\n}" },
+            "url": "{{baseUrl}}/api/v1/merchant/demo/webhook"
+          }
+        }
+      ]
+    }
+  ]
+}
