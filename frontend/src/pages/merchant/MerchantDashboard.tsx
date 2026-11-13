@@ -57,6 +57,7 @@ import Table from "examples/Tables/Table";
 import TimelineList from "examples/Timeline/TimelineList";
 import TimelineItem from "examples/Timeline/TimelineItem";
 import landscape from "assets/images/ivancik.jpg";
+import merchantIllustration from "../../assets/images/merchant-packing.png";
 import { useAuth } from "../../hooks/useAuth";
 import {
   Shipment,
@@ -902,10 +903,9 @@ export const MerchantDashboard: React.FC<{ previewMode?: boolean }> = ({ preview
               </Grid>
               <Grid item xs={12} sm={5}>
                 <SoftBox
-                  variant="gradient"
-                  bgColor="primary"
                   borderRadius="lg"
                   sx={{
+                    backgroundColor: "#f7f3e9",
                     height: "100%",
                     minHeight: 200,
                     display: "grid",
@@ -915,24 +915,11 @@ export const MerchantDashboard: React.FC<{ previewMode?: boolean }> = ({ preview
                   }}
                 >
                   <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 1,
-                      color: "#fff",
-                    }}
-                  >
-                    <Building2 size={64} style={{ opacity: 0.25 }} />
-                    <SoftTypography
-                      variant="button"
-                      color="white"
-                      fontWeight="bold"
-                      sx={{ opacity: 0.7 }}
-                    >
-                      Merchant Portal
-                    </SoftTypography>
-                  </Box>
+                    component="img"
+                    src={merchantIllustration}
+                    alt="Merchant packing orders for shipment"
+                    sx={{ width: "100%", maxHeight: 280, objectFit: "contain", display: "block" }}
+                  />
                 </SoftBox>
               </Grid>
             </Grid>

@@ -8,7 +8,7 @@ import SoftButton from 'components/SoftButton';
 import SoftInput from 'components/SoftInput';
 import MiniStatisticsCard from 'examples/Cards/StatisticsCards/MiniStatisticsCard';
 import Table from 'examples/Tables/Table';
-import rocket from 'assets/images/illustrations/rocket-white.png';
+import adminIllustration from '../../assets/images/admin-review.png';
 import { useAuth } from '../../hooks/useAuth';
 import { adminService } from '../../services/authService';
 import type { PendingMerchant, User } from '../../types/auth';
@@ -151,8 +151,8 @@ export const AdminDashboard: React.FC<{ previewMode?: boolean }> = ({ previewMod
         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}><SoftButton component={Link} to={go('merchants')} variant="gradient" color="primary" sx={adminActionStyle}>Review applications <ArrowRight size={15} style={{ marginLeft: 6 }} /></SoftButton><SoftButton component={Link} to={go('users')} variant="outlined" color="dark">View users</SoftButton></Box>
         </Grid>
         <Grid item xs={12} sm={5}>
-          <SoftBox variant="gradient" bgColor="primary" borderRadius="lg" sx={{ minHeight: 200, display: 'grid', placeItems: 'center', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0, 39, 76, 0.12)' }}>
-            <Box component="img" src={rocket} alt="" sx={{ width: '85%', maxHeight: 230, objectFit: 'contain', display: 'block' }} />
+          <SoftBox borderRadius="lg" sx={{ minHeight: 200, backgroundColor: '#f7f3e9', display: 'grid', placeItems: 'center', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0, 39, 76, 0.12)' }}>
+            <Box component="img" src={adminIllustration} alt="Administrator reviewing merchant applications" sx={{ width: '100%', maxHeight: 280, objectFit: 'contain', display: 'block' }} />
           </SoftBox>
         </Grid>
         </Grid>

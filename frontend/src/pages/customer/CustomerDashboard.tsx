@@ -38,7 +38,7 @@ import GradientLineChart from "examples/Charts/LineCharts/GradientLineChart";
 import Table from "examples/Tables/Table";
 import TimelineList from "examples/Timeline/TimelineList";
 import TimelineItem from "examples/Timeline/TimelineItem";
-import rocket from "assets/images/illustrations/rocket-white.png";
+import customerIllustration from "../../assets/images/customer-parcel.png";
 import landscape from "assets/images/ivancik.jpg";
 import { useAuth } from "../../hooks/useAuth";
 import {
@@ -468,10 +468,9 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
               </Grid>
               <Grid item xs={12} sm={5}>
                 <SoftBox
-                  variant="gradient"
-                  bgColor="primary"
                   borderRadius="lg"
                   sx={{
+                    backgroundColor: "#f7f3e9",
                     height: "100%",
                     minHeight: 200,
                     display: "grid",
@@ -482,9 +481,9 @@ export const CustomerDashboard: React.FC<{ previewMode?: boolean }> = ({
                 >
                   <Box
                     component="img"
-                    src={rocket}
-                    alt=""
-                    sx={{ width: "85%", maxHeight: 230, objectFit: "contain" }}
+                    src={customerIllustration}
+                    alt="Customer receiving a parcel at home"
+                    sx={{ width: "100%", maxHeight: 280, objectFit: "contain", display: "block" }}
                   />
                 </SoftBox>
               </Grid>
