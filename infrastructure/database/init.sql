@@ -4,7 +4,7 @@
 -- ==============================================================================
 
 -- Create microservices databases
-CREATE DATABASE swiftdrop_identity;
+--CREATE DATABASE swiftdrop_identity;
 CREATE DATABASE swiftdrop_parcel;
 CREATE DATABASE swiftdrop_merchant;
 CREATE DATABASE swiftdrop_dispatch;

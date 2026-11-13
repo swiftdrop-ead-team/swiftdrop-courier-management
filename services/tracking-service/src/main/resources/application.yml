@@ -7,7 +7,7 @@ spring:
     name: tracking-service
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/swiftdrop_identity}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/swiftdrop_tracking}
     username: ${SPRING_DATASOURCE_USERNAME:${POSTGRES_USER}}
     password: ${SPRING_DATASOURCE_PASSWORD:${POSTGRES_PASSWORD}}
     driver-class-name: org.postgresql.Driver
