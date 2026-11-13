@@ -11,12 +11,16 @@ import com.swiftdrop.pricing.exception.QuoteExpiredException;
 import com.swiftdrop.pricing.exception.QuoteNotFoundException;
 import com.swiftdrop.pricing.exception.ZoneNotFoundException;
 import com.swiftdrop.pricing.service.PricingFacadeService;
+import com.swiftdrop.pricing.security.JwtAuthenticationFilter;
+import com.swiftdrop.pricing.security.JwtTokenProvider;
+import com.swiftdrop.pricing.security.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -37,8 +41,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest({PricingController.class, GlobalExceptionHandler.class})
+@WebMvcTest({PricingController.class, GlobalExceptionHandler.class, SecurityConfig.class, JwtAuthenticationFilter.class})
 @ActiveProfiles("test")
+@WithMockUser(roles = "CUSTOMER")
 class PricingControllerTest {
 
     @Autowired
@@ -46,6 +51,9 @@ class PricingControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
 
     @MockBean
     private PricingFacadeService pricingFacadeService;
