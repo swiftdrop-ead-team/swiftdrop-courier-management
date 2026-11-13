@@ -11,6 +11,7 @@ CREATE DATABASE swiftdrop_dispatch;
 CREATE DATABASE swiftdrop_pricing;
 CREATE DATABASE swiftdrop_tracking;
 CREATE DATABASE swiftdrop_notification;
+CREATE DATABASE swiftdrop_reports;
 
 -- Grant permissions
 GRANT ALL PRIVILEGES ON DATABASE swiftdrop_identity TO swiftdrop_user;
