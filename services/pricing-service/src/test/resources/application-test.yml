@@ -19,6 +19,11 @@ spring:
   flyway:
     enabled: false
 
+swiftdrop:
+  security:
+    jwt:
+      secret: x2oOe75bdj0snm7uNSxxn7cUXom9L68cltwvoVp1sk6H4Ad0u+lNjOqno+AuKTTn
+
 management:
   endpoints:
     web:
