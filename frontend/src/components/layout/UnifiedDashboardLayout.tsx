@@ -38,11 +38,13 @@ function buildNavigation(role: string, base: string): NavSection[] {
         {
           heading: "ADMINISTRATION",
           items: [
-            { tab: "overview", label: "Admin Overview", icon: LayoutDashboard, path: base },
-            { tab: "merchants", label: "Pending Approvals", icon: Clock, path: `${base}#merchants`, badge: "Live" },
-            { tab: "users", label: "User Management", icon: Users, path: `${base}#users` },
+            { tab: "overview", label: "Admin Overview", icon: LayoutDashboard, path: `${base}/overview` },
+            { tab: "merchants", label: "Merchant Approvals", icon: Clock, path: `${base}/merchants` },
+            { tab: "users", label: "User Management", icon: Users, path: `${base}/users` },
+            { tab: "activity", label: "Review Activity", icon: FileSpreadsheet, path: `${base}/activity` },
           ],
         },
+        { heading: 'ACCOUNT', items: [{ tab: 'profile', label: 'Admin Profile', icon: Settings, path: `${base}/profile` }] },
       ];
     case "MERCHANT":
       return [

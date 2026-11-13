@@ -9,7 +9,7 @@ const dashboardLinks = [
 ];
 
 const getCurrentDashboard = (pathname: string) => {
-  if (pathname.startsWith('/admin/dashboard') || pathname === '/dashboard-preview/admin') return 'admin';
+  if (pathname.startsWith('/admin/dashboard') || pathname.startsWith('/dashboard-preview/admin')) return 'admin';
   if (pathname.startsWith('/merchant/dashboard') || pathname.startsWith('/dashboard-preview/merchant')) return 'merchant';
   if (pathname.startsWith('/courier/dashboard') || pathname.startsWith('/dashboard-preview/courier')) return 'courier';
   if (pathname.startsWith('/customer/dashboard')) return 'customer';

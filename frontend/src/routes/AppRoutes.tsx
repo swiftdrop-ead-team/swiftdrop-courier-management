@@ -47,7 +47,7 @@ export const AppRoutes: React.FC = () => {
       {import.meta.env.DEV && <>
         <Route path="/dashboard-preview" element={<DashboardPreviewPortal />} />
         <Route element={<UnifiedDashboardLayout role="ADMIN" basePath="/dashboard-preview/admin" />}>
-          <Route path="/dashboard-preview/admin" element={<AdminDashboard previewMode />} />
+          <Route path="/dashboard-preview/admin/:tab?" element={<AdminDashboard previewMode />} />
         </Route>
         <Route element={<UnifiedDashboardLayout role="COURIER" basePath="/dashboard-preview/courier" />}>
           <Route path="/dashboard-preview/courier/:tab?" element={<CourierDashboard previewMode />} />
@@ -119,7 +119,7 @@ export const AppRoutes: React.FC = () => {
           {/* Admin Dashboard */}
           <Route element={<RoleRoute requiredRole="ADMIN" />}>
             <Route element={<UnifiedDashboardLayout role="ADMIN" basePath="/admin/dashboard" />}>
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/dashboard/:tab?" element={<AdminDashboard />} />
             </Route>
           </Route>
       </Route>
