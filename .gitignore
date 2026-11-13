@@ -43,3 +43,6 @@ gateway/target/
 postgres_data/
 docker_data/
 *.pid
+
+# Generated frontend tests, coverage, and browser screenshots.
+frontend/reports/

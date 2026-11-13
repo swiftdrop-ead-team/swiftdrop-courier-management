@@ -7,7 +7,9 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev/)
 
-An enterprise-grade, microservices-based logistics and courier platform developed for the **Enterprise Application Development (EAD)** group assignment. SwiftDrop orchestrates parcel intake, dynamic pricing algorithms, intelligent courier scheduling, real-time tracking, and administrative compliance verifications across 10 independent microservices.
+A parcel delivery and courier management project for the **Enterprise Application Development (EAD)** group assignment. This checkout includes the React frontend, identity service, API gateway, and planned domain-service directories. The architecture below includes services that are not yet implemented.
+
+Frontend workflows and development previews are described in [frontend/README.md](frontend/README.md), with [API contracts](docs/api-contracts/frontend-delivery-v1.md) for backend integration. A frontend preview demonstrates UI behavior; it does not establish completion of backend broker, tracking, dispatch, pricing, notifications, or merchant webhooks.
 
 ---
 
