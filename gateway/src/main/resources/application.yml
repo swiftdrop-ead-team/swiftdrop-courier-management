@@ -74,7 +74,7 @@ spring:
         - id: dispatch-service
           uri: ${DISPATCH_SERVICE_URL:http://localhost:8084}
           predicates:
-            - Path=/api/v1/dispatch/**
+            - Path=/api/v1/dispatch/**, /api/v1/couriers/**
 
         # ======================================================================
         # 5. Pricing Service Routes (Reserved - Member 6)
@@ -82,7 +82,7 @@ spring:
         - id: pricing-service
           uri: ${PRICING_SERVICE_URL:http://localhost:8085}
           predicates:
-            - Path=/api/v1/pricing/**
+            - Path=/api/v1/pricing/**, /api/v1/zones/**
 
         # ======================================================================
         # 6. Tracking Service Routes (Reserved - Member 7)
