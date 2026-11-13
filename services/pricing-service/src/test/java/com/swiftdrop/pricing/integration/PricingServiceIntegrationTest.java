@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -38,6 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@WithMockUser(roles = "CUSTOMER")
 class PricingServiceIntegrationTest {
 
     @Autowired
@@ -60,6 +62,9 @@ class PricingServiceIntegrationTest {
 
     @Autowired
     private PriceQuoteRepository priceQuoteRepository;
+
+    @Autowired
+    private com.swiftdrop.pricing.security.JwtTokenProvider jwtTokenProvider;
 
     @BeforeEach
     void setUpReferenceData() {
@@ -295,6 +300,10 @@ class PricingServiceIntegrationTest {
         List<Future<UUID>> futures = new ArrayList<>();
         Set<UUID> generatedIds = ConcurrentHashMap.newKeySet();
 
+        final String authToken = jwtTokenProvider.generateToken(
+                UUID.randomUUID(), "concurrent@swiftdrop.io", "Concurrent User",
+                List.of("ROLE_CUSTOMER"), 300000);
+
         for (int i = 0; i < threadCount; i++) {
             final int index = i;
             futures.add(executorService.submit(() -> {
@@ -304,6 +313,7 @@ class PricingServiceIntegrationTest {
                     request.setOrderReference("ORD-CONC-" + index);
 
                     MvcResult result = mockMvc.perform(post("/api/v1/pricing/quotes")
+                                    .header("Authorization", "Bearer " + authToken)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request)))
                             .andExpect(status().isCreated())
