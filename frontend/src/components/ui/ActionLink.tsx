@@ -10,7 +10,7 @@ interface ActionLinkProps extends LinkProps {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-yellow-500 text-navy-950 shadow-lg shadow-yellow-500/20 hover:bg-yellow-400',
+  primary: 'bg-gradient-to-r from-yellow-500 to-yellow-400 text-navy-950 shadow-lg shadow-navy-900/15 hover:from-yellow-400 hover:to-yellow-300',
   secondary: 'bg-navy-900 text-white shadow-lg shadow-navy-900/15 hover:bg-navy-800',
   outline: 'border border-slate-200 bg-white text-slate-700 hover:border-navy-200 hover:bg-slate-50 hover:text-navy-900',
   ghost: 'text-slate-600 hover:bg-slate-100 hover:text-navy-900',

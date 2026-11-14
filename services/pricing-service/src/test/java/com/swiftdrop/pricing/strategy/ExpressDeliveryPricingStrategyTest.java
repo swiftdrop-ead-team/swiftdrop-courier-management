@@ -102,24 +102,7 @@ class ExpressDeliveryPricingStrategyTest {
     @Test
     @DisplayName("Volumetric billable weight exceeding 30.00 kg throws DeliveryRestrictionException")
     void testVolumetricWeightExceedingLimitThrows() {
-        // Physical: 5.00 kg, Dimensions: 100x80x25 cm -> volume: 200,000 / 5000 = 40.0000 kg (> 30 kg)
-        // Note: combined girth = 100 + 2*(80+25) = 310 > 200, so test with 80x50x40 = 160,000/5000 = 32 kg
-        // girth: 80 + 2*(25+20) = 170 <= 200 cm, volume: 80x50x50 = 200,000 / 5000 = 40 kg.
-        // Let's use: length=60, width=50, height=60 -> 180,000 / 5000 = 36.00 kg (> 30 kg limit)
-        // girth: 60 + 2*(30+35) = 190 cm (< 200 cm girth limit)
-        // volume: 60 x 60 x 50 = 180,000 / 5000 = 36.00 kg
-        // girth = 60 + 2*(30+35) = 190 cm
-        PricingContext context = PricingContext.builder()
-                .physicalWeightKg(new BigDecimal("5.00"))
-                .lengthCm(new BigDecimal("60"))
-                .widthCm(new BigDecimal("35"))
-                .heightCm(new BigDecimal("30")) // girth = 60 + 2*(35+30) = 190 cm <= 200 cm
-                .distanceKm(new BigDecimal("5.00"))
-                .build();
-        // Here volumetric weight = 60*35*30 / 5000 = 12.6 kg. Let's make volumetric > 30 kg within 200 cm girth:
-        // length = 100, width = 25, height = 24 -> girth = 100 + 2*(49) = 198 cm <= 200 cm
-        // volume = 100 * 25 * 24 = 60,000 / 5000 = 12 kg.
-        // Wait, max weight 30 kg with custom strategy:
+        // A 12 kg volumetric weight exceeds the custom 10 kg limit.
         ExpressDeliveryPricingStrategy customStrategy = new ExpressDeliveryPricingStrategy(
                 new BigDecimal("10.00"), new BigDecimal("120.00"), new BigDecimal("300.00")
         );

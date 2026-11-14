@@ -30,6 +30,13 @@ public class MerchantApiKeyController {
                 apiKeyService.issue(principal, request));
     }
 
+    @PostMapping("/rotate")
+    @PreAuthorize("hasAuthority('ROLE_MERCHANT')")
+    public ApiResponse<MerchantApiKeyIssuedResponse> rotate(@AuthenticationPrincipal MerchantPrincipal principal,
+            @Valid @RequestBody MerchantApiKeyRequest request) {
+        return ApiResponse.ok("API key rotated; copy it now", apiKeyService.rotate(principal,request));
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_MERCHANT')")
     @Operation(summary = "List API key prefixes and scopes without exposing key material")

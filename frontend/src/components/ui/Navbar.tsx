@@ -46,9 +46,9 @@ export const Navbar: React.FC = () => {
             <a href="#services" className={navLinkClass}>
               Services
             </a>
-            <a href="#tracking" className={navLinkClass}>
+            <Link to="/track" className={navLinkClass}>
               Track Parcel
-            </a>
+            </Link>
             <Link to="/merchant/register" className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${isLanding ? 'text-white hover:text-yellow-300' : 'text-navy-900 hover:text-yellow-600'}`}>
               <Building2 className="w-4 h-4 text-yellow-500" />
               For Merchants
@@ -147,13 +147,13 @@ export const Navbar: React.FC = () => {
           >
             Home
           </Link>
-          <a
-            href="#tracking"
+            <Link
+              to="/track"
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
           >
             Track Parcel
-          </a>
+            </Link>
           <Link
             to="/merchant/register"
             onClick={() => setMobileMenuOpen(false)}

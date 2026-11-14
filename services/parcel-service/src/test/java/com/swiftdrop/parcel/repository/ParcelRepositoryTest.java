@@ -26,9 +26,6 @@ class ParcelRepositoryTest {
     @Autowired
     private ParcelRepository parcelRepository;
 
-    @Autowired
-    private ParcelStatusHistoryRepository historyRepository;
-
     @Test
     @DisplayName("Should persist a parcel and find it by tracking number")
     void shouldPersistAndFindByTrackingNumber() {

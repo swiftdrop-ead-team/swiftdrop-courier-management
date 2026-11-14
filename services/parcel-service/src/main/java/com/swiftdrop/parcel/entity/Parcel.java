@@ -28,6 +28,16 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class Parcel {
+    @Column(name = "pickup_date", length = 10)
+    private String pickupDate;
+    @Column(name = "cod_amount", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal codAmount = BigDecimal.ZERO;
+
+    @Column(name="merchant_order_reference",length=100) private String merchantOrderReference;
+    @Column(name="merchant_request_fingerprint",columnDefinition="TEXT") private String merchantRequestFingerprint;
+    @Column(name = "dispatch_updated_at")
+    private java.time.Instant dispatchUpdatedAt;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

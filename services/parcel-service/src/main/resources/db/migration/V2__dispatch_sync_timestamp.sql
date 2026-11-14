@@ -1,0 +1,1 @@
+ALTER TABLE parcels ADD COLUMN dispatch_updated_at TIMESTAMP WITH TIME ZONE;

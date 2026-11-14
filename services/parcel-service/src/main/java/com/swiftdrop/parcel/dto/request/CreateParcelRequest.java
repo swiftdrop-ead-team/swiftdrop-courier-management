@@ -14,6 +14,25 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateParcelRequest {
+    @jakarta.validation.constraints.Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}")
+    private String pickupDate;
+    @jakarta.validation.constraints.DecimalMin("0.00")
+    @jakarta.validation.constraints.DecimalMax("100000.00")
+    @jakarta.validation.constraints.Digits(integer = 6, fraction = 2)
+    private BigDecimal codAmount;
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @jakarta.validation.constraints.AssertTrue(message = "Pickup date must be a valid date today or later in Sri Lanka")
+    public boolean isPickupDateValid() {
+        if (pickupDate == null) return true;
+        try {
+            return !java.time.LocalDate.parse(pickupDate).isBefore(java.time.LocalDate.now(java.time.ZoneId.of("Asia/Colombo")));
+        } catch (java.time.format.DateTimeParseException ex) { return false; }
+    }
+
+    private java.util.UUID estimateId;
+    @Size(max=100)
+    private String merchantOrderReference;
 
     @Size(max = 150, message = "Sender name must not exceed 150 characters")
     private String senderName;

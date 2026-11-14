@@ -32,6 +32,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final CookieUtils cookieUtils;
     private final RateLimiterService rateLimiterService;
+    private final PasswordResetMailer resetMailer;
 
     @Transactional
     public AuthResponse registerCustomer(RegisterRequest request, HttpServletResponse response) {
@@ -226,7 +227,7 @@ public class AuthService {
                 .build();
 
         passwordResetTokenRepository.save(resetToken);
-        log.info("Password reset token generated for user {}: {}", user.getEmail(), token);
+        resetMailer.send(user.getEmail(), token);
     }
 
     @Transactional
