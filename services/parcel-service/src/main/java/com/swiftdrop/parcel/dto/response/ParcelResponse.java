@@ -18,6 +18,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ParcelResponse {
+    private String pickupDate;
+    private BigDecimal codAmount;
 
     private UUID id;
     private String trackingNumber;

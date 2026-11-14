@@ -22,7 +22,6 @@ import com.swiftdrop.parcel.exception.ResourceNotFoundException;
 import com.swiftdrop.parcel.exception.UnauthorizedParcelAccessException;
 import com.swiftdrop.parcel.mapper.ParcelMapper;
 import com.swiftdrop.parcel.repository.ParcelRepository;
-import com.swiftdrop.parcel.repository.ParcelStatusHistoryRepository;
 import com.swiftdrop.parcel.security.UserPrincipal;
 import com.swiftdrop.parcel.service.ParcelService;
 import com.swiftdrop.parcel.service.PricingClientService;
@@ -45,15 +44,29 @@ import java.util.UUID;
 public class ParcelServiceImpl implements ParcelService {
 
     private final ParcelRepository parcelRepository;
-    private final ParcelStatusHistoryRepository historyRepository;
     private final ParcelMapper parcelMapper;
     private final TrackingNumberGenerator trackingNumberGenerator;
     private final PricingClientService pricingClientService;
+    private final com.swiftdrop.parcel.service.MerchantEligibility eligibility;
+    private final com.swiftdrop.parcel.service.ParcelEstimateService estimates;
     private final ParcelEventPublisher eventPublisher;
 
     @Override
     @Transactional
     public ParcelResponse createParcel(CreateParcelRequest request, UserPrincipal currentUser) {
+        eligibility.ensureApproved(currentUser);
+        String merchantFingerprint = null;
+        if(request.getMerchantOrderReference()!=null) {
+            if(!hasRole(currentUser,"ROLE_MERCHANT")) throw new UnauthorizedParcelAccessException("Merchant reference requires a merchant account");
+            var json=new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(request);
+            ((com.fasterxml.jackson.databind.node.ObjectNode)json).remove("estimateId");
+            merchantFingerprint=json.toString();
+            var previous=parcelRepository.findBySenderIdAndMerchantOrderReference(currentUser.getId(),request.getMerchantOrderReference());
+            if(previous.isPresent()) {
+                if(!merchantFingerprint.equals(previous.get().getMerchantRequestFingerprint())) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,"Order reference was already used with a different payload");
+                return parcelMapper.toResponse(previous.get());
+            }
+        }
         log.info("Creating parcel request for user [{}]", currentUser.getId());
 
         SenderType senderType = hasRole(currentUser, "ROLE_MERCHANT")
@@ -123,7 +136,7 @@ public class ParcelServiceImpl implements ParcelService {
                 ? request.getDeliveryType()
                 : DeliveryType.STANDARD;
 
-        BigDecimal deliveryFee = pricingClientService.calculateDeliveryFee(
+        BigDecimal deliveryFee = request.getEstimateId() != null ? estimates.consume(request, currentUser.getId()) : pricingClientService.calculateDeliveryFee(
                 weightKg,
                 lengthCm,
                 widthCm,
@@ -133,6 +146,7 @@ public class ParcelServiceImpl implements ParcelService {
         );
 
         Parcel parcel = Parcel.builder()
+                .merchantOrderReference(request.getMerchantOrderReference()).merchantRequestFingerprint(merchantFingerprint)
                 .trackingNumber(trackingNumber)
                 .senderId(currentUser.getId())
                 .senderType(senderType)
@@ -157,8 +171,10 @@ public class ParcelServiceImpl implements ParcelService {
                 .deliveryType(deliveryType)
                 .status(ParcelStatus.CREATED)
                 .deliveryFee(deliveryFee)
-                .currency("USD")
+                .currency("LKR")
                 .specialInstructions(request.getSpecialInstructions())
+                .pickupDate(request.getPickupDate() == null ? java.time.LocalDate.now(java.time.ZoneId.of("Asia/Colombo")).toString() : request.getPickupDate())
+                .codAmount(request.getCodAmount() == null ? BigDecimal.ZERO : request.getCodAmount())
                 .build();
 
         ParcelStatusHistory initialHistory = ParcelStatusHistory.builder()
@@ -324,6 +340,14 @@ public class ParcelServiceImpl implements ParcelService {
             throw new UnauthorizedParcelAccessException("Customers are not authorized to update parcel delivery statuses.");
         }
 
+        validateParcelAccess(parcel, currentUser);
+        if (newStatus == ParcelStatus.DELIVERED) {
+            throw new InvalidStatusTransitionException("Submit recipient proof through dispatch to complete delivery.");
+        }
+        if (!hasRole(currentUser, "ROLE_ADMIN") && request.getAssignedCourierId() != null
+                && !request.getAssignedCourierId().equals(currentUser.getId())) {
+            throw new UnauthorizedParcelAccessException("Only an administrator can reassign a parcel.");
+        }
         // 2. Lifecycle transition check
         if (!currentStatus.canTransitionTo(newStatus)) {
             throw new InvalidStatusTransitionException(currentStatus, newStatus);
@@ -425,8 +449,7 @@ public class ParcelServiceImpl implements ParcelService {
             if (parcel.getAssignedCourierId() != null && parcel.getAssignedCourierId().equals(currentUser.getId())) {
                 return;
             }
-            // Couriers also permitted to check general parcel details when performing hub intakes
-            return;
+            throw new UnauthorizedParcelAccessException("This parcel is not assigned to you.");
         }
 
         // Customers and Merchants can only access their own shipments

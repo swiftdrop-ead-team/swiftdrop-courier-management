@@ -7,7 +7,6 @@ import com.swiftdrop.parcel.dto.request.UpdateParcelStatusRequest;
 import com.swiftdrop.parcel.dto.response.ParcelResponse;
 import com.swiftdrop.parcel.dto.response.PublicTrackingResponse;
 import com.swiftdrop.parcel.entity.Parcel;
-import com.swiftdrop.parcel.entity.ParcelStatusHistory;
 import com.swiftdrop.parcel.enums.DeliveryType;
 import com.swiftdrop.parcel.enums.ParcelStatus;
 import com.swiftdrop.parcel.enums.SenderType;
@@ -18,7 +17,6 @@ import com.swiftdrop.parcel.exception.ResourceNotFoundException;
 import com.swiftdrop.parcel.exception.UnauthorizedParcelAccessException;
 import com.swiftdrop.parcel.mapper.ParcelMapper;
 import com.swiftdrop.parcel.repository.ParcelRepository;
-import com.swiftdrop.parcel.repository.ParcelStatusHistoryRepository;
 import com.swiftdrop.parcel.security.UserPrincipal;
 import com.swiftdrop.parcel.service.impl.ParcelServiceImpl;
 import com.swiftdrop.parcel.util.TrackingNumberGenerator;
@@ -44,12 +42,11 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ParcelServiceTest {
+    @Mock
+    private MerchantEligibility eligibility;
 
     @Mock
     private ParcelRepository parcelRepository;
-
-    @Mock
-    private ParcelStatusHistoryRepository historyRepository;
 
     @Spy
     private ParcelMapper parcelMapper = new ParcelMapper();
@@ -72,6 +69,36 @@ class ParcelServiceTest {
     private UserPrincipal adminUser;
     private CreateParcelRequest standardCreateRequest;
     private Parcel sampleParcel;
+
+    @Test
+    void persistsScheduledPickupAndCodForMerchant() {
+        String pickup = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Colombo")).plusDays(2).toString();
+        standardCreateRequest.setPickupDate(pickup);
+        standardCreateRequest.setCodAmount(new BigDecimal("2500.50"));
+        when(trackingNumberGenerator.generate("LK")).thenReturn("SD-COD-TEST");
+        when(pricingClientService.calculateDeliveryFee(any(), any(), any(), any(), any(), anyBoolean())).thenReturn(BigDecimal.TEN);
+        when(parcelRepository.save(any(Parcel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        ParcelResponse response = parcelService.createParcel(standardCreateRequest, merchantUser);
+        assertEquals(pickup, response.getPickupDate());
+        assertEquals(new BigDecimal("2500.50"), response.getCodAmount());
+        verify(parcelRepository).save(argThat(parcel -> pickup.equals(parcel.getPickupDate()) && new BigDecimal("2500.50").equals(parcel.getCodAmount())));
+    }
+
+    @Test
+    void validatesPickupCalendarAndCodBounds() {
+        try (var factory = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
+            var validator = factory.getValidator();
+            standardCreateRequest.setPickupDate("2027-02-30");
+            standardCreateRequest.setCodAmount(new BigDecimal("-1"));
+            assertFalse(validator.validate(standardCreateRequest).isEmpty());
+            standardCreateRequest.setPickupDate(java.time.LocalDate.now(java.time.ZoneId.of("Asia/Colombo")).minusDays(1).toString());
+            standardCreateRequest.setCodAmount(new BigDecimal("100001"));
+            assertFalse(validator.validate(standardCreateRequest).isEmpty());
+            standardCreateRequest.setPickupDate(java.time.LocalDate.now(java.time.ZoneId.of("Asia/Colombo")).plusDays(1).toString());
+            standardCreateRequest.setCodAmount(new BigDecimal("2500.50"));
+            assertTrue(validator.validate(standardCreateRequest).isEmpty());
+        }
+    }
 
     @BeforeEach
     void setUp() {
@@ -127,6 +154,7 @@ class ParcelServiceTest {
                 .build();
 
         sampleParcel = Parcel.builder()
+                .assignedCourierId(courierUser.getId())
                 .id(UUID.randomUUID())
                 .trackingNumber("SD-1234-5678-LK")
                 .senderId(customerId)
@@ -360,6 +388,8 @@ class ParcelServiceTest {
 
         ParcelResponse response = parcelService.cancelParcel(sampleParcel.getId(), request, customerUser);
 
+        assertNotNull(response);
+        assertEquals(ParcelStatus.CANCELLED, response.getStatus());
         assertEquals(ParcelStatus.CANCELLED, sampleParcel.getStatus());
         assertEquals("Customer changed mind", sampleParcel.getFailureReason());
         verify(eventPublisher, times(1)).publishParcelCancelled(any());

@@ -42,6 +42,8 @@ public class ParcelMapper {
                 .isFragile(request.isFragile())
                 .deliveryType(request.getDeliveryType())
                 .specialInstructions(request.getSpecialInstructions())
+                .pickupDate(request.getPickupDate())
+                .codAmount(request.getCodAmount() == null ? java.math.BigDecimal.ZERO : request.getCodAmount())
                 .build();
     }
 
@@ -86,6 +88,8 @@ public class ParcelMapper {
                 .assignedCourierId(parcel.getAssignedCourierId())
                 .failureReason(parcel.getFailureReason())
                 .specialInstructions(parcel.getSpecialInstructions())
+                .pickupDate(parcel.getPickupDate())
+                .codAmount(parcel.getCodAmount())
                 .createdAt(parcel.getCreatedAt())
                 .updatedAt(parcel.getUpdatedAt())
                 .statusHistory(historyResponses)
