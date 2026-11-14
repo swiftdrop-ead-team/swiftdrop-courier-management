@@ -24,13 +24,12 @@ class GatewayApplicationTests {
 
     @Test
     void contextLoads() {
-        // Verifies the Spring Application Context loads successfully
     }
 
     @Test
     void testSecurityHeadersAndCorrelationIdArePresent() {
         webTestClient.get()
-                .uri("/mock-route") // Hits the mock gateway route defined below
+                .uri("/mock-route")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().exists("X-Correlation-Id")
@@ -40,14 +39,12 @@ class GatewayApplicationTests {
                 .expectHeader().valueEquals("Referrer-Policy", "strict-origin-when-cross-origin");
     }
 
-    // --- Mock Configuration to simulate a downstream microservice ---
     @TestConfiguration
     static class MockRouteConfig {
 
         @Bean
         public RouteLocator testRoutes(RouteLocatorBuilder builder) {
             return builder.routes()
-                    // Routes /mock-route through the Gateway filters, then to the local controller
                     .route("test_route", r -> r.path("/mock-route")
                             .uri("forward:/local-mock"))
                     .build();
