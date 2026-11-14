@@ -19,6 +19,8 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 public class MerchantOrder {
+    @Column(name="request_fingerprint",columnDefinition="TEXT")
+    private String requestFingerprint;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -25,9 +25,15 @@ public class Courier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     // Foreign reference ID linking to the user account in Identity Service
     @Column(name = "user_id", nullable = false, unique = true, length = 100)
     private String userId;
+
+    @jakarta.validation.constraints.Email
+    private String email;
 
     // Courier's full name (e.g., "Kasun Perera")
     @Column(name = "full_name", nullable = false, length = 150)

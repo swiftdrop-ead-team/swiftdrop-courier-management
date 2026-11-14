@@ -24,6 +24,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationServiceImpl implements NotificationService {
+    private final com.swiftdrop.notification.repository.EmailPreferenceRepository preferences;
+    private boolean emailEnabled(String email) {
+        return email != null && preferences.findById(email.toLowerCase(java.util.Locale.ROOT))
+            .map(com.swiftdrop.notification.entity.EmailPreference::isEnabled).orElse(true);
+    }
 
     private final NotificationLogRepository notificationLogRepository;
     private final EmailSenderService emailSenderService;
@@ -98,7 +103,8 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         // 4. Dispatch Email
-        boolean sentSuccess = emailSenderService.sendHtmlEmail(recipientEmail, subject, htmlBody);
+        boolean optedIn = emailEnabled(recipientEmail);
+        boolean sentSuccess = optedIn && emailSenderService.sendHtmlEmail(recipientEmail, subject, htmlBody);
 
         // 5. Save audit log to swiftdrop_notification database
         NotificationLog logEntry = NotificationLog.builder()
@@ -111,9 +117,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .channel(NotificationChannel.EMAIL)
                 .subject(subject)
                 .messageBody(htmlBody)
-                .deliveryStatus(sentSuccess ? NotificationStatus.SENT : NotificationStatus.FAILED)
+                .deliveryStatus(!optedIn ? NotificationStatus.SKIPPED_PREFERENCE : sentSuccess ? NotificationStatus.SENT : NotificationStatus.FAILED)
                 .retryCount(0)
-                .errorMessage(sentSuccess ? null : "Email delivery failed")
+                .errorMessage(!optedIn || sentSuccess ? null : "Email delivery failed")
                 .sentAt(sentSuccess ? LocalDateTime.now() : null)
                 .build();
 
@@ -147,7 +153,8 @@ public class NotificationServiceImpl implements NotificationService {
 
         String courierEmail = (event.getCourierEmail() != null && !event.getCourierEmail().isBlank())
                 ? event.getCourierEmail()
-                : "courier@swiftdrop.io";
+                : null;
+        if(courierEmail == null) { log.warn("Courier email is missing; assignment email skipped for {}",parcelId); return; }
         String courierName = (event.getCourierName() != null) ? event.getCourierName() : "Field Courier";
         String trackingNumber = (event.getTrackingNumber() != null) ? event.getTrackingNumber() : parcelId;
         String subject = "SwiftDrop: New Parcel Assignment #" + trackingNumber;
@@ -157,7 +164,8 @@ public class NotificationServiceImpl implements NotificationService {
                 event.getPickupAddress(), event.getDeliveryAddress(),
                 event.getRecipientName(), event.getRecipientPhone());
 
-        boolean sentSuccess = emailSenderService.sendHtmlEmail(courierEmail, subject, htmlBody);
+        boolean optedIn = emailEnabled(courierEmail);
+        boolean sentSuccess = optedIn && emailSenderService.sendHtmlEmail(courierEmail, subject, htmlBody);
 
         NotificationLog logEntry = NotificationLog.builder()
                 .eventId(event.getEventId())
@@ -169,7 +177,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .channel(NotificationChannel.EMAIL)
                 .subject(subject)
                 .messageBody(htmlBody)
-                .deliveryStatus(sentSuccess ? NotificationStatus.SENT : NotificationStatus.FAILED)
+                .deliveryStatus(!optedIn ? NotificationStatus.SKIPPED_PREFERENCE : sentSuccess ? NotificationStatus.SENT : NotificationStatus.FAILED)
                 .retryCount(0)
                 .sentAt(sentSuccess ? LocalDateTime.now() : null)
                 .build();
@@ -209,7 +217,8 @@ public class NotificationServiceImpl implements NotificationService {
                 htmlBody = "<p>" + (customMessage != null ? customMessage : "SwiftDrop notification update.") + "</p>";
         }
 
-        boolean sentSuccess = emailSenderService.sendHtmlEmail(safeRecipient, subject, htmlBody);
+        boolean optedIn = emailEnabled(safeRecipient);
+        boolean sentSuccess = optedIn && emailSenderService.sendHtmlEmail(safeRecipient, subject, htmlBody);
 
         NotificationLog logEntry = NotificationLog.builder()
                 .parcelId(parcelId)
@@ -220,7 +229,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .channel(NotificationChannel.EMAIL)
                 .subject(subject)
                 .messageBody(htmlBody)
-                .deliveryStatus(sentSuccess ? NotificationStatus.SENT : NotificationStatus.FAILED)
+                .deliveryStatus(!optedIn ? NotificationStatus.SKIPPED_PREFERENCE : sentSuccess ? NotificationStatus.SENT : NotificationStatus.FAILED)
                 .retryCount(0)
                 .sentAt(sentSuccess ? LocalDateTime.now() : null)
                 .build();

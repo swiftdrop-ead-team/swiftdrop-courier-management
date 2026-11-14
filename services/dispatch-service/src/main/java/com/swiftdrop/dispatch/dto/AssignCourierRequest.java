@@ -15,6 +15,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AssignCourierRequest {
+    @jakarta.validation.constraints.Email
+    @jakarta.validation.constraints.Size(max=150)
+    private String notificationEmail;
+    @jakarta.validation.constraints.Size(max=150)
+    private String notificationName;
 
     // ID of the parcel to assign (from Parcel Service)
     @NotBlank(message = "Parcel ID is required")

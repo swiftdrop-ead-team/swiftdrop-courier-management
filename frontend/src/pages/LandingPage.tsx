@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Building2,
@@ -37,7 +37,7 @@ const capabilities = [
     icon: Truck,
     label: 'For couriers',
     title: 'Own every stop',
-    description: 'Organize routes, capture proof of delivery, and keep payout visibility in one place.',
+    description: 'Review daily assignments, record each handoff, and capture proof of delivery.',
     href: '/login',
     action: 'Open courier login',
   },
@@ -45,12 +45,12 @@ const capabilities = [
 
 export const LandingPage: React.FC = () => {
   const [trackingNumber, setTrackingNumber] = useState('');
-  const [trackingSearched, setTrackingSearched] = useState(false);
+  const navigate = useNavigate();
 
   const handleTrackSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (trackingNumber.trim()) {
-      setTrackingSearched(true);
+      navigate(`/track/${encodeURIComponent(trackingNumber.trim().toUpperCase())}`);
     }
   };
 
@@ -64,7 +64,7 @@ export const LandingPage: React.FC = () => {
           <div className="relative z-20 max-w-xl lg:pb-10">
             <div className="mb-7 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-accent">
               <span className="h-px w-8 bg-accent" aria-hidden="true" />
-              Service since day one
+              Shipping made clear
             </div>
             <h1 className="max-w-xl text-5xl font-black leading-[0.98] tracking-[-0.03em] text-white sm:text-6xl lg:text-[4.5rem]">
               We move what matters,
@@ -82,15 +82,28 @@ export const LandingPage: React.FC = () => {
                 Merchant solutions
               </Link>
             </div>
+            <Link
+              to="/login"
+              className="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-slate-300 transition-colors hover:text-accent"
+            >
+              Sign in to your dashboard
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
 
-            <div className="mt-12 flex items-end gap-3">
-              <div className="w-28 border border-white/10 bg-white/10 px-4 py-4 backdrop-blur-sm">
-                <p className="text-3xl font-black text-white">24/7</p>
-                <p className="mt-1 text-[10px] uppercase leading-4 tracking-wide text-slate-300">Shipment visibility</p>
+            <div className="mt-12 grid max-w-md grid-cols-2 gap-5 border-t border-white/15 pt-5">
+              <div>
+                <div className="flex items-center gap-2 text-accent">
+                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                  <p className="text-sm font-bold text-white">Clear delivery stages</p>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-slate-300">Follow each handoff from booking to delivery.</p>
               </div>
-              <div className="w-36 border border-accent/50 bg-accent px-4 py-4 text-ink">
-                <p className="text-3xl font-black">99.98%</p>
-                <p className="mt-1 text-[10px] uppercase leading-4 tracking-wide text-ink/70">Service availability</p>
+              <div>
+                <div className="flex items-center gap-2 text-accent">
+                  <MapPin className="h-4 w-4" aria-hidden="true" />
+                  <p className="text-sm font-bold text-white">Public parcel tracking</p>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-slate-300">Share a tracking number, not an account.</p>
               </div>
             </div>
           </div>
@@ -103,7 +116,7 @@ export const LandingPage: React.FC = () => {
             <div className="absolute bottom-[4%] right-[4%] h-28 w-28 border-b-2 border-r-2 border-accent" aria-hidden="true" />
             <div className="absolute right-[6%] top-[5%] h-24 w-24 border-r-2 border-t-2 border-accent" aria-hidden="true" />
             <div className="absolute right-[9%] top-[10%] z-20 hidden border border-white/20 bg-ink-soft/80 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur-sm sm:block">
-              SwiftDrop / Live route
+              SwiftDrop / Every handoff
             </div>
             <img
               src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=88"
@@ -114,8 +127,8 @@ export const LandingPage: React.FC = () => {
               className="absolute bottom-0 right-[1%] z-10 h-[88%] w-[94%] object-cover object-center drop-shadow-[0_24px_24px_rgba(0,0,0,0.28)] sm:right-[4%] sm:w-[84%]"
             />
             <div className="absolute bottom-8 left-0 z-20 hidden border border-white/10 bg-ink-soft/90 px-5 py-4 backdrop-blur-sm sm:block">
-              <p className="text-3xl font-black text-white">10+</p>
-              <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-300">Connected services</p>
+              <p className="text-sm font-black text-white">From pickup to handoff</p>
+              <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-300">One delivery journey</p>
             </div>
           </div>
         </div>
@@ -133,7 +146,6 @@ export const LandingPage: React.FC = () => {
             <Button type="submit" variant="secondary" className="rounded-full px-6"><Search className="h-4 w-4" aria-hidden="true" />Track parcel</Button>
           </form>
         </div>
-        {trackingSearched && <div className="mx-auto mt-5 max-w-7xl px-4 sm:px-6 lg:px-8"><div role="status" className="flex items-start gap-2 text-xs text-amber-700"><Clock3 className="h-4 w-4" aria-hidden="true" />Tracking for <span className="font-mono font-bold">{trackingNumber}</span> is scheduled for the tracking service rollout.</div></div>}
       </section>
 
       <section id="services" className="bg-canvas py-20 sm:py-24">

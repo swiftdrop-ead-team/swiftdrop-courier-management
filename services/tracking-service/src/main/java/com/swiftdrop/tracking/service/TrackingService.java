@@ -48,6 +48,9 @@ public class TrackingService {
             throw new IllegalArgumentException("Tracking number is already associated with another parcel");
         }
 
+        boolean terminalConflict = parcel.getId() != null && ("DELIVERED".equals(parcel.getCurrentStatus()) || "CANCELLED".equals(parcel.getCurrentStatus()))
+                && !parcel.getCurrentStatus().equals(event.getNewStatus());
+
         TrackingEvent history = new TrackingEvent();
         history.setEventId(eventId);
         history.setParcelId(event.getParcelId());
@@ -59,7 +62,7 @@ public class TrackingService {
         history.setVersion(event.getVersion());
         eventRepository.save(history);
 
-        if (isNewer(event.getVersion(), occurredAt, parcel)) {
+        if (!terminalConflict && isNewer(event.getVersion(), occurredAt, parcel)) {
             parcel.setCurrentStatus(event.getNewStatus());
             parcel.setLastEventVersion(event.getVersion());
             parcel.setLastUpdatedAt(occurredAt);

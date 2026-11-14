@@ -9,5 +9,9 @@ public record ParcelOrderRequest(
         String deliveryAddress,
         String pickupAddress,
         String description,
-        BigDecimal weightKg) {
+        BigDecimal weightKg,
+        @com.fasterxml.jackson.annotation.JsonIgnore java.util.Map<String,Object> parcelDetails) {
+    public ParcelOrderRequest(String reference,String name,String phone,String delivery,String pickup,String description,BigDecimal weight) {
+        this(reference,name,phone,delivery,pickup,description,weight,null);
+    }
 }
