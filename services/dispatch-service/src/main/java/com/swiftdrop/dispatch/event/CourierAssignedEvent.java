@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CourierAssignedEvent implements Serializable {
+    private String courierUserId;
+    private String courierEmail;
 
     // Event type classifier
     @Builder.Default

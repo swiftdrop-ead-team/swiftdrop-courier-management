@@ -18,6 +18,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DeliveryStatusUpdatedEvent implements Serializable {
+    @Builder.Default
+    private String eventId = java.util.UUID.randomUUID().toString();
+    private String recipientEmail;
+    private String recipientName;
+    private String courierUserId;
 
     // Event type classifier
     @Builder.Default

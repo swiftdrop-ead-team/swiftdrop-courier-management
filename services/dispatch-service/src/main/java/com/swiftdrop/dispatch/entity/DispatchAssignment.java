@@ -19,11 +19,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class DispatchAssignment {
+    @Column(name="notification_email", length=150)
+    private String notificationEmail;
+    @Column(name="notification_name", length=150)
+    private String notificationName;
 
     // Unique primary key ID for this dispatch assignment
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Version
+    private Long version;
 
     // Foreign identifier referencing the parcel managed by Parcel Service
     @Column(name = "parcel_id", nullable = false, length = 100)

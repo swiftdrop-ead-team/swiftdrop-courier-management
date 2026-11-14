@@ -46,7 +46,7 @@ public class CourierServiceImpl implements CourierService {
 
         // Build new Courier entity with default available status
         Courier courier = Courier.builder()
-                .userId(request.getUserId())
+                .userId(request.getUserId()).email(request.getEmail())
                 .fullName(request.getFullName())
                 .phoneNumber(request.getPhoneNumber())
                 .vehicleType(request.getVehicleType())

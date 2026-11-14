@@ -3,7 +3,6 @@ package com.swiftdrop.dispatch.repository;
 import com.swiftdrop.dispatch.entity.AssignmentStatus;
 import com.swiftdrop.dispatch.entity.DispatchAssignment;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +11,6 @@ import java.util.Optional;
  * Spring Data JPA Repository for DispatchAssignment entity.
  * Provides database operations on the "dispatch_assignments" table.
  */
-@Repository
 public interface DispatchAssignmentRepository extends JpaRepository<DispatchAssignment, Long> {
 
     // Retrieves all assignments given to a specific courier

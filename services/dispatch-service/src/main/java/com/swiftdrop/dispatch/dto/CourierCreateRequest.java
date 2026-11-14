@@ -22,6 +22,9 @@ public class CourierCreateRequest {
     @NotBlank(message = "User ID is required")
     private String userId;
 
+    @jakarta.validation.constraints.Email
+    private String email;
+
     // Full name of the courier
     @NotBlank(message = "Full name is required")
     private String fullName;
