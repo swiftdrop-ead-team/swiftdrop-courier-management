@@ -7,6 +7,7 @@ import com.swiftdrop.merchant.entity.MerchantProfile;
 import com.swiftdrop.merchant.exception.MerchantConflictException;
 import com.swiftdrop.merchant.exception.MerchantForbiddenException;
 import com.swiftdrop.merchant.repository.MerchantProfileRepository;
+import org.springframework.beans.factory.ObjectProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +27,9 @@ class MerchantProfileServiceTest {
 
     @Mock
     private MerchantProfileRepository profileRepository;
+
+    @Mock
+    private ObjectProvider<IdentityProfileSync> identitySync;
 
     @InjectMocks
     private MerchantProfileService profileService;

@@ -5,7 +5,6 @@ import com.swiftdrop.dispatch.entity.CourierStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +13,6 @@ import java.util.Optional;
  * Spring Data JPA Repository for Courier entity.
  * Provides automated database query execution on the "couriers" table.
  */
-@Repository
 public interface CourierRepository extends JpaRepository<Courier, Long> {
 
     // Finds a courier profile by their Identity Service user ID

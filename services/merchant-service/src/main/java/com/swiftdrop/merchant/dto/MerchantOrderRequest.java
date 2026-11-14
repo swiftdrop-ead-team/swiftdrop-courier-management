@@ -15,6 +15,33 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MerchantOrderRequest {
+    @jakarta.validation.constraints.Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}")
+    private String pickupDate;
+    @jakarta.validation.constraints.DecimalMin("0.00")
+    @jakarta.validation.constraints.DecimalMax("100000.00")
+    @jakarta.validation.constraints.Digits(integer = 6, fraction = 2)
+    private BigDecimal codAmount;
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @jakarta.validation.constraints.AssertTrue(message = "Pickup date must be a valid date today or later in Sri Lanka")
+    public boolean isPickupDateValid() {
+        if (pickupDate == null) return true;
+        try {
+            return !java.time.LocalDate.parse(pickupDate).isBefore(java.time.LocalDate.now(java.time.ZoneId.of("Asia/Colombo")));
+        } catch (java.time.format.DateTimeParseException ex) { return false; }
+    }
+
+
+    private String senderName;
+    private String senderPhone;
+    private String deliveryCity;
+    @DecimalMin("0.01") @DecimalMax("300") private BigDecimal lengthCm;
+    @DecimalMin("0.01") @DecimalMax("300") private BigDecimal widthCm;
+    @DecimalMin("0.01") @DecimalMax("300") private BigDecimal heightCm;
+    @Pattern(regexp="STANDARD|EXPRESS|SAME_DAY") private String deliveryType;
+    private java.util.UUID estimateId;
+    @Size(max=2000) private String specialInstructions;
+    private boolean isFragile;
 
     @NotBlank(message = "Recipient name is required")
     @Size(max = 150, message = "Recipient name must not exceed 150 characters")
@@ -36,7 +63,7 @@ public class MerchantOrderRequest {
     private String description;
 
     @DecimalMin(value = "0.01", message = "Weight must be greater than zero")
-    @DecimalMax(value = "999999.99", message = "Weight is outside the supported range")
+    @DecimalMax(value = "100.00", message = "Weight is outside the supported range")
     @Digits(integer = 6, fraction = 2, message = "Weight supports up to two decimal places")
     private BigDecimal weightKg;
 }

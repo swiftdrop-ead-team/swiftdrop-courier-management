@@ -7,6 +7,7 @@ import com.swiftdrop.merchant.exception.MerchantConflictException;
 import com.swiftdrop.merchant.exception.MerchantForbiddenException;
 import com.swiftdrop.merchant.exception.MerchantNotFoundException;
 import com.swiftdrop.merchant.repository.MerchantProfileRepository;
+import org.springframework.beans.factory.ObjectProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,11 @@ import java.util.UUID;
 public class MerchantProfileService {
 
     private final MerchantProfileRepository profileRepository;
+    private final ObjectProvider<IdentityProfileSync> identitySync;
+    @org.springframework.beans.factory.annotation.Value("${merchant.identity-sync.enabled:true}")
+    private boolean identityManaged;
+    private void syncIdentity(MerchantPrincipal principal) { IdentityProfileSync sync = identitySync.getIfAvailable(); if(sync!=null)sync.sync(principal); }
+
 
     @Transactional
     public MerchantProfileResponse register(MerchantPrincipal principal, MerchantRegistrationRequest request) {
@@ -44,9 +50,10 @@ public class MerchantProfileService {
         return toResponse(profileRepository.save(profile));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public MerchantProfileResponse getMyProfile(MerchantPrincipal principal) {
         ensureHumanPrincipal(principal);
+        syncIdentity(principal);
         return toResponse(getByUserId(principal.userId()));
     }
 
@@ -54,6 +61,7 @@ public class MerchantProfileService {
     public MerchantProfileResponse updateMyProfile(
             MerchantPrincipal principal, MerchantProfileUpdateRequest request) {
         ensureHumanPrincipal(principal);
+        syncIdentity(principal);
         MerchantProfile profile = getByUserId(principal.userId());
         profile.setBusinessName(request.getBusinessName().trim());
         profile.setContactPerson(request.getContactPerson().trim());
@@ -70,6 +78,7 @@ public class MerchantProfileService {
 
     @Transactional
     public MerchantProfileResponse approve(UUID merchantId, UUID reviewerId, String notes) {
+        if(identityManaged) throw new MerchantConflictException("Review merchant registrations through Identity administration");
         MerchantProfile profile = getById(merchantId);
         ensurePending(profile);
         profile.setApprovalStatus(MerchantApprovalStatus.APPROVED);
@@ -81,6 +90,7 @@ public class MerchantProfileService {
 
     @Transactional
     public MerchantProfileResponse reject(UUID merchantId, UUID reviewerId, String notes) {
+        if(identityManaged) throw new MerchantConflictException("Review merchant registrations through Identity administration");
         MerchantProfile profile = getById(merchantId);
         ensurePending(profile);
         profile.setApprovalStatus(MerchantApprovalStatus.REJECTED);
@@ -90,8 +100,9 @@ public class MerchantProfileService {
         return toResponse(profileRepository.save(profile));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public MerchantProfile requireApproved(MerchantPrincipal principal) {
+        syncIdentity(principal);
         MerchantProfile profile = getByUserId(principal.userId());
         ensureApproved(profile);
         return profile;
@@ -99,6 +110,7 @@ public class MerchantProfileService {
 
     @Transactional
     public MerchantProfile requireApprovedForOrder(MerchantPrincipal principal) {
+        syncIdentity(principal);
         MerchantProfile profile = profileRepository.findByUserIdForUpdate(principal.userId())
                 .orElseThrow(() -> new MerchantNotFoundException("Merchant profile not found"));
         ensureApproved(profile);
