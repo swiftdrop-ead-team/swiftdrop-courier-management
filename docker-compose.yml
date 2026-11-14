@@ -1,7 +1,13 @@
 
-version: '3.8'
-
 services:
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+    networks:
+      - swiftdrop-net
+
   # ==============================================================================
   # Database Service — PostgreSQL 16
   # ==============================================================================
@@ -22,7 +28,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-swiftdrop_user} -d ${POSTGRES_DB:-swiftdrop_identity}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - swiftdrop-net
 
@@ -43,7 +49,8 @@ services:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
     networks:
       - swiftdrop-net
 
@@ -59,6 +66,17 @@ services:
     ports:
       - "${IDENTITY_SERVICE_PORT:-8081}:8081"
     environment:
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-mailpit}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-1025}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SMTP_AUTH:-false}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SMTP_STARTTLS:-false}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_CONNECTIONTIMEOUT: 5000
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_TIMEOUT: 5000
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_WRITETIMEOUT: 5000
+      TZ: Asia/Colombo
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -Duser.timezone=Asia/Colombo
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-swiftdrop_identity}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
@@ -76,14 +94,52 @@ services:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
-      retries: 5
-      start_period: 25s
+      retries: 10
+      start_period: 180s
     networks:
       - swiftdrop-net
 
   # ==============================================================================
   # Dispatch Microservice — Spring Boot 3.4.x / Java 21 (Port 8084)
   # ==============================================================================
+  merchant-service:
+    build:
+      context: ./services/merchant-service
+      dockerfile: Dockerfile
+    container_name: swiftdrop-merchant-service
+    restart: unless-stopped
+    ports:
+      - "${MERCHANT_SERVICE_PORT:-8083}:8083"
+    environment:
+      TZ: Asia/Colombo
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -Duser.timezone=Asia/Colombo
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${MERCHANT_DB:-swiftdrop_merchant}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
+      IDENTITY_SERVICE_URL: http://identity-service:8081
+      PARCEL_SERVICE_URL: http://parcel-service:8082
+      WEBHOOK_ENCRYPTION_KEY: ${WEBHOOK_ENCRYPTION_KEY:-}
+      WEBHOOK_ALLOW_LOCALHOST: ${WEBHOOK_ALLOW_LOCALHOST:-false}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
+    networks:
+      - swiftdrop-net
+
   dispatch-service:
     build:
       context: ./services/dispatch-service
@@ -93,7 +149,10 @@ services:
     ports:
       - "${DISPATCH_SERVICE_PORT:-8084}:8084"
     environment:
+      TZ: Asia/Colombo
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -Duser.timezone=Asia/Colombo
       SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DISPATCH_DB:-swiftdrop_dispatch}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
@@ -110,8 +169,8 @@ services:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
-      retries: 5
-      start_period: 25s
+      retries: 10
+      start_period: 180s
     networks:
       - swiftdrop-net
 
@@ -127,10 +186,12 @@ services:
     ports:
       - "${TRACKING_SERVICE_PORT:-8086}:8086"
     environment:
+      TZ: Asia/Colombo
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -Duser.timezone=Asia/Colombo
       SPRING_PROFILES_ACTIVE: docker
 
-      # Same database used by Identity Service
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-swiftdrop_identity}
+      # Isolated tracking database and Flyway history
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${TRACKING_DB:-swiftdrop_tracking}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
 
@@ -151,14 +212,124 @@ services:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
-      retries: 5
-      start_period: 25s
+      retries: 10
+      start_period: 180s
     networks:
       - swiftdrop-net
 
   # ==============================================================================
   # API Gateway — Spring Cloud Gateway (Port 8080)
   # ==============================================================================
+  parcel-service:
+    build: ./services/parcel-service
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      TZ: Asia/Colombo
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -Duser.timezone=Asia/Colombo
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/swiftdrop_parcel
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      FLYWAY_ENABLED: "true"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+      PRICING_SERVICE_URL: http://pricing-service:8085
+      IDENTITY_SERVICE_URL: http://identity-service:8081
+      NOTIFICATION_MOCK_MODE: ${NOTIFICATION_MOCK_MODE:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
+    networks:
+      - swiftdrop-net
+
+  pricing-service:
+    build: ./services/pricing-service
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      TZ: Asia/Colombo
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -Duser.timezone=Asia/Colombo
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/swiftdrop_pricing
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      FLYWAY_ENABLED: "true"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+      PRICING_SERVICE_URL: http://pricing-service:8085
+      NOTIFICATION_MOCK_MODE: ${NOTIFICATION_MOCK_MODE:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
+    networks:
+      - swiftdrop-net
+
+  notification-service:
+    build: ./services/notification-service
+    restart: unless-stopped
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-mailpit}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-1025}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SMTP_AUTH:-false}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SMTP_STARTTLS:-false}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_CONNECTIONTIMEOUT: 5000
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_TIMEOUT: 5000
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_WRITETIMEOUT: 5000
+      TZ: Asia/Colombo
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -Duser.timezone=Asia/Colombo
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/swiftdrop_notification
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-swiftdrop_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-swiftdrop_secure_pass_2026!}
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      FLYWAY_ENABLED: "true"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+      PRICING_SERVICE_URL: http://pricing-service:8085
+      NOTIFICATION_MOCK_MODE: ${NOTIFICATION_MOCK_MODE:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8087/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
+    networks:
+      - swiftdrop-net
+
   gateway:
     build:
       context: ./gateway
@@ -168,12 +339,25 @@ services:
     ports:
       - "${GATEWAY_PORT:-8080}:8080"
     environment:
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m
       SPRING_PROFILES_ACTIVE: docker
+      MERCHANT_SERVICE_URL: http://merchant-service:8083
       IDENTITY_SERVICE_URL: http://identity-service:8081
+      PARCEL_SERVICE_URL: http://parcel-service:8082
+      PRICING_SERVICE_URL: http://pricing-service:8085
+      NOTIFICATION_SERVICE_URL: http://notification-service:8087
       DISPATCH_SERVICE_URL: http://dispatch-service:8084
       TRACKING_SERVICE_URL: http://tracking-service:8086
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     depends_on:
+      merchant-service:
+        condition: service_healthy
+      parcel-service:
+        condition: service_healthy
+      pricing-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
       identity-service:
         condition: service_healthy
       dispatch-service:
@@ -184,8 +368,8 @@ services:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
-      retries: 5
-      start_period: 20s
+      retries: 10
+      start_period: 180s
     networks:
       - swiftdrop-net
 
@@ -200,8 +384,11 @@ services:
     restart: unless-stopped
     ports:
       - "3000:80"
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8080/api/v1
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:80/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
     depends_on:
       gateway:
         condition: service_healthy

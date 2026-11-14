@@ -60,6 +60,30 @@ jobs:
         working-directory: services/identity-service
         run: mvn clean test --batch-mode
 
+      - name: Verify Parcel Service
+        working-directory: services/parcel-service
+        run: mvn test --batch-mode
+
+      - name: Verify Merchant Service
+        working-directory: services/merchant-service
+        run: mvn test --batch-mode
+
+      - name: Verify Dispatch Service
+        working-directory: services/dispatch-service
+        run: mvn test --batch-mode
+
+      - name: Verify Pricing Service
+        working-directory: services/pricing-service
+        run: mvn test --batch-mode
+
+      - name: Verify Tracking Service
+        working-directory: services/tracking-service
+        run: mvn test --batch-mode
+
+      - name: Verify Notification Service
+        working-directory: services/notification-service
+        run: mvn test --batch-mode
+
       - name: Verify API Gateway
         working-directory: gateway
         run: mvn clean package -DskipTests=false --batch-mode

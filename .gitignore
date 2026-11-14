@@ -46,3 +46,4 @@ docker_data/
 
 # Generated frontend tests, coverage, and browser screenshots.
 frontend/reports/
+.tmp/
