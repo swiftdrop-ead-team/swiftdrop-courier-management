@@ -1,3 +1,4 @@
+import { WorkspaceText as Typography } from "./components";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -9,7 +10,6 @@ import {
   FormControlLabel,
   Grid,
   Checkbox,
-  Typography,
 } from "@mui/material";
 import { ActionButton as SoftButton } from "./components";
 import { z } from "zod";

@@ -22,10 +22,8 @@ export const labels: Record<ParcelStatus, string> = {
 };
 export const terminal = (status: ParcelStatus) =>
   ["DELIVERED", "FAILED", "CANCELLED"].includes(status);
-export const money = (value: number) =>
-  new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR" }).format(
-    value,
-  );
+export const money = (value: number, currency = "LKR") =>
+  new Intl.NumberFormat("en-LK", { style: "currency", currency }).format(value);
 export const day = (value = new Date().toISOString()) =>
   new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Colombo",
@@ -85,6 +83,8 @@ export interface HistoryEntry {
   note: string;
 }
 export interface ParcelRecord extends Booking {
+  assignmentId?: string;
+  currency?: string;
   id: string;
   trackingNumber: string;
   ownerId: string;
@@ -99,6 +99,7 @@ export interface ParcelRecord extends Booking {
   history: HistoryEntry[];
 }
 export interface Courier {
+  dispatchId?: string;
   id: string;
   name: string;
   available: boolean;
@@ -148,6 +149,7 @@ export interface SavedAddress {
   address: string;
 }
 export interface Quote {
+  currency?: string;
   id: string;
   amount: number;
   expiresAt: string;

@@ -1,3 +1,4 @@
+import { WorkspaceText as Typography } from "./components";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -16,7 +17,6 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Typography,
 } from "@mui/material";
 import { ActionButton as SoftButton } from "./components";
 import { Link, useSearchParams } from "react-router-dom";
@@ -34,6 +34,8 @@ import {
 } from "./model";
 import { previewStatus, updatePreview } from "./preview";
 import { deliveryApi } from "./service";
+import { adminService } from "../../services/authService";
+import type { User } from "../../types/auth";
 import type { Workspace } from "./useDeliveryWorkspace";
 import {
   downloadReceipt,
@@ -58,7 +60,8 @@ export function ParcelList({
   const [params] = useSearchParams();
   const searchQuery = params.get("q") || "";
   const [query, setQuery] = useState(searchQuery);
-  const [status, setStatus] = useState("ALL");
+  const statusQuery = statuses.includes(params.get("status") as ParcelStatus) ? params.get("status")! : "ALL";
+  const [status, setStatus] = useState(statusQuery);
   const [date, setDate] = useState(
     w.role === "COURIER" && !history ? day() : "",
   );
@@ -90,9 +93,9 @@ export function ParcelList({
     setPage(0);
     setSelectedId(null);
     setQuery(searchQuery);
-    setStatus("ALL");
+    setStatus(statusQuery);
     setDate(w.role === "COURIER" && !history && !searchQuery ? day() : "");
-  }, [history, route, w.role, searchQuery]);
+  }, [history, route, w.role, searchQuery, statusQuery]);
   const open = (parcel: ParcelRecord) => {
     setSelectedId(parcel.id);
     setNote("");
@@ -240,7 +243,7 @@ export function ParcelList({
                   <TableCell>
                     <Status value={parcel.status} />
                   </TableCell>
-                  <TableCell>{money(parcel.amount)}</TableCell>
+                  <TableCell>{money(parcel.amount, parcel.currency)}</TableCell>
                   <TableCell>
                     <SoftButton
                       variant="text"
@@ -319,8 +322,8 @@ export function ParcelList({
                   Pickup: {selected.pickupDate} · {selected.service}
                 </Typography>
                 <Typography variant="body2">
-                  Fee: {money(selected.amount)} · Cash to collect:{" "}
-                  {money(selected.cod)}
+                  Fee: {money(selected.amount, selected.currency)} · Cash to
+                  collect: {money(selected.cod)}
                 </Typography>
                 {selected.instructions && (
                   <Alert severity="info" sx={{ mt: 2 }}>
@@ -499,6 +502,23 @@ export function ParcelList({
 }
 
 export function Dispatch({ workspace: w }: { workspace: Workspace }) {
+  const [accounts, setAccounts] = useState<User[]>([]);
+  const [accountId, setAccountId] = useState("");
+  const [capacity, setCapacity] = useState(10);
+  useEffect(() => {
+    if (w.preview) return;
+    let active = true;
+    adminService
+      .getAllUsers()
+      .then((users) => {
+        if (active)
+          setAccounts(users.filter((u) => u.roles.includes("COURIER")));
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [w.preview]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState("");
   const [courierId, setCourierId] = useState("");
@@ -611,7 +631,7 @@ export function Dispatch({ workspace: w }: { workspace: Workspace }) {
               label="Assignment date"
               value={date}
               onChange={(event) => setDate(event.target.value)}
-              inputProps={{ min: day() }}
+              inputProps={{ min: day(), max: w.preview ? undefined : day() }}
               required
             />
             <SoftButton
@@ -671,6 +691,62 @@ export function Dispatch({ workspace: w }: { workspace: Workspace }) {
             );
           })}
           {!w.couriers.length && <Empty text="No couriers are available." />}
+          {!w.preview && (
+            <Box
+              component="form"
+              sx={{ mt: 3 }}
+              onSubmit={async (event) => {
+                event.preventDefault();
+                const user = accounts.find((u) => u.id === accountId);
+                if (!user || !Number.isInteger(capacity) || capacity < 1)
+                  return;
+                if (
+                  await w.act(
+                    () =>
+                      deliveryApi.registerCourier(
+                        user.id,
+                        user.fullName,
+                        user.phoneNumber || "",
+                        capacity,
+                        user.email,
+                      ),
+                    "Courier profile registered.",
+                  )
+                )
+                  setAccountId("");
+              }}
+            >
+              <Typography fontWeight={700}>
+                Register a courier profile
+              </Typography>
+              <SelectField
+                label="Courier account"
+                value={accountId}
+                onChange={setAccountId}
+                options={[
+                  { value: "", label: "Choose a courier account" },
+                  ...accounts
+                    .filter((u) => !w.couriers.some((c) => c.id === u.id))
+                    .map((u) => ({ value: u.id, label: u.fullName })),
+                ]}
+              />
+              <Field
+                label="Maximum active deliveries"
+                type="number"
+                value={capacity}
+                onChange={(e) => setCapacity(Number(e.target.value))}
+                inputProps={{ min: 1, max: 100 }}
+              />
+              <SoftButton
+                type="submit"
+                disabled={w.busy || !accountId || capacity < 1}
+                variant="outlined"
+                color="dark"
+              >
+                Register courier
+              </SoftButton>
+            </Box>
+          )}
         </Panel>
       </Grid>
     </Grid>

@@ -12,6 +12,7 @@ class FakeEventSource {
   onerror: (() => void) | null = null;
   onmessage: ((event: { data: string }) => void) | null = null;
   close = vi.fn();
+  addEventListener = vi.fn();
   constructor(public url: string) {
     FakeEventSource.instances.push(this);
   }

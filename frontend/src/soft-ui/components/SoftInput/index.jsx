@@ -25,12 +25,11 @@ import SoftInputIconBoxRoot from "components/SoftInput/SoftInputIconBoxRoot";
 import SoftInputIconRoot from "components/SoftInput/SoftInputIconRoot";
 
 // Soft UI Dashboard React contexts
-import { useSoftUIController } from "context";
+import { useTheme } from "@mui/material/styles";
 
 const SoftInput = forwardRef(({ size, icon, error, success, disabled, ...rest }, ref) => {
   let template;
-  const [controller] = useSoftUIController();
-  const { direction } = controller;
+  const { direction } = useTheme();
   const iconDirection = icon.direction;
 
   if (icon.component && icon.direction === "left") {
@@ -41,7 +40,7 @@ const SoftInput = forwardRef(({ size, icon, error, success, disabled, ...rest },
             {icon.component}
           </SoftInputIconRoot>
         </SoftInputIconBoxRoot>
-        <SoftInputRoot
+        <SoftInputRoot disabled={disabled}
           {...rest}
           ownerState={{ size, error, success, iconDirection, direction, disabled }}
         />
@@ -50,7 +49,7 @@ const SoftInput = forwardRef(({ size, icon, error, success, disabled, ...rest },
   } else if (icon.component && icon.direction === "right") {
     template = (
       <SoftInputWithIconRoot ref={ref} ownerState={{ error, success, disabled }}>
-        <SoftInputRoot
+        <SoftInputRoot disabled={disabled}
           {...rest}
           ownerState={{ size, error, success, iconDirection, direction, disabled }}
         />
@@ -63,7 +62,7 @@ const SoftInput = forwardRef(({ size, icon, error, success, disabled, ...rest },
     );
   } else {
     template = (
-      <SoftInputRoot {...rest} ref={ref} ownerState={{ size, error, success, disabled }} />
+      <SoftInputRoot disabled={disabled} {...rest} ref={ref} ownerState={{ size, error, success, disabled }} />
     );
   }
 

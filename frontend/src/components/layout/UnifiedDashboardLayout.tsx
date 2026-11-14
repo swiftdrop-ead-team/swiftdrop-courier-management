@@ -45,7 +45,7 @@ function buildNavigation(role: string, base: string): NavSection[] {
             { tab: "activity", label: "Review Activity", icon: FileSpreadsheet, path: `${base}/activity` },
             { tab: 'dispatch', label: 'Dispatch & workloads', icon: Truck, path: `${base}/dispatch` },
             { tab: 'deliveries', label: 'All deliveries', icon: Package, path: `${base}/deliveries` },
-            { tab: 'pricing', label: 'Zones & pricing', icon: MapPin, path: `${base}/pricing` },
+            { tab: 'pricing', label: 'Delivery pricing', icon: MapPin, path: `${base}/pricing` },
             { tab: 'reports', label: 'Delivery reports', icon: FileSpreadsheet, path: `${base}/reports` },
             { tab: 'access', label: 'Manage user access', icon: Users, path: `${base}/access` },
           ],
@@ -55,30 +55,30 @@ function buildNavigation(role: string, base: string): NavSection[] {
     case "MERCHANT":
       return [
         {
-          heading: "OVERVIEW",
+          heading: "BUSINESS",
           items: [
-            { tab: "overview", label: "Dashboard", icon: LayoutDashboard, path: `${base}/overview` },
+            { tab: "overview", label: "Overview", icon: LayoutDashboard, path: `${base}/overview` },
+            { tab: "reports", label: "Reports & COD", icon: FileSpreadsheet, path: `${base}/reports` },
           ],
         },
         {
           heading: "SHIPMENTS",
           items: [
-            { tab: "shipments", label: "My Shipments", icon: Package, path: `${base}/shipments` },
-            { tab: "create-shipment", label: "Send a parcel", icon: Send, path: `${base}/create-shipment`, badge: "New" },
-            { tab: "bulk-upload", label: "Upload many", icon: FileSpreadsheet, path: `${base}/bulk-upload` },
+            { tab: "shipments", label: "All shipments", icon: Package, path: `${base}/shipments` },
+            { tab: "create-shipment", label: "Send a parcel", icon: Send, path: `${base}/create-shipment` },
+            { tab: "bulk-upload", label: "Bulk import", icon: FileSpreadsheet, path: `${base}/bulk-upload` },
             { tab: "tracking", label: "Track a parcel", icon: MapPin, path: `${base}/tracking` },
-            { tab: "history", label: "Past deliveries", icon: Clock, path: `${base}/history` },
+            { tab: "history", label: "Delivery history", icon: Clock, path: `${base}/history` },
           ],
         },
         {
           heading: "ACCOUNT",
           items: [
-            { tab: "profile", label: "Business Profile", icon: Building2, path: `${base}/profile` },
-            { tab: "api", label: "API Integration", icon: Key, path: `${base}/api` },
+            { tab: "profile", label: "Business & addresses", icon: Building2, path: `${base}/profile` },
             { tab: "notifications", label: "Notifications", icon: Bell, path: `${base}/notifications` },
-            { tab: "settings", label: "Settings", icon: Settings, path: `${base}/settings` },
           ],
         },
+        { heading: "AUTOMATION", items: [{ tab: "api", label: "Store connections", icon: Key, path: `${base}/api` }] },
       ];
     case "COURIER":
       return [

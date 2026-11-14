@@ -1,3 +1,4 @@
+import { authService } from "../../services/authService";
 import {
   useCallback,
   useEffect,
@@ -41,7 +42,11 @@ const empty: LiveData = {
   profile: null,
   addresses: [],
 };
-export function useDeliveryWorkspace(role: UserRole, preview: boolean) {
+export function useDeliveryWorkspace(
+  role: UserRole,
+  preview: boolean,
+  tab = "overview",
+) {
   const { user, refreshUser } = useAuth();
   const ownerId = preview ? previewOwner(role) : user?.id || "";
   // Do not read or seed preview storage in authenticated workspaces.
@@ -63,29 +68,55 @@ export function useDeliveryWorkspace(role: UserRole, preview: boolean) {
     controller.current?.abort();
     const request = new AbortController();
     controller.current = request;
-    const jobs: [keyof LiveData, () => Promise<unknown>][] = [
+    const jobs: [keyof LiveData, () => Promise<unknown>][] = [];
+    if (
       [
+        "overview",
+        "deliveries",
+        "dispatch",
+        "reports",
+        "history",
+        "route",
+        "shipments",
+        "shipment-detail",
+      ].includes(tab)
+    )
+      jobs.push([
         "parcels",
         () =>
           deliveryApi.parcels(
             role === "ADMIN" ? "all" : role === "COURIER" ? "assigned" : "mine",
             request.signal,
           ),
-      ],
-      ["zones", () => deliveryApi.zones(request.signal)],
-      ["profile", () => deliveryApi.profile(request.signal)],
-    ];
-    if (role === "ADMIN" || role === "COURIER")
+      ]);
+    if (["profile", "settings", "send", "create-shipment"].includes(tab)) {
+      jobs.push(["profile", () => deliveryApi.profile(request.signal)]);
+      if (role === "CUSTOMER" || role === "MERCHANT")
+        jobs.push(["addresses", () => deliveryApi.addresses(request.signal)]);
+    }
+    if (
+      (role === "ADMIN" && tab === "dispatch") ||
+      (role === "COURIER" && tab === "overview")
+    )
       jobs.push(["couriers", () => deliveryApi.couriers(request.signal)]);
-    if (role !== "ADMIN")
+    if (role !== "ADMIN" && tab === "notifications")
       jobs.push(["notices", () => deliveryApi.notices(request.signal)]);
-    if (role === "CUSTOMER")
-      jobs.push(["addresses", () => deliveryApi.addresses(request.signal)]);
-    if (role === "MERCHANT")
-      jobs.push(
-        ["integration", () => deliveryApi.integration(request.signal)],
-        ["attempts", () => deliveryApi.attempts(request.signal)],
-      );
+    if (role === "MERCHANT" && tab === "api") {
+      try {
+        const user = await authService.getCurrentUser();
+        if (user.merchantApprovalStatus === "APPROVED")
+        jobs.push(
+          ["integration", () => deliveryApi.integration(request.signal)],
+          ["attempts", () => deliveryApi.attempts(request.signal)],
+        );
+      } catch (error) {
+        if (request.signal.aborted) return;
+        setLive(empty);
+        setErrors({ account: errorMessage(error) });
+        setLoading(false);
+        return;
+      }
+    }
     const results = await Promise.allSettled(jobs.map(([, job]) => job()));
     if (request.signal.aborted) return;
     const nextErrors: Record<string, string> = {};
@@ -94,12 +125,15 @@ export function useDeliveryWorkspace(role: UserRole, preview: boolean) {
       const key = jobs[index][0];
       if (result.status === "fulfilled")
         Object.assign(patch, { [key]: result.value });
-      else nextErrors[key] = errorMessage(result.reason);
+      else {
+        Object.assign(patch, { [key]: empty[key] });
+        nextErrors[key] = errorMessage(result.reason);
+      }
     });
     setLive((previous) => ({ ...previous, ...patch }));
     setErrors(nextErrors);
     setLoading(false);
-  }, [preview, role]);
+  }, [preview, role, tab]);
   useEffect(() => {
     mounted.current = true;
     setLive(empty);

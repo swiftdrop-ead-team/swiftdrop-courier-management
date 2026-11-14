@@ -15,6 +15,7 @@ import {
   type PublicTracking,
 } from "./model";
 import { getPreview, subscribePreview } from "./preview";
+import { backendTime, parcelStatus } from "./service";
 import { Field, Panel, Status, TrackingTimeline } from "./components";
 
 const trackingSchema = z.object({
@@ -25,6 +26,53 @@ const trackingSchema = z.object({
     z.object({ status: z.enum(statuses), timestamp: z.string().datetime() }),
   ),
 });
+const backendTrackingSchema = z.object({
+  trackingNumber: z.string(),
+  currentStatus: z.string(),
+  lastUpdatedAt: z.string(),
+  timeline: z.array(
+    z.object({ newStatus: z.string(), occurredAt: z.string() }),
+  ),
+});
+const parcelTrackingSchema = z.object({
+  trackingNumber: z.string(),
+  status: z.string(),
+  updatedAt: z.string(),
+  checkpoints: z.array(z.object({ status: z.string(), timestamp: z.string() })),
+});
+export function normalizeTracking(data: unknown): PublicTracking {
+  const tracked = backendTrackingSchema.safeParse(data);
+  if (tracked.success)
+    return {
+      trackingNumber: tracked.data.trackingNumber,
+      status: parcelStatus(tracked.data.currentStatus),
+      updatedAt: new Date(
+        backendTime(tracked.data.lastUpdatedAt),
+      ).toISOString(),
+      history: tracked.data.timeline.map((e) => ({
+        status: parcelStatus(e.newStatus),
+        timestamp: new Date(backendTime(e.occurredAt)).toISOString(),
+        note: "",
+      })),
+    };
+  const parcel = parcelTrackingSchema.safeParse(data);
+  if (parcel.success)
+    return {
+      trackingNumber: parcel.data.trackingNumber,
+      status: parcelStatus(parcel.data.status),
+      updatedAt: parcel.data.updatedAt,
+      history: parcel.data.checkpoints.map((e) => ({
+        status: parcelStatus(e.status),
+        timestamp: e.timestamp,
+        note: "",
+      })),
+    };
+  const parsed = trackingSchema.parse(data);
+  return {
+    ...parsed,
+    history: parsed.history.map((e) => ({ ...e, note: "" })),
+  };
+}
 export function TrackingView({
   preview = false,
   initialNumber = "",
@@ -77,7 +125,7 @@ export function TrackingView({
     const controller = new AbortController();
     const url = `${api.defaults.baseURL}/tracking/${encodeURIComponent(submitted)}`;
     const receive = (data: unknown) => {
-      const parsed = trackingSchema.parse(data);
+      const parsed = normalizeTracking(data);
       const timestamp = new Date(parsed.updatedAt).getTime();
       if (!active || timestamp < latest) return;
       latest = timestamp;
@@ -86,6 +134,7 @@ export function TrackingView({
         history: parsed.history.map((entry) => ({ ...entry, note: "" })),
       });
       setError("");
+      setLoading(false);
       if (terminal(parsed.status)) {
         stopped = true;
         source?.close();
@@ -96,11 +145,28 @@ export function TrackingView({
       if (inFlight || stopped) return;
       inFlight = true;
       try {
-        const response = await axios.get(url, {
-          signal: controller.signal,
-          withCredentials: false,
-          timeout: 15000,
-        });
+        let response;
+        try {
+          response = await axios.get(url, {
+            signal: controller.signal,
+            withCredentials: false,
+            timeout: 15000,
+          });
+        } catch (error) {
+          if (
+            (error as { response?: { status?: number } }).response?.status !==
+            404
+          )
+            throw error;
+          response = await axios.get(
+            `${api.defaults.baseURL}/parcels/tracking/${encodeURIComponent(submitted)}`,
+            {
+              signal: controller.signal,
+              withCredentials: false,
+              timeout: 15000,
+            },
+          );
+        }
         receive(response.data);
       } catch (failure) {
         if (!active || controller.signal.aborted) return;
@@ -119,7 +185,7 @@ export function TrackingView({
     setLoading(true);
     void load();
     if (typeof EventSource !== "undefined") {
-      source = new EventSource(`${url}/events`);
+      source = new EventSource(`${url}/stream`);
       source.onopen = () => {
         if (active) setLive(true);
       };
@@ -130,6 +196,8 @@ export function TrackingView({
           /* Keep the last validated record; polling provides recovery. */
         }
       };
+      source.addEventListener("snapshot", source.onmessage as EventListener);
+      source.addEventListener("status", source.onmessage as EventListener);
       source.onerror = () => {
         if (active) setLive(false);
       };

@@ -1,17 +1,18 @@
+import { WorkspaceText as Typography } from "./components";
 import React, { useRef, useState } from "react";
 import {
   Alert,
   Box,
   Checkbox,
   FormControlLabel,
-  Typography,
 } from "@mui/material";
+import { FileSpreadsheet, Upload } from "lucide-react";
 import { ActionButton as SoftButton } from "./components";
 import { downloadCsv } from "../../pages/admin/adminData";
-import { api } from "../../services/api";
+
 import { bookingSchema, day, money, type Booking, type Quote } from "./model";
 import { previewBookMany, previewQuote } from "./preview";
-import { errorMessage } from "./service";
+import { deliveryApi, errorMessage } from "./service";
 import type { Workspace } from "./useDeliveryWorkspace";
 import { Panel } from "./components";
 
@@ -120,6 +121,7 @@ export function BulkOrders({ workspace: w }: { workspace: Workspace }) {
   const [fileName, setFileName] = useState("");
   const fileSequence = useRef(0);
   const idempotencyKey = useRef(crypto.randomUUID());
+  const completed = useRef(new Set<number>());
   const [validFile, setValidFile] = useState(false);
   const blocked = !w.preview && w.user?.merchantApprovalStatus !== "APPROVED";
   const upload = async (file?: File) => {
@@ -131,7 +133,12 @@ export function BulkOrders({ workspace: w }: { workspace: Workspace }) {
     setAccepted(false);
     setFileName(file?.name || "");
     idempotencyKey.current = crypto.randomUUID();
+    completed.current.clear();
     if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      setErrors(["Choose a .csv file."]);
+      return;
+    }
     if (file.size > 1024 * 1024) {
       setErrors(["Use a CSV file smaller than 1 MB."]);
       return;
@@ -156,7 +163,7 @@ export function BulkOrders({ workspace: w }: { workspace: Workspace }) {
     try {
       const result = w.preview
         ? orders.map(previewQuote)
-        : (await api.post<Quote[]>("/pricing/quotes/bulk", { orders })).data;
+        : await Promise.all(orders.map((order) => deliveryApi.quote(order)));
       if (result.length !== orders.length)
         throw new Error(
           "The pricing service did not return a quote for every order.",
@@ -185,17 +192,23 @@ export function BulkOrders({ workspace: w }: { workspace: Workspace }) {
           w.ownerId,
           w.role,
         );
-      else
-        await api.post(
-          "/parcels/bulk",
-          {
-            orders: orders.map((booking, index) => ({
-              ...booking,
-              quoteId: quotes[index].id,
-            })),
-          },
-          { headers: { "Idempotency-Key": idempotencyKey.current } },
-        );
+      else {
+        for (let index = 0; index < orders.length; index++) {
+          if (completed.current.has(index)) continue;
+          try {
+            await deliveryApi.create(
+              orders[index],
+              quotes[index].id,
+              `${idempotencyKey.current}-${index}`,
+            );
+            completed.current.add(index);
+          } catch (error) {
+            throw new Error(
+              `${completed.current.size} of ${orders.length} orders created. Retry this batch to continue safely. ${errorMessage(error)}`,
+            );
+          }
+        }
+      }
     }, `${orders.length} delivery orders created.`);
     if (ok) {
       setOrders([]);
@@ -214,60 +227,148 @@ export function BulkOrders({ workspace: w }: { workspace: Workspace }) {
           Business approval is required before uploading orders.
         </Alert>
       )}
-      <SoftButton
-        variant="outlined"
-        color="dark"
-        onClick={() =>
-          downloadCsv("swiftdrop-orders-template.csv", [
-            csvHeaders,
-            [
-              "Store owner",
-              "0771234567",
-              "24 Store Road, Colombo",
-              "Nimal Perera",
-              "0772345678",
-              "18 Main Street, Kandy",
-              w.zones.find((zone) => zone.active)?.id || "kandy",
-              "Clothing",
-              1,
-              20,
-              15,
-              10,
-              "STANDARD",
-              day(),
-              "",
-              0,
-            ],
-          ])
-        }
-      >
-        Download CSV template
-      </SoftButton>
-      <Typography variant="caption" display="block" mt={2}>
-        Zone IDs:{" "}
-        {w.zones
-          .filter((zone) => zone.active)
-          .map((zone) => `${zone.name}: ${zone.id}`)
-          .join(" · ") || "No zones loaded"}
-        . Use STANDARD or EXPRESS for the service.
-      </Typography>
-      <Box mt={3}>
-        <label htmlFor="orders-file">Choose your orders CSV</label>
+      <Box sx={{ display: "grid", gap: 2, mt: 1 }}>
         <Box
-          component="input"
-          id="orders-file"
-          type="file"
-          accept=".csv,text/csv"
-          disabled={blocked || w.busy || estimating}
-          onChange={(event) => void upload(event.target.files?.[0])}
-          sx={{ display: "block", mt: 1, maxWidth: "100%" }}
-        />
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 2,
+            p: 2,
+            borderRadius: 2,
+            bgcolor: "#f8fafc",
+          }}
+        >
+          <Box sx={{ minWidth: 0 }}>
+            <Typography fontWeight={700}>1. Prepare your CSV</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Start with the template and include 1–100 orders.
+            </Typography>
+          </Box>
+          <SoftButton
+            variant="outlined"
+            color="dark"
+            onClick={() =>
+              downloadCsv("swiftdrop-orders-template.csv", [
+                csvHeaders,
+                [
+                  "Store owner",
+                  "0771234567",
+                  "24 Store Road, Colombo",
+                  "Nimal Perera",
+                  "0772345678",
+                  "18 Main Street, Kandy",
+                  w.zones.find((zone) => zone.active)?.id || "kandy",
+                  "Clothing",
+                  1,
+                  20,
+                  15,
+                  10,
+                  "STANDARD",
+                  day(),
+                  "",
+                  0,
+                ],
+              ])
+            }
+          >
+            Download CSV template
+          </SoftButton>
+        </Box>
+        <Alert severity="info">
+          Delivery cities:{" "}
+          {w.zones
+            .filter((zone) => zone.active)
+            .map((zone) => `${zone.name}: ${zone.id}`)
+            .join(" · ") ||
+            "Use the delivery city name, for example Kandy or Colombo"}
+          . Use STANDARD or EXPRESS for the service.
+        </Alert>
+        <Box
+          component="label"
+          htmlFor="orders-file"
+          sx={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            flexWrap: { xs: "wrap", sm: "nowrap" },
+            gap: 2,
+            minHeight: 112,
+            p: 2.5,
+            border: "1px dashed #94a3b8",
+            borderRadius: 2,
+            bgcolor: "#f8fafc",
+            cursor:
+              blocked || w.busy || estimating ? "not-allowed" : "pointer",
+            "&:hover": {
+              borderColor: blocked ? "#94a3b8" : "#00274c",
+              bgcolor: blocked ? "#f8fafc" : "#f1f5f9",
+            },
+            "&:focus-within": {
+              outline: "3px solid rgba(0, 39, 76, 0.2)",
+              outlineOffset: 2,
+            },
+          }}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault();
+            if (!blocked && !w.busy && !estimating)
+              void upload(event.dataTransfer.files?.[0]);
+          }}
+        >
+          <FileSpreadsheet size={28} aria-hidden="true" color="#00274c" />
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography fontWeight={700}>
+              {fileName || "2. Choose or drop your CSV file"}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              CSV only · max 1 MB · up to 100 orders
+            </Typography>
+            {fileName && (
+              <Typography variant="caption" color="text.secondary">
+                {orders.length} valid orders
+              </Typography>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 1,
+              px: 1.5,
+              py: 1,
+              borderRadius: 1,
+              color: "#00274c",
+              bgcolor: "#ffcb05",
+              fontSize: 14,
+              fontWeight: 700,
+              whiteSpace: "nowrap",
+              ml: { xs: "auto", sm: 0 },
+            }}
+          >
+            <Upload size={16} aria-hidden="true" />
+            Browse files
+          </Box>
+          <Box
+            component="input"
+            id="orders-file"
+            aria-label="Choose orders CSV"
+            type="file"
+            accept=".csv,text/csv"
+            disabled={blocked || w.busy || estimating}
+            onChange={(event) => void upload(event.target.files?.[0])}
+            sx={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              opacity: 0,
+              cursor: "inherit",
+            }}
+          />
+        </Box>
       </Box>
-      {fileName && (
-        <Typography variant="body2" mt={2}>
-          {fileName} · {orders.length} valid orders
-        </Typography>
-      )}
       {errors.map((error, index) => (
         <Alert severity="error" key={index} sx={{ mt: 1 }}>
           {error}
@@ -280,9 +381,9 @@ export function BulkOrders({ workspace: w }: { workspace: Workspace }) {
           blocked || w.busy || estimating || !orders.length || !validFile
         }
         onClick={() => void estimateAll()}
-        sx={{ mt: 3 }}
+        sx={{ mt: 3, alignSelf: "flex-start" }}
       >
-        {estimating ? "Estimating…" : "Estimate all delivery fees"}
+        {estimating ? "Estimating…" : "3. Estimate all delivery fees"}
       </SoftButton>
       {quotes.length > 0 && (
         <Box mt={3}>

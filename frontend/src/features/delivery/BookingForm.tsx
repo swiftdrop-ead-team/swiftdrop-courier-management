@@ -1,3 +1,4 @@
+import { WorkspaceText as Typography } from "./components";
 import React, { useState } from "react";
 import {
   Alert,
@@ -6,7 +7,6 @@ import {
   FormControlLabel,
   Grid,
   MenuItem,
-  Typography,
 } from "@mui/material";
 import { ActionButton as SoftButton } from "./components";
 import {
@@ -154,6 +154,12 @@ export function BookingForm({
             orders.
           </Alert>
         )}
+      {!w.preview && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Live booking currently supports today's pickup without cash
+          collection. The fee is returned in the backend's currency.
+        </Alert>
+      )}
       <Box component="form" onSubmit={getQuote} noValidate>
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -198,24 +204,36 @@ export function BookingForm({
             {text("dropoffAddress", "Drop-off address")}
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Field
-              select
-              label="Delivery zone"
-              value={form.zoneId}
-              disabled={disabled}
-              error={Boolean(errors.zoneId)}
-              helperText={errors.zoneId}
-              onChange={(event) => update("zoneId", event.target.value)}
-            >
-              <MenuItem value="">Choose a zone</MenuItem>
-              {w.zones
-                .filter((zone) => zone.active)
-                .map((zone) => (
-                  <MenuItem key={zone.id} value={zone.id}>
-                    {zone.name}
-                  </MenuItem>
-                ))}
-            </Field>
+            {!w.preview ? (
+              <Field
+                label="Delivery city"
+                value={form.zoneId}
+                onChange={(event) => update("zoneId", event.target.value)}
+                disabled={disabled}
+                error={Boolean(errors.zoneId)}
+                helperText={errors.zoneId}
+                required
+              />
+            ) : (
+              <Field
+                select
+                label="Delivery zone"
+                value={form.zoneId}
+                disabled={disabled}
+                error={Boolean(errors.zoneId)}
+                helperText={errors.zoneId}
+                onChange={(event) => update("zoneId", event.target.value)}
+              >
+                <MenuItem value="">Choose a zone</MenuItem>
+                {w.zones
+                  .filter((zone) => zone.active)
+                  .map((zone) => (
+                    <MenuItem key={zone.id} value={zone.id}>
+                      {zone.name}
+                    </MenuItem>
+                  ))}
+              </Field>
+            )}
           </Grid>
           <Grid item xs={12} sm={6}>
             <Field
@@ -261,7 +279,9 @@ export function BookingForm({
         )}
         <SoftButton
           type="submit"
-          disabled={disabled || !w.zones.some((zone) => zone.active)}
+          disabled={
+            disabled || (w.preview && !w.zones.some((zone) => zone.active))
+          }
           variant="outlined"
           color="dark"
           sx={{ mt: 3 }}
@@ -273,7 +293,7 @@ export function BookingForm({
         <Box sx={{ mt: 3, p: 3, borderRadius: 3, bgcolor: "#fff8da" }}>
           <Typography variant="body2">Delivery fee</Typography>
           <Typography variant="h4" fontWeight={700}>
-            {money(quote.amount)}
+            {money(quote.amount, quote.currency)}
           </Typography>
           <Typography variant="caption" display="block">
             Valid until {time(quote.expiresAt)}. Cash on delivery is separate

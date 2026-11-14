@@ -1,3 +1,4 @@
+import { WorkspaceText as Typography } from "./components";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -10,7 +11,6 @@ import {
   Grid,
   LinearProgress,
   Snackbar,
-  Typography,
 } from "@mui/material";
 import {
   Link,
@@ -31,10 +31,12 @@ import { deliveryApi } from "./service";
 import { useDeliveryWorkspace, type Workspace } from "./useDeliveryWorkspace";
 import { BookingForm } from "./BookingForm";
 import { Dispatch, ParcelList } from "./ParcelViews";
+import { LivePricing } from "./LivePricing";
 import { Pricing, Reports, UserAdministration } from "./AdminOperations";
 import { Account, MerchantIntegration, Notifications } from "./AccountViews";
 import { BulkOrders } from "./BulkOrders";
 import { TrackingView } from "./TrackingView";
+import { MerchantOverview, MerchantReports } from "./MerchantWorkspace";
 import { Metrics, Panel, Status } from "./components";
 
 const headings: Record<string, [string, string]> = {
@@ -63,14 +65,14 @@ const headings: Record<string, [string, string]> = {
     "Dispatch workspace",
     "Assign parcels and monitor courier workloads.",
   ],
-  pricing: ["Zones & pricing", "Manage delivery areas and rates."],
+  pricing: ["Delivery pricing", "Manage service rates for new bookings."],
   reports: ["Delivery reports", "Understand delivery volumes and outcomes."],
   profile: ["Your profile", "Manage contact details and delivery preferences."],
   settings: [
     "Account settings",
     "Your profile, preferences, and saved addresses.",
   ],
-  api: ["API & webhooks", "Connect your store and receive delivery updates."],
+  api: ["Store connections", "Optional: automate orders and delivery updates with API keys and webhooks."],
   notifications: ["Notifications", "Keep track of important delivery updates."],
   "bulk-upload": [
     "Upload orders",
@@ -95,9 +97,9 @@ const roleTabs: Record<UserRole, string[]> = {
     "tracking",
     "history",
     "profile",
+    "reports",
     "api",
     "notifications",
-    "settings",
   ],
   COURIER: [
     "overview",
@@ -154,6 +156,7 @@ function Overview({
                         : p.status !== "CANCELLED",
                     )
                     .reduce((sum, p) => sum + (courier ? p.cod : p.amount), 0),
+                  w.parcels[0]?.currency,
                 )
               : "Unavailable",
           },
@@ -338,7 +341,6 @@ export function DeliveryDashboard({
   role: UserRole;
   previewMode?: boolean;
 }) {
-  const w = useDeliveryWorkspace(role, previewMode);
   const { tab = "overview" } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -351,20 +353,27 @@ export function DeliveryDashboard({
       : previewMode
         ? `/dashboard-preview/${role.toLowerCase()}`
         : `/${role.toLowerCase()}/dashboard`;
-  const active = roleTabs[role].includes(tab)
-    ? tab
+  const requestedTab =
+    role === "MERCHANT" && tab === "settings" ? "profile" : tab;
+  const active = roleTabs[role].includes(requestedTab)
+    ? requestedTab
     : role === "ADMIN"
       ? "dispatch"
       : "overview";
+  const w = useDeliveryWorkspace(role, previewMode, active);
   const [resetOpen, setResetOpen] = useState(false);
   const [booked, setBooked] = useState("");
   useEffect(() => {
     w.setActionError("");
   }, [location.pathname]);
+  useEffect(() => {
+    if (role === "MERCHANT" && tab === "settings")
+      navigate(`${base}/profile`, { replace: true });
+  }, [base, navigate, role, tab]);
   const content = () => {
     switch (active) {
       case "overview":
-        return <Overview workspace={w} base={base} />;
+        return role === "MERCHANT" ? <MerchantOverview workspace={w} base={base} /> : <Overview workspace={w} base={base} />;
       case "send":
       case "create-shipment":
         return (
@@ -401,9 +410,9 @@ export function DeliveryDashboard({
       case "dispatch":
         return <Dispatch workspace={w} />;
       case "pricing":
-        return <Pricing workspace={w} />;
+        return previewMode ? <Pricing workspace={w} /> : <LivePricing />;
       case "reports":
-        return <Reports workspace={w} />;
+        return role === "MERCHANT" ? <MerchantReports workspace={w} /> : <Reports workspace={w} />;
       case "access":
         return <UserAdministration preview={previewMode} />;
       case "profile":
@@ -424,17 +433,19 @@ export function DeliveryDashboard({
       sx={{
         "& .MuiCard-root": { minWidth: 0 },
         "& .MuiTypography-root": { overflowWrap: "anywhere" },
+        display: "grid",
+        gap: 3,
       }}
     >
       {previewMode && (
-        <Alert severity="info" sx={{ mb: 3 }}>
+        <Alert severity="info" sx={{ mb: 0 }}>
           Shared frontend preview · Bookings, assignments, and status changes
           stay in this browser tab across role previews. No email, webhook, or
           backend request is sent.
         </Alert>
       )}
       {previewMode && previewStorageError() && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
+        <Alert severity="warning" sx={{ mb: 0 }}>
           {previewStorageError()}
         </Alert>
       )}
@@ -442,16 +453,23 @@ export function DeliveryDashboard({
         sx={{
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "flex-start",
           gap: 2,
           flexWrap: "wrap",
-          mb: 3,
         }}
       >
-        <Box>
-          <Typography component="h1" variant="h4" fontWeight={700}>
-            {headings[active][0]}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography component="h1" variant="h4" fontWeight={700} sx={{
+            fontSize: "1.5rem",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.2,
+          }}>
+            {role === "MERCHANT" && active === "overview" ? "Business overview" : role === "MERCHANT" && active === "reports" ? "Reports & COD" : headings[active][0]}
           </Typography>
-          <Typography variant="body2" color="text.secondary" mt={1}>
+          <Typography variant="body2" color="text.secondary" mt={0.5} sx={{
+            fontSize: "0.88rem",
+            lineHeight: 1.5,
+          }}>
             {headings[active][1]}
           </Typography>
         </Box>
@@ -466,6 +484,10 @@ export function DeliveryDashboard({
                 await w.refresh();
                 if (role === "MERCHANT") await w.refreshAccount();
               })();
+          }}
+          sx={{
+            borderRadius: "8px",
+            flexShrink: 0,
           }}
         >
           {previewMode ? "Reset shared preview" : "Refresh data"}

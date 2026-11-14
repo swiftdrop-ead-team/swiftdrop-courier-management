@@ -26,9 +26,9 @@ const { light } = colors;
 const linearProgress = {
   styleOverrides: {
     root: {
-      height: pxToRem(3),
+      height: pxToRem(6),
       borderRadius: borderRadius.md,
-      overflow: "visible",
+      overflow: "hidden",
       position: "relative",
     },
 
@@ -41,11 +41,10 @@ const linearProgress = {
     },
 
     bar: {
-      height: pxToRem(6),
+      height: "100%",
       borderRadius: borderRadius.sm,
       position: "absolute",
-      transform: `translate(0, ${pxToRem(-1.5)}) !important`,
-      transition: "width 0.6s ease !important",
+      transition: "transform 0.6s ease",
     },
   },
 };

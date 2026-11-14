@@ -25,7 +25,7 @@ The Vite dev server proxies `/api`, `/oauth2`, and `/login/oauth2` to `VITE_GATE
 | `/login`, `/register`, `/merchant/register` | Login, Google login, customer/business registration |
 | `/forgot-password`, `/reset-password`, `/auth/callback` | Account recovery and OAuth callback |
 | `/customer/dashboard/:tab` | Overview, send, track, history/receipts, settings/addresses, notifications |
-| `/merchant/dashboard/:tab?` | Overview, shipments, create-shipment, bulk-upload, tracking, history, profile, api/webhooks, notifications, settings |
+| `/merchant/dashboard/:tab?` | Overview, shipments, create-shipment, bulk-upload, tracking, history, business profile/preferences, API/webhooks, notifications |
 | `/courier/dashboard/:tab?` | Overview/availability, deliveries, route, history, profile, notifications |
 | `/admin/dashboard/:tab?` | Overview, merchants, users, activity, dispatch, deliveries, pricing, reports, access, profile |
 
@@ -47,7 +47,15 @@ All preview routes are excluded from production routing. Authenticated delivery 
 
 ## Backend integration
 
-Existing auth and merchant-approval APIs are implemented by the identity service. Delivery domain services are still placeholders in this checkout. The frontend calls proposed typed APIs and shows unavailable states until those services are connected.
+Live screens use the implemented identity, parcel, dispatch, tracking, and notification APIs through the gateway. The adapter translates backend DTOs, pagination, numeric dispatch IDs, response envelopes, and timestamps into the dashboard model. Fee estimates call the pricing service and are stored in PostgreSQL, bound to the booking owner and payload before confirmation. New bookings use LKR; historical booking currency is preserved. Dispatch events synchronize parcel history; tracking uses `/stream` with named SSE events and polling recovery. Historical backend currency is preserved rather than relabelled.
+
+Merchant credentials/webhooks and bulk creation remain unavailable until the Merchant Service is merged. Live account editing, saved pickup addresses, admin access management, pricing rate editing, notification preferences and read state now have backend endpoints. Sign-in email and merchant business identity remain read-only. Dispatch and notification APIs verify JWTs and enforce role/resource access on the server.
+
+Shared delivery screens use the Soft UI statistics cards, buttons and timeline components. Dashboard feature routes load on demand. Admin live pricing edits persisted service-rate DTOs rather than preview-only zone records.
+
+From the repository root, start Docker Desktop, copy `.env.example` to `.env` only if needed, then run `docker compose up --build -d`. Compose includes identity, parcel, dispatch, pricing, tracking, notification, gateway, PostgreSQL, and RabbitMQ. For development, start the backend containers and run `npm run dev` in `frontend` instead of the frontend container. Do not run both frontend servers on port 3000.
+
+An existing database volume may have been initialized before all service databases existed. If a service reports a missing database, apply the idempotent initializer without deleting data: `docker compose exec postgres psql -U swiftdrop_user -d postgres -f /docker-entrypoint-initdb.d/init.sql` (substitute your configured database user).
 
 - [API contracts and DTOs](../docs/api-contracts/frontend-delivery-v1.md)
 - Routed delivery implementation: `src/features/delivery/`
@@ -73,3 +81,9 @@ Coverage outputs:
 - LCOV: `reports/coverage/lcov.info`
 
 Coverage includes application TypeScript/TSX source, including retained legacy pages, and excludes tests, declarations, and type-only folders. It does not measure backend behavior. Tests verify frontend guards, workflows, validation, privacy, and error states using mocks/previews. Perform live Google login and full end-to-end acceptance testing once backend services and credentials are available.
+
+## Local acceptance checks
+
+After the stack is healthy, run `python scripts/smoke_test.py` from the repository root. It creates isolated customer accounts and test parcels, checks real pricing, booking, assignment, delivery/proof, cancellation, tracking, profile/address persistence and notification privacy/read state through the frontend proxy. Test records are retained for inspection. Local emails and reset links are visible at `http://localhost:8025`.
+
+Google OAuth needs your own valid Google client settings. Merchant and AI services are deliberately excluded pending their merge. See `docs/merged-services-status.md` for the completed changes and verification limits.

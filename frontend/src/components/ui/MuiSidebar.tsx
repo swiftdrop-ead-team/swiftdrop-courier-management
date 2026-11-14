@@ -168,25 +168,26 @@ interface MenuProps {
 
 export const Menu: React.FC<MenuProps> = ({ subHeading, children }) => {
   return (
-    <Box sx={{ px: 2, pt: 2, pb: 0.5 }}>
+    <Box sx={{ px: 1.5, pt: 1.5, pb: 0.5 }}>
       {subHeading && (
         <Typography
           variant="overline"
           sx={{
             display: "block",
-            px: 1.5,
-            pb: 0.75,
-            fontSize: "0.68rem",
-            fontWeight: 800,
-            letterSpacing: "0.08em",
-            color: "#8ab6e2", // Soft light blue for high contrast against dark blue
+            px: 1,
+            pb: 0.5,
+            pt: 0.5,
+            fontSize: "0.65rem",
+            fontWeight: 700,
+            letterSpacing: "0.1em",
+            color: "rgba(138, 182, 226, 0.7)",
             textTransform: "uppercase",
           }}
         >
           {subHeading}
         </Typography>
       )}
-      <List disablePadding sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+      <List disablePadding sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
         {children}
       </List>
     </Box>
@@ -220,39 +221,51 @@ export const MenuItem: React.FC<MenuItemProps> = ({
     active !== undefined ? active : link ? location.pathname === link : false;
 
   const itemContent = (
-    <ListItem disablePadding sx={{ display: "block" }}>
+    <ListItem disablePadding sx={{ display: "block", px: 0.5 }}>
       <ListItemButton
+        component={link ? Link : "button"}
+        to={link}
+        aria-current={isCurrentActive && link ? "page" : undefined}
         onClick={onClick}
         selected={isCurrentActive}
         sx={{
-          minHeight: 42,
-          borderRadius: "10px",
-          px: 1.75,
-          py: 1,
-          mb: 0.25,
-          transition: "all 160ms ease",
-          /* Active state uses a cool blue surface for comfortable scanning. */
-          color: isCurrentActive ? "#00274c !important" : "#e2e8f0",
-          fontWeight: isCurrentActive ? 750 : 500,
+          minHeight: 40,
+          borderRadius: "8px",
+          px: 1.25,
+          py: 0.75,
+          transition: "all 200ms cubic-bezier(0.4, 0, 0.2, 1)",
+          alignItems: "center",
+          color: isCurrentActive ? "#00274c" : "rgba(226, 232, 240, 0.85)",
+          fontWeight: isCurrentActive ? 700 : 400,
           background: isCurrentActive
-            ? "linear-gradient(135deg, #ffcb05 0%, #ffdb57 100%) !important"
+            ? "linear-gradient(135deg, #ffcb05 0%, #ffdb57 100%)"
             : "transparent",
           boxShadow: isCurrentActive
-            ? "inset 3px 0 0 #00274c"
+            ? "0 2px 8px rgba(255, 203, 5, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
             : "none",
+          border: isCurrentActive ? "none" : "1px solid transparent",
           "&:hover": {
-            backgroundColor: isCurrentActive ? undefined : "rgba(255, 255, 255, 0.08)",
+            backgroundColor: isCurrentActive
+              ? "transparent"
+              : "rgba(255, 255, 255, 0.06)",
             color: isCurrentActive ? "#00274c" : "#ffffff",
+            border: isCurrentActive ? "none" : "1px solid rgba(255, 255, 255, 0.08)",
+          },
+          "&:active": {
+            transform: "scale(0.98)",
           },
         }}
       >
         {icon && (
           <ListItemIcon
             sx={{
-              minWidth: 32,
-              color: isCurrentActive ? "#00274c" : "#93c5fd",
+              minWidth: 0,
+              mr: 1.5,
+              width: 24,
+              color: isCurrentActive ? "#00274c" : "rgba(147, 197, 253, 0.7)",
               display: "flex",
               alignItems: "center",
+              transition: "color 200ms ease",
             }}
           >
             {icon}
@@ -261,9 +274,10 @@ export const MenuItem: React.FC<MenuItemProps> = ({
         <ListItemText
           primary={children}
           primaryTypographyProps={{
-            fontSize: "0.85rem",
-            fontWeight: isCurrentActive ? 750 : 500,
-            lineHeight: 1.2,
+            fontSize: "0.82rem",
+            fontWeight: isCurrentActive ? 700 : 400,
+            lineHeight: 1.3,
+            letterSpacing: "0.01em",
           }}
         />
         {badge && (
@@ -271,12 +285,14 @@ export const MenuItem: React.FC<MenuItemProps> = ({
             size="small"
             label={badge === true ? "New" : badge}
             sx={{
-              height: 20,
-              fontSize: "0.68rem",
-              fontWeight: 800,
-              ml: 1,
-              backgroundColor: isCurrentActive ? "#00274c" : "#dbeafe",
-              color: isCurrentActive ? "#dbeafe" : "#1e3a8a",
+              height: 18,
+              fontSize: "0.62rem",
+              fontWeight: 700,
+              ml: 0.75,
+              borderRadius: "4px",
+              backgroundColor: isCurrentActive ? "rgba(0, 39, 76, 0.15)" : "rgba(219, 234, 254, 0.15)",
+              color: isCurrentActive ? "#00274c" : "#93c5fd",
+              border: isCurrentActive ? "none" : "1px solid rgba(147, 197, 253, 0.2)",
               boxShadow: "none",
             }}
           />
@@ -285,13 +301,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
     </ListItem>
   );
 
-  return link ? (
-    <Link to={link} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-      {itemContent}
-    </Link>
-  ) : (
-    itemContent
-  );
+  return itemContent;
 };
 
 /* ================================================================

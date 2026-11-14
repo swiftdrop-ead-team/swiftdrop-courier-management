@@ -26,7 +26,6 @@ import SoftButton from "components/SoftButton";
 import SoftInput from "components/SoftInput";
 import TemplateDashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import { Sidebar, Menu, MenuItem, Logo } from "../ui/MuiSidebar";
-import { DashboardQuickLinks } from "../ui/DashboardQuickLinks";
 import { useAuth } from "../../hooks/useAuth";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
@@ -121,12 +120,12 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
         PaperProps={{
           id: "dashboard-navigation",
           sx: () => ({
-            width: 270,
-            m: "0 !important", // Fits page without margins
+            width: 260,
+            m: "0 !important",
             height: "100vh !important",
-            borderRadius: "0 !important", // No card look, flush with page edge
+            borderRadius: "0 !important",
             border: "0 !important",
-            borderRight: "1px solid rgba(255, 255, 255, 0.08) !important",
+            borderRight: "1px solid rgba(255, 255, 255, 0.06) !important",
             background: "linear-gradient(180deg, #001a35 0%, #00274c 55%, #08213f 100%) !important",
             boxShadow: "none !important",
             overflow: "hidden",
@@ -171,27 +170,32 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
           </Menu>)}
 
           {/* Account Profile snippet (Matched to Blue Sidebar) */}
-          <Box sx={{ px: 2, mt: 2 }}>
+          <Box sx={{ px: 1.5, mt: 1 }}>
             <Box
               sx={{
-                p: 1.5,
-                borderRadius: 2.5,
-                bgcolor: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
+                p: 1.25,
+                borderRadius: "10px",
+                bgcolor: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
                 display: "flex",
                 alignItems: "center",
-                gap: 1.5,
+                gap: 1,
+                transition: "all 200ms ease",
+                "&:hover": {
+                  bgcolor: "rgba(255, 255, 255, 0.06)",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                },
               }}
             >
               <Avatar
                 sx={{
-                  background: "#001a35",
-                  border: "2px solid #ffcb05",
-                  width: 36,
-                  height: 36,
-                  color: "#ffcb05",
+                  background: "linear-gradient(135deg, #ffcb05 0%, #ffdb57 100%)",
+                  border: "none",
+                  width: 34,
+                  height: 34,
+                  color: "#00274c",
                   fontWeight: "bold",
-                  fontSize: "0.85rem",
+                  fontSize: "0.8rem",
                 }}
               >
                 {name.charAt(0)}
@@ -202,13 +206,13 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
                   fontWeight="bold"
                   display="block"
                   noWrap
-                  sx={{ fontSize: "0.85rem", color: "#ffffff !important" }}
+                  sx={{ fontSize: "0.82rem", color: "#ffffff !important" }}
                 >
                   {name}
                 </SoftTypography>
                 <SoftTypography
                   variant="caption"
-                  sx={{ fontSize: "0.72rem", color: "#94a3b8 !important" }}
+                  sx={{ fontSize: "0.68rem", color: "rgba(148, 163, 184, 0.7) !important" }}
                 >
                   {preview ? "Preview account" : profileLabel}
                 </SoftTypography>
@@ -217,27 +221,27 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
           </Box>
 
           {/* Bottom Card & Action */}
-          <Box sx={{ mt: "auto", p: 2 }}>
+          <Box sx={{ mt: "auto", p: 1.5 }}>
             <Box
               sx={{
-                p: 2,
-                borderRadius: 2.5,
-                background: "linear-gradient(135deg, rgba(255, 203, 5, 0.14) 0%, rgba(255, 219, 87, 0.04) 100%)",
-                border: "1px solid rgba(255, 203, 5, 0.35)",
-                mb: 2,
+                p: 1.75,
+                borderRadius: "10px",
+                background: "linear-gradient(135deg, rgba(255, 203, 5, 0.1) 0%, rgba(255, 219, 87, 0.03) 100%)",
+                border: "1px solid rgba(255, 203, 5, 0.2)",
+                mb: 1.5,
               }}
             >
               <SoftTypography
                 variant="button"
                 fontWeight="bold"
                 display="block"
-                sx={{ color: "#ffcb05 !important" }}
+                sx={{ color: "#ffcb05 !important", fontSize: "0.82rem" }}
               >
                 {shipmentRole ? "Ready to send?" : "Your workspace"}
               </SoftTypography>
               <SoftTypography
                 variant="caption"
-                sx={{ display: "block", mt: 0.25, color: "#cbd5e1 !important" }}
+                sx={{ display: "block", mt: 0.25, color: "rgba(203, 213, 225, 0.7) !important", fontSize: "0.7rem" }}
               >
                 {shipmentRole ? "A little package. A big connection." : "Everything you need, in one place."}
               </SoftTypography>
@@ -248,15 +252,17 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
                 size="small"
                 onClick={() => navigate(shipmentRole ? createPath : base)}
                 sx={{
-                  mt: 1.5,
-                  py: 0.75,
+                  mt: 1.25,
+                  py: 0.65,
                   fontSize: "0.75rem",
+                  borderRadius: "8px",
                   color: "#00274c !important",
                   fontWeight: "bold",
                   background: "linear-gradient(135deg, #ffcb05 0%, #ffdb57 100%)",
-                  boxShadow: "0 3px 10px rgba(0, 39, 76, 0.14)",
+                  boxShadow: "0 2px 8px rgba(255, 203, 5, 0.2)",
                   "&:hover": {
                     background: "linear-gradient(135deg, #ffdb57 0%, #ffe866 100%)",
+                    boxShadow: "0 4px 12px rgba(255, 203, 5, 0.3)",
                   },
                 }}
               >
@@ -317,47 +323,75 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
             alignItems: "center",
             gap: 2,
             flexWrap: "wrap",
-            px: 1,
-            pb: 3,
-            borderBottom: "1px solid rgba(0, 39, 76, 0.08)",
+            px: { xs: 1, md: 2 },
+            pt: 2,
+            pb: 2,
+            borderBottom: "1px solid rgba(0, 39, 76, 0.06)",
+            bgcolor: "rgba(255, 255, 255, 0.8)",
+            backdropFilter: "blur(8px)",
           })}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             {!desktop && (
               <IconButton
                 aria-label="Open navigation"
                 aria-controls="dashboard-navigation"
                 aria-expanded={menuOpen}
                 onClick={() => setMenuOpen(true)}
+                sx={{
+                  borderRadius: "8px",
+                  bgcolor: "rgba(0, 39, 76, 0.04)",
+                  "&:hover": { bgcolor: "rgba(0, 39, 76, 0.08)" },
+                }}
               >
-                <MenuIcon size={21} />
+                <MenuIcon size={20} />
               </IconButton>
             )}
             <Box>
-              <Breadcrumbs sx={{ fontSize: 13, mb: 0.5 }}>
-                <Link to="/" aria-label="SwiftDrop home">
-                  <Home size={14} />
+              <Breadcrumbs
+                aria-label="breadcrumb"
+                sx={{
+                  fontSize: "0.75rem",
+                  mb: 0.25,
+                  color: "text.secondary",
+                  "& .MuiBreadcrumbs-separator": { mx: 0.75 },
+                }}
+              >
+                <Link
+                  to="/"
+                  aria-label="SwiftDrop home"
+                  style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 0.3 }}
+                >
+                  <Home size={13} />
+                  <span>Home</span>
                 </Link>
                 <span>{breadcrumbRole}</span>
-                <span>{active?.label}</span>
+                <Box component="span" sx={{ color: "text.primary", fontWeight: 600 }}>{active?.label}</Box>
               </Breadcrumbs>
-              <SoftTypography variant="h6" fontWeight="bold">
+              <SoftTypography
+                variant="h6"
+                fontWeight="bold"
+                sx={{ fontSize: "1.15rem", letterSpacing: "-0.02em", lineHeight: 1.3 }}
+              >
                 {active?.label}
               </SoftTypography>
             </Box>
           </Box>
-          <Box sx={{ width: { xs: "100%", xl: "auto" } }}>
-            <DashboardQuickLinks />
-          </Box>
-          {role === "CUSTOMER" && <Box
+
+          {(role === "CUSTOMER" || role === "MERCHANT") && <Box
             component="form"
             onSubmit={(event: React.FormEvent) => {
               event.preventDefault();
               navigate(
-                `${base}/history?q=${encodeURIComponent(search.trim())}`,
+                `${base}/${role === "MERCHANT" ? "shipments" : "history"}?q=${encodeURIComponent(search.trim())}`,
               );
             }}
-            sx={{ display: "flex", gap: 1, width: { xs: "100%", sm: "auto" } }}
+            sx={{
+              display: "flex",
+              gap: 0.5,
+              width: { xs: "100%", sm: "auto" },
+              maxWidth: 360,
+            }}
           >
             <SoftInput
               placeholder={searchPlaceholder}
@@ -366,9 +400,25 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
                 setSearch(event.target.value)
               }
               inputProps={{ "aria-label": "Search shipments" }}
+              sx={{
+                "& .MuiInputBase-root": {
+                  borderRadius: "8px",
+                  bgcolor: "rgba(0, 39, 76, 0.03)",
+                  border: "1px solid rgba(0, 39, 76, 0.1)",
+                  "&:hover": { borderColor: "rgba(0, 39, 76, 0.2)" },
+                },
+              }}
             />
-            <IconButton type="submit" aria-label="Search shipment history">
-              <Search size={19} />
+            <IconButton
+              type="submit"
+              aria-label="Search shipments"
+              sx={{
+                borderRadius: "8px",
+                bgcolor: "rgba(0, 39, 76, 0.06)",
+                "&:hover": { bgcolor: "rgba(0, 39, 76, 0.12)" },
+              }}
+            >
+              <Search size={18} />
             </IconButton>
           </Box>}
         </Box>
@@ -382,14 +432,16 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
             justifyContent: "space-between",
             flexWrap: "wrap",
             gap: 1,
-            py: 3,
-            px: 1,
+            py: 2,
+            px: { xs: 1, md: 2 },
+            borderTop: "1px solid rgba(0, 39, 76, 0.06)",
+            mt: 2,
           }}
         >
-          <SoftTypography variant="caption" color="text">
+          <SoftTypography variant="caption" color="text" sx={{ fontSize: "0.72rem" }}>
             SwiftDrop · A simpler way to send.
           </SoftTypography>
-          <SoftTypography variant="caption" color="text">
+          <SoftTypography variant="caption" color="text" sx={{ fontSize: "0.72rem" }}>
             SwiftDrop Logistics
           </SoftTypography>
         </Box>

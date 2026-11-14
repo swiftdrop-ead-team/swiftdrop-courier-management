@@ -60,6 +60,23 @@ async function choose(label: string, value: string) {
   fireEvent.click(await screen.findByRole("option", { name: value }));
 }
 describe("Assignment frontend workflows", () => {
+  it("clears previously loaded parcels when a refresh fails", async () => {
+    const get = vi.spyOn(api, "get").mockResolvedValue({ data: {
+      content: [{ id: "persisted-1", trackingNumber: "SD-PERSISTED-1", senderId: "live-user",
+        senderType: "CUSTOMER", senderName: "Live User", recipientName: "Recipient",
+        pickupAddress: "Colombo", deliveryAddress: "Kandy", deliveryCity: "Kandy",
+        weightKg: 1, lengthCm: 10, widthCm: 10, heightCm: 10,
+        deliveryType: "STANDARD", status: "CREATED", deliveryFee: 350, currency: "LKR",
+        createdAt: new Date().toISOString() }], totalPages: 1,
+    } });
+    workspace("CUSTOMER", "overview", false);
+    expect(await screen.findByText("SD-PERSISTED-1")).toBeInTheDocument();
+    get.mockRejectedValue({ response: { status: 503 } });
+    fireEvent.click(screen.getByRole("button", { name: "Refresh data" }));
+    expect(await screen.findByText(/parcels: This service is temporarily unavailable/)).toBeInTheDocument();
+    expect(screen.queryByText("SD-PERSISTED-1")).not.toBeInTheDocument();
+    expect(screen.queryByText("SD-DEMO-1001")).not.toBeInTheDocument();
+  });
   it("quotes a customer booking and only creates it after fee confirmation", async () => {
     const initial = getPreview().parcels.length;
     workspace("CUSTOMER", "send");
@@ -157,7 +174,7 @@ describe("Assignment frontend workflows", () => {
     vi.spyOn(api, "get").mockRejectedValue({ response: { status: 503 } });
     workspace("CUSTOMER", "history", false);
     expect(
-      await screen.findByText(/parcels: This service is not available yet/),
+      await screen.findByText(/parcels: This service is temporarily unavailable/),
     ).toBeInTheDocument();
     expect(screen.queryByText("SD-DEMO-1001")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh data" })).toBeEnabled();
@@ -263,5 +280,47 @@ describe("Assignment frontend workflows", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: title }),
     ).toBeInTheDocument();
+  });
+  it("rejects a non-CSV file in the merchant bulk uploader", async () => {
+    workspace("MERCHANT", "bulk-upload");
+    const file = new File(["not a csv"], "orders.txt", {
+      type: "text/plain",
+    });
+
+    fireEvent.change(screen.getByLabelText("Choose orders CSV"), {
+      target: { files: [file] },
+    });
+
+    expect(await screen.findByText("Choose a .csv file.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "3. Estimate all delivery fees",
+      }),
+    ).toBeDisabled();
+  });
+});
+
+
+describe("Merchant operations", () => {
+  it("opens the failure queue from its status URL", async () => {
+    workspace("MERCHANT", "shipments?status=FAILED");
+    expect(screen.getByText("SD-DEMO-1008")).toBeInTheDocument();
+    expect(screen.queryByText("SD-DEMO-1002")).not.toBeInTheDocument();
+  });
+  it("shows COD reporting and rejects reversed date ranges", async () => {
+    workspace("MERCHANT", "reports");
+    expect(screen.getByText("COD on delivered parcels")).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: "Merchant delivery outcomes" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("From booking date"), { target: { value: "2027-02-01" } });
+    fireEvent.change(screen.getByLabelText("To booking date"), { target: { value: "2027-01-01" } });
+    expect(screen.getByRole("button", { name: "Export report CSV" })).toBeDisabled();
+    expect(screen.getByText("The end date must be on or after the start date.")).toBeInTheDocument();
+  });
+  it("saves a merchant pickup location for future bookings", async () => {
+    workspace("MERCHANT", "profile");
+    fireEvent.change(screen.getByLabelText("Address label", { exact: false }), { target: { value: "Warehouse" } });
+    fireEvent.change(screen.getByLabelText("Complete address", { exact: false }), { target: { value: "12 Warehouse Road, Colombo" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save address" }));
+    await waitFor(() => expect(getPreview().addresses["preview-merchant"]).toEqual([expect.objectContaining({ label: "Warehouse" })]));
   });
 });

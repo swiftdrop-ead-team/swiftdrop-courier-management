@@ -1,3 +1,4 @@
+import { WorkspaceText as Typography } from "./components";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -8,7 +9,6 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
-  Typography,
 } from "@mui/material";
 import { ActionButton as SoftButton } from "./components";
 import { z } from "zod";
@@ -56,7 +56,10 @@ export function Account({ workspace: w }: { workspace: Workspace }) {
         updatePreview((state) => {
           state.profiles[w.ownerId] = result.data;
         });
-      else await deliveryApi.saveProfile(result.data);
+      else {
+        await deliveryApi.saveProfile(result.data);
+        await w.refreshAccount();
+      }
     }, "Profile saved.");
     if (ok) {
       setEditing(false);
@@ -82,6 +85,7 @@ export function Account({ workspace: w }: { workspace: Workspace }) {
         subtitle="Keep your contact details current and choose whether to receive delivery email updates."
       >
         <Box component="form" onSubmit={save} noValidate>
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" }, columnGap: 3 }}>
           {(
             [
               "fullName",
@@ -107,18 +111,19 @@ export function Account({ workspace: w }: { workspace: Workspace }) {
               type={
                 key === "email" ? "email" : key === "phone" ? "tel" : "text"
               }
-              disabled={!editing || w.busy}
+              disabled={!editing || w.busy || Boolean(w.errors.profile) || key === "email" || key === "businessName"}
               onChange={(event) =>
                 setDraft({ ...draft, [key]: event.target.value })
               }
             />
           ))}
+          </Box>
           <FormControlLabel
             label="Email me delivery updates"
             control={
               <Checkbox
                 checked={draft.emailNotifications}
-                disabled={!editing || w.busy}
+                disabled={!editing || w.busy || Boolean(w.errors.profile)}
                 onChange={(_, checked) =>
                   setDraft({ ...draft, emailNotifications: checked })
                 }
@@ -154,6 +159,7 @@ export function Account({ workspace: w }: { workspace: Workspace }) {
                 variant="outlined"
                 color="dark"
                 onClick={() => setEditing(true)}
+                disabled={w.busy || Boolean(w.errors.profile)}
               >
                 Edit profile
               </SoftButton>
@@ -161,7 +167,7 @@ export function Account({ workspace: w }: { workspace: Workspace }) {
           </Box>
         </Box>
       </Panel>
-      {w.role === "CUSTOMER" && (
+      {(w.role === "CUSTOMER" || w.role === "MERCHANT") && (
         <Panel
           title="Saved pickup addresses"
           subtitle="Saved addresses are available when you book your next parcel."
@@ -183,7 +189,7 @@ export function Account({ workspace: w }: { workspace: Workspace }) {
               <SoftButton
                 variant="text"
                 color="error"
-                disabled={w.busy}
+                disabled={w.busy || Boolean(w.errors.addresses)}
                 onClick={() =>
                   void saveAddresses(
                     w.addresses.filter((entry) => entry.id !== item.id),
@@ -237,7 +243,7 @@ export function Account({ workspace: w }: { workspace: Workspace }) {
               type="submit"
               variant="outlined"
               color="dark"
-              disabled={w.busy || w.addresses.length >= 20}
+              disabled={w.busy || Boolean(w.errors.addresses) || w.addresses.length >= 20}
               sx={{ mt: 2 }}
             >
               Save address
@@ -255,7 +261,11 @@ export function Notifications({ workspace: w }: { workspace: Workspace }) {
   return (
     <Panel
       title="Delivery notifications"
-      subtitle="Status updates for your deliveries. Preview notifications demonstrate the UI; they do not send email or SMS."
+      subtitle={
+        w.preview
+          ? "Sample delivery updates for this preview."
+          : "Updates and notification history for your account."
+      }
     >
       <FormControlLabel
         label="Show unread only"
@@ -324,6 +334,7 @@ export function MerchantIntegration({
   const [editing, setEditing] = useState(false);
   const [reveal, setReveal] = useState(false);
   const [newKey, setNewKey] = useState("");
+  const [signingSecret, setSigningSecret] = useState("");
   const apiKey = newKey || w.integration?.apiKey || "";
   const provisioned = Boolean(apiKey || w.integration?.hasKey);
   const [rotate, setRotate] = useState(false);
@@ -366,11 +377,19 @@ export function MerchantIntegration({
             enabled,
           };
         });
-      else await deliveryApi.webhook(url.trim(), enabled);
+      else {
+        const saved = await deliveryApi.webhook(url.trim(), enabled);
+        setSigningSecret(saved.signingSecret || "");
+      }
     }, "Webhook settings saved.");
     if (ok) setEditing(false);
   };
-  const snippet = `curl -X POST "${window.location.origin}/api/v1/parcels" \\\n  -H "X-API-Key: YOUR_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -H "Idempotency-Key: YOUR_QUOTE_ID" \\\n  --data '{"quoteId":"YOUR_QUOTE_ID","senderName":"Store","senderPhone":"0771234567","pickupAddress":"24 Store Road, Colombo","recipientName":"Customer","recipientPhone":"0772345678","dropoffAddress":"18 Main Street, Kandy","zoneId":"kandy","description":"Clothing","weight":1,"length":20,"width":15,"height":10,"service":"STANDARD","pickupDate":"${new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Colombo" }).format(new Date())}","instructions":"","cod":0}'`;
+  const snippet = `curl -X POST "${window.location.origin}/api/v1/merchant/orders" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: UNIQUE_STORE_ORDER_REFERENCE" \
+  --data '{"senderName":"Store","senderPhone":"0771234567","pickupAddress":"24 Store Road, Colombo","recipientName":"Customer","recipientPhone":"0772345678","deliveryAddress":"18 Main Street, Kandy","deliveryCity":"Kandy","description":"Clothing","weightKg":1,"lengthCm":20,"widthCm":15,"heightCm":10,"deliveryType":"STANDARD"}'`;
+
   return (
     <Box sx={{ display: "grid", gap: 3 }}>
       {blocked && (
@@ -426,9 +445,15 @@ export function MerchantIntegration({
           </Typography>
         )}
       </Panel>
+      {!w.preview && (
+        <Alert severity="info">
+          New API keys are shown only once. Copy a generated key before leaving
+          this page.
+        </Alert>
+      )}
       <Panel
         title="Create an order from your store"
-        subtitle="First request POST /api/v1/pricing/quotes with the booking details. Use the returned quote ID when creating the order."
+        subtitle="Send each order with a unique store reference. API orders use the current delivery rate; repeat the same reference and payload to safely retry."
       >
         <Box
           component="pre"
@@ -454,9 +479,23 @@ export function MerchantIntegration({
           Copy API example
         </SoftButton>
       </Panel>
+      {signingSecret && (
+        <Alert severity="success">
+          Copy this signing secret now. It is shown only once; saving the
+          webhook again rotates it.
+          <Field
+            label="Webhook signing secret"
+            value={signingSecret}
+            inputProps={{ readOnly: true }}
+          />
+          <SoftButton onClick={() => void copy(signingSecret)}>
+            Copy signing secret
+          </SoftButton>
+        </Alert>
+      )}
       <Panel
         title="Status webhook"
-        subtitle="Receive parcel.status_updated events at your HTTPS endpoint. Verify signatures on your server and return a 2xx response."
+        subtitle="Receive parcel.status.changed events at your HTTPS endpoint. Verify signatures on your server and return a 2xx response."
       >
         <Box component="form" onSubmit={saveWebhook}>
           <Field
