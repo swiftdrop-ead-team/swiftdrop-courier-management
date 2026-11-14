@@ -7,7 +7,9 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev/)
 
-A parcel delivery and courier management project for the **Enterprise Application Development (EAD)** group assignment. This checkout includes the React frontend, identity service, API gateway, and planned domain-service directories. The architecture below includes services that are not yet implemented.
+A parcel delivery and courier management project for the **Enterprise Application Development (EAD)** group assignment. This checkout includes the React frontend, Identity, Parcel, Dispatch, Pricing, Tracking, Notification, API Gateway and local infrastructure. Merchant Service and AI Assistant Service remain excluded pending merge.
+
+Current merged-service implementation and verification are documented in [docs/merged-services-status.md](docs/merged-services-status.md). Merchant Service and AI Assistant Service remain excluded pending merge. Local delivery/reset emails are captured at `http://localhost:8025`; run `python scripts/smoke_test.py` after starting the stack for acceptance checks.
 
 Frontend workflows and development previews are described in [frontend/README.md](frontend/README.md), with [API contracts](docs/api-contracts/frontend-delivery-v1.md) for backend integration. A frontend preview demonstrates UI behavior; it does not establish completion of backend broker, tracking, dispatch, pricing, notifications, or merchant webhooks.
 
@@ -153,16 +155,16 @@ Each of the 10 microservices is assigned to an individual team member with a ded
 
 | Member | Microservice / Domain | Git Feature Branch | Directory | Port | Status |
 |:---|:---|:---|:---|:---|:---|
-| **Member 1** | Frontend Architecture & UI/UX | `feature/frontend` | `frontend/` | `3000` | ✅ Active Milestone |
-| **Member 2** | Identity Service & Auth | `feature/identity-service` | `services/identity-service/` | `8081` | ✅ Active Milestone |
-| **Member 3** | Parcel Service | `feature/parcel-service` | `services/parcel-service/` | `8082` | ⏳ Phase 2 |
+| **Member 1** | Frontend Architecture & UI/UX | `feature/frontend` | `frontend/` | `3000` | ✅ Integrated and tested |
+| **Member 2** | Identity Service & Auth | `feature/identity-service` | `services/identity-service/` | `8081` | ✅ Integrated and tested |
+| **Member 3** | Parcel Service | `feature/parcel-service` | `services/parcel-service/` | `8082` | Implemented; integration tested |
 | **Member 4** | Merchant Service | `feature/merchant-service` | `services/merchant-service/` | `8083` | ⏳ Phase 2 |
-| **Member 5** | Dispatch Service | `feature/dispatch-service` | `services/dispatch-service/` | `8084` | ⏳ Phase 2 |
-| **Member 6** | Pricing Service | `feature/pricing-service` | `services/pricing-service/` | `8085` | ⏳ Phase 2 |
+| **Member 5** | Dispatch Service | `feature/dispatch-service` | `services/dispatch-service/` | `8084` | Implemented; integration tested |
+| **Member 6** | Pricing Service | `feature/pricing-service` | `services/pricing-service/` | `8085` | Implemented; integration tested |
 | **Member 7** | Tracking Service | `feature/tracking-service` | `services/tracking-service/` | `8086` | ✅ Implemented |
-| **Member 8** | Notification Service | `feature/notification-service` | `services/notification-service/` | `8087` | ⏳ Phase 2 |
+| **Member 8** | Notification Service | `feature/notification-service` | `services/notification-service/` | `8087` | Implemented; integration tested |
 | **Member 9** | AI Assistant (Gemini) | `feature/ai-assistant` | `services/ai-assistant-service/` | `8088` | ⏳ Phase 2 |
-| **Member 10** | API Gateway & DevOps | `feature/gateway-devops` | `gateway/` | `8080` | ✅ Active Milestone |
+| **Member 10** | API Gateway & DevOps | `feature/gateway-devops` | `gateway/` | `8080` | ✅ Integrated and tested |
 
 ---
 
