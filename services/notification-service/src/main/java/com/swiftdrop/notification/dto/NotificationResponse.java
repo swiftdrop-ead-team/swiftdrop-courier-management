@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 public class NotificationResponse {
 
     private Long id;
+    private LocalDateTime readAt;
     private String eventId;
     private String parcelId;
     private String trackingNumber;
@@ -40,7 +41,7 @@ public class NotificationResponse {
             return null;
         }
         return NotificationResponse.builder()
-                .id(entity.getId())
+                .id(entity.getId()).readAt(entity.getReadAt())
                 .eventId(entity.getEventId())
                 .parcelId(entity.getParcelId())
                 .trackingNumber(entity.getTrackingNumber())

@@ -4,14 +4,12 @@ import com.swiftdrop.notification.entity.NotificationLog;
 import com.swiftdrop.notification.entity.NotificationStatus;
 import com.swiftdrop.notification.entity.NotificationType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
  * Spring Data JPA repository for notification history queries and duplicate checks.
  */
-@Repository
 public interface NotificationLogRepository extends JpaRepository<NotificationLog, Long> {
 
     /**

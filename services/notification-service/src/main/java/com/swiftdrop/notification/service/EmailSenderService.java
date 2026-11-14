@@ -2,7 +2,7 @@ package com.swiftdrop.notification.service;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -16,8 +16,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EmailSenderService {
 
-    @Autowired(required = false)
-    private JavaMailSender mailSender;
+    private final ObjectProvider<JavaMailSender> mailSenderProvider;
 
     @Value("${swiftdrop.notification.mail.from:no-reply@swiftdrop.io}")
     private String fromAddress;
@@ -27,6 +26,10 @@ public class EmailSenderService {
 
     @Value("${swiftdrop.notification.mail.mock-mode:true}")
     private boolean mockMode;
+
+    public EmailSenderService(ObjectProvider<JavaMailSender> mailSenderProvider) {
+        this.mailSenderProvider = mailSenderProvider;
+    }
 
     /**
      * Dispatches an HTML email.
@@ -39,6 +42,7 @@ public class EmailSenderService {
      * @return true if sent or simulated successfully; false otherwise
      */
     public boolean sendHtmlEmail(String toEmail, String subject, String htmlContent) {
+        JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
         if (mockMode || mailSender == null) {
             log.info("[MOCK EMAIL DISPATCH] Mock mode active — simulating successful email delivery.");
             log.info("[MOCK EMAIL DISPATCH] From: {} <{}>", senderName, fromAddress);
@@ -61,9 +65,8 @@ public class EmailSenderService {
             log.info("[LIVE EMAIL DISPATCH] Successfully sent email to: {} with subject: '{}'", toEmail, subject);
             return true;
         } catch (Exception ex) {
-            log.warn("[EMAIL DISPATCH WARNING] Live SMTP send failed ({}). Falling back to mock dispatch for evaluator.", ex.getMessage());
-            // If live SMTP fails in local test/evaluator environment, we still record simulated success with log
-            return true;
+            log.warn("[EMAIL DISPATCH WARNING] Live SMTP send failed ({}). Email delivery failed.", ex.getMessage());
+            return false;
         }
     }
 }

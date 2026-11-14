@@ -8,6 +8,10 @@ import com.swiftdrop.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.swiftdrop.notification.security.UserPrincipal;
+import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +34,22 @@ import java.util.stream.Collectors;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final com.swiftdrop.notification.repository.NotificationLogRepository logs;
+    @PatchMapping("/{id}/read")
+    public Map<String,Object> read(@PathVariable Long id) {
+        var log=notificationService.getNotificationById(id);
+        if(!canRead(log)) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Access denied");
+        if(log.getReadAt()==null) {log.setReadAt(java.time.LocalDateTime.now());logs.save(log);}
+        return Map.of("success",true);
+    }
+
+    private boolean canRead(NotificationLog log) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) return true;
+        return auth.getPrincipal() instanceof UserPrincipal p && p.getEmail() != null
+            && p.getEmail().equalsIgnoreCase(log.getRecipientEmail());
+    }
 
     /**
      * Retrieves notification history, optionally filtered by parcelId.
@@ -46,6 +67,7 @@ public class NotificationController {
         }
 
         List<NotificationResponse> response = logs.stream()
+                .filter(this::canRead)
                 .map(NotificationResponse::fromEntity)
                 .collect(Collectors.toList());
 
@@ -59,12 +81,14 @@ public class NotificationController {
     @Operation(summary = "Get notification by ID", description = "Fetch detailed delivery audit for a specific notification record")
     public ResponseEntity<ApiResponse<NotificationResponse>> getById(@PathVariable Long id) {
         NotificationLog logEntry = notificationService.getNotificationById(id);
+        if (!canRead(logEntry)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         return ResponseEntity.ok(ApiResponse.success(NotificationResponse.fromEntity(logEntry)));
     }
 
     /**
      * Triggers a notification on demand for manual evaluator demonstration.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/send")
     @Operation(summary = "Send on-demand notification", description = "Trigger a manual notification email for testing/demo without needing RabbitMQ")
     public ResponseEntity<ApiResponse<NotificationResponse>> sendManualNotification(

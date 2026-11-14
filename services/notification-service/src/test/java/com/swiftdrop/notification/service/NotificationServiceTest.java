@@ -3,7 +3,6 @@ package com.swiftdrop.notification.service;
 import com.swiftdrop.notification.entity.NotificationLog;
 import com.swiftdrop.notification.entity.NotificationStatus;
 import com.swiftdrop.notification.entity.NotificationType;
-import com.swiftdrop.notification.event.CourierAssignedEvent;
 import com.swiftdrop.notification.event.DeliveryStatusUpdatedEvent;
 import com.swiftdrop.notification.repository.NotificationLogRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +23,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
+    @org.mockito.Mock private com.swiftdrop.notification.repository.EmailPreferenceRepository preferences;
 
     @Mock
     private NotificationLogRepository notificationLogRepository;
