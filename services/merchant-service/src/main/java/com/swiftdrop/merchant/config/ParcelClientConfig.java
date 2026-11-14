@@ -13,7 +13,9 @@ public class ParcelClientConfig {
     @Bean
     ParcelClient parcelClient(RestClient.Builder builder,
                               @Value("${merchant.parcel.base-url}") String baseUrl,
-                              @Value("${merchant.parcel.order-path}") String orderPath) {
-        return new ParcelClientImpl(builder.baseUrl(baseUrl).build(), orderPath);
+                              @Value("${merchant.parcel.order-path}") String orderPath, com.swiftdrop.merchant.service.MerchantServiceToken tokens) {
+        var factory=new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);factory.setReadTimeout(20000);
+        return new ParcelClientImpl(builder.requestFactory(factory).baseUrl(baseUrl).build(), orderPath, tokens);
     }
 }

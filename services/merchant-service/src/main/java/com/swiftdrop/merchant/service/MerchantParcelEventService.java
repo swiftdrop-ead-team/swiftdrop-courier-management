@@ -87,6 +87,8 @@ public class MerchantParcelEventService {
     }
 
     private boolean isNewer(DeliveryStatusUpdatedEvent event, MerchantOrder order, LocalDateTime occurredAt) {
+        if(java.util.Set.of("CANCELLED","DELIVERED").contains(order.getDeliveryStatus()))return false;
+        if("CANCELLED".equals(event.getNewStatus()))return true;
         if (event.getVersion() != null) {
             return order.getStatusVersion() == null || event.getVersion() > order.getStatusVersion();
         }

@@ -58,6 +58,19 @@ class MerchantOrderServiceTest {
     }
 
     @Test
+    void forwardsPickupAndCodToParcelService() {
+        request.setPickupDate("2027-01-20");
+        request.setCodAmount(new java.math.BigDecimal("2500.50"));
+        when(orderRepository.findByMerchantIdAndIdempotencyKey(merchantId, "scheduled")).thenReturn(Optional.empty());
+        when(parcelClient.createParcel(eq("scheduled"), any())).thenReturn(new ParcelOrderResponse("parcel-1", "SD-1"));
+        when(orderRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        service.create(principal, "scheduled", request);
+        verify(parcelClient).createParcel(eq("scheduled"), argThat(parcel ->
+                "2027-01-20".equals(parcel.parcelDetails().get("pickupDate")) &&
+                new java.math.BigDecimal("2500.50").compareTo(new java.math.BigDecimal(parcel.parcelDetails().get("codAmount").toString())) == 0));
+    }
+
+    @Test
     void repeatedRequestWithSameKeyReturnsLocalOrderWithoutCallingParcelAgain() {
         MerchantOrder order = MerchantOrder.builder().id(12L).merchantId(merchantId).idempotencyKey("key-1")
                 .recipientName("Customer").recipientPhone("+94770000000")
@@ -98,5 +111,19 @@ class MerchantOrderServiceTest {
         service.getOrders(principal);
         verify(orderRepository).findByMerchantIdOrderByCreatedAtDesc(merchantId);
         verify(orderRepository, never()).findAll();
+    }
+
+    @Test
+    void refreshedEstimateRetriesExistingOrderButChangedDimensionsConflict() throws Exception {
+        request.setEstimateId(UUID.randomUUID());request.setLengthCm(java.math.BigDecimal.TEN);
+        var node=new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(request);
+        ((com.fasterxml.jackson.databind.node.ObjectNode)node).remove("estimateId");
+        var order=MerchantOrder.builder().id(21L).requestFingerprint(node.toString()).build();
+        when(orderRepository.findByMerchantIdAndIdempotencyKey(merchantId,"retry")).thenReturn(Optional.of(order));
+        request.setEstimateId(UUID.randomUUID());
+        assertThat(service.create(principal,"retry",request).id()).isEqualTo(21L);
+        request.setLengthCm(java.math.BigDecimal.ONE);
+        assertThatThrownBy(()->service.create(principal,"retry",request)).isInstanceOf(MerchantConflictException.class);
+        verifyNoInteractions(parcelClient);
     }
 }

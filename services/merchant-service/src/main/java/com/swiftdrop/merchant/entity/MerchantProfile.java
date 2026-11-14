@@ -27,7 +27,7 @@ public class MerchantProfile {
     @Column(nullable = false, length = 150)
     private String email;
 
-    @Column(name = "business_name", nullable = false, length = 150)
+    @Column(name = "business_name", nullable = false, length = 200)
     private String businessName;
 
     @Column(name = "contact_person", nullable = false, length = 150)

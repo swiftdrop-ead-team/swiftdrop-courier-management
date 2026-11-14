@@ -66,7 +66,7 @@ spring:
         - id: merchant-service
           uri: ${MERCHANT_SERVICE_URL:http://localhost:8083}
           predicates:
-            - Path=/api/v1/merchants/**
+            - Path=/api/v1/merchant/**,/api/v1/merchants/**
 
         # ======================================================================
         # 4. Dispatch Service Routes (Reserved - Member 5)

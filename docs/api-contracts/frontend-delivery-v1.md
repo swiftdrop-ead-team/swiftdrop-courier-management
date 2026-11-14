@@ -1,113 +1,45 @@
-# Frontend delivery API handoff (v1)
+# Frontend/backend delivery integration
 
-These are **proposed contracts consumed by the completed frontend**, not a claim that the domain backends exist. Existing authentication and merchant approval endpoints remain unchanged. Domain owners should implement these contracts or adapt `frontend/src/features/delivery/service.ts` when their final schemas are agreed.
+The live adapter is `frontend/src/features/delivery/service.ts`. It consumes the actual backend DTOs; preview data never replaces failed live requests. All paths below are relative to `/api/v1` through the gateway.
 
-Base URL: `VITE_API_BASE_URL`, default `/api/v1`. Browser requests use the existing in-memory Bearer token, refresh-cookie interceptor, and a 15-second timeout. Public tracking uses separate anonymous requests without credentials. All dates/times exchanged with services must be ISO 8601; date-only pickup/assignment fields use `YYYY-MM-DD` in Asia/Colombo.
+| Workflow | Actual endpoint / behavior |
+| --- | --- |
+| Account profile | GET/PUT `/auth/profile`; email remains read-only |
+| Saved addresses | GET/PUT `/auth/addresses` (at most 20 unique entries) |
+| User access | PATCH `/admin/users/{id}` with short role names and status; self-demotion/deactivation blocked |
+| Pricing | POST `/pricing/calculate`; admin GET `/pricing/rules`, PUT `/pricing/rules/{tier}` |
+| Customer/merchant deliveries | GET `/parcels/my-parcels?page=N&size=100`; collect all pages |
+| Admin deliveries | GET `/parcels`; join dispatch assignments for workload/state |
+| Fee estimate | POST `/parcels/estimate` using `CreateParcelRequest`; returns `{id,amount,currency,expiresAt}` |
+| Confirm booking | POST `/parcels` with the same payload and `estimateId`; estimate is owner/payload-bound, valid five minutes, and single-use |
+| Cancel booking | POST `/parcels/{id}/cancel` with `{reason}` |
+| Courier identity | GET `/dispatch/couriers/user/{identityUserId}`; maps identity UUID to numeric dispatch ID |
+| Assigned deliveries | GET `/dispatch/assignments/courier/{dispatchId}` plus authorized parcel detail requests |
+| Availability | PATCH `/dispatch/couriers/{dispatchId}/status` with AVAILABLE/OFFLINE |
+| Register courier | POST `/dispatch/couriers` from the admin dispatch screen using an existing courier identity account |
+| Assign | POST `/dispatch/assignments`; includes numeric courier ID, parcel/tracking IDs, contact addresses, and booking-owner notification email |
+| Courier progress | PATCH `/dispatch/assignments/{id}/status` with `{status,notes,failureReason}` |
+| Proof / delivered | POST `/dispatch/assignments/{id}/proof` with `{recipientName,deliveryNotes}` |
+| Notification logs | GET `/notifications/history`; backend filters to the authenticated account email (admins can audit all) |
+| Read state | PATCH `/notifications/{id}/read`; owner/admin only |
+| Email preferences | GET/PUT `/notifications/preferences` with `{enabled}`; keyed to the authenticated email |
+| Public tracking | GET `/tracking/{number}`; fallback to `/parcels/tracking/{number}` before dispatch has created a tracking read model |
+| Public SSE | GET `/tracking/{number}/stream`; listen for `snapshot` and `status` events |
 
-## Types
+## Mapping and integration details
 
-Authoritative frontend interfaces: `frontend/src/features/delivery/model.ts`.
+Parcel backend names such as `deliveryAddress`, `weightKg`, `deliveryFee`, `senderId`, and `statusHistory` are mapped to the existing dashboard fields. Dispatch and notification services return `{success,data,message}` envelopes. Parcel list endpoints return `{content,totalPages,...}` pages. Dispatch timestamps have no offset; the adapter interprets them in Asia/Colombo. New estimates and parcels use LKR. Historical parcel currency is preserved in estimates/receipts.
 
-```ts
-type ParcelStatus = 'CREATED' | 'PICKED_UP' | 'IN_TRANSIT' |
-  'OUT_FOR_DELIVERY' | 'DELIVERED' | 'FAILED' | 'CANCELLED';
+Live booking accepts a requested pickupDate (YYYY-MM-DD, today or later in Asia/Colombo) and codAmount (0?100000 LKR, up to two decimal places). Both fields persist in the parcel service and are returned by authenticated parcel endpoints. Existing requests may omit them for same-day pickup and zero COD. COD reporting reflects parcel amounts, not settlements or confirmed payouts. The estimate endpoint calls the pricing service using the caller's signed token. Estimates are persisted in PostgreSQL with an owner and payload fingerprint. Confirmation locks and consumes the estimate in the same transaction as booking creation; failed transactions do not consume it. Pricing unavailability produces a service error rather than a fabricated fallback fee.
 
-interface Booking {
-  senderName: string; senderPhone: string; pickupAddress: string;
-  recipientName: string; recipientPhone: string; dropoffAddress: string;
-  zoneId: string; description: string; weight: number;
-  length: number; width: number; height: number; // kg and cm
-  service: 'STANDARD' | 'EXPRESS'; pickupDate: string;
-  instructions: string; cod: number; // LKR; separate from the delivery fee
-}
-interface Quote { id: string; amount: number; expiresAt: string }
-interface HistoryEntry { status: ParcelStatus; timestamp: string; note: string }
-interface ParcelRecord extends Booking {
-  id: string; trackingNumber: string; ownerId: string;
-  ownerRole: 'CUSTOMER' | 'MERCHANT'; status: ParcelStatus;
-  amount: number; createdAt: string; courierId?: string; assignedDate?: string;
-  recipientProof?: string; failureReason?: string; history: HistoryEntry[];
-}
-interface Courier { id: string; name: string; available: boolean; capacity: number }
-interface Zone { id: string; name: string; base: number; perKg: number;
-  expressMultiplier: number; active: boolean }
-interface Profile { fullName: string; email: string; phone: string;
-  businessName: string; address: string; emailNotifications: boolean }
-interface SavedAddress { id: string; label: string; address: string }
-interface Notice { id: string; ownerId: string; text: string;
-  read: boolean; timestamp: string }
-interface Integration { apiKey: string; hasKey?: boolean; clientId: string;
-  webhookUrl: string; enabled: boolean }
-interface WebhookAttempt { id: string; trackingNumber: string; status: ParcelStatus;
-  timestamp: string; result: 'PENDING' | 'DELIVERED' | 'FAILED'; attempts: number }
-```
+Dispatch events now include the courier's identity UUID. The parcel service consumes assignment/status events from `dispatch.exchange`, persists courier ownership and status history, and ignores duplicate/stale timestamps. Notification status events include the booking owner's email and a generated event ID. Tracking also consumes parcel booking/cancellation events; dispatch consumes cancellations to release courier workload. RabbitMQ must be running for the cross-service synchronization to occur. Durable outbox delivery remains future backend work.
 
-## Endpoint contract
+Tracking DTOs use `currentStatus`, `lastUpdatedAt`, and `timeline`. These are normalized to the UI timeline; private notes are excluded from public rendering. Polling every ten seconds recovers from stream disconnects. Terminal delivery states stop polling.
 
-List responses are plain arrays. The current frontend requests the complete authorized set for client-side filtering, pagination, and aggregate reports. If server pagination is needed, agree its envelope and update the adapter/report APIs together. Errors use the existing `{ message, validationErrors? }` shape with meaningful HTTP status codes.
+## Scope and authorization
 
-| Method and path | Request | Response | Authorized actor |
-| --- | --- | --- | --- |
-| GET `/parcels?scope=mine` | — | `ParcelRecord[]` owned by caller | Customer/approved merchant |
-| GET `/parcels?scope=assigned` | — | `ParcelRecord[]` assigned to caller, including history | Courier |
-| GET `/parcels?scope=all` | — | `ParcelRecord[]` | Admin |
-| POST `/pricing/quotes` | `Booking` | `Quote` | Customer/approved merchant; merchant API key |
-| POST `/parcels` | `Booking & {quoteId}` | `ParcelRecord` | Customer/approved merchant; merchant API key |
-| PATCH `/parcels/{id}/cancel` | — | 200/204 | Owner/admin, only before assignment/pickup |
-| PATCH `/parcels/{id}/status` | `{status, note, recipientName}` | 200/204 | Assigned courier |
-| GET `/dispatch/couriers` | — | `Courier[]`; courier may receive only self | Admin/courier |
-| PATCH `/dispatch/couriers/me/availability` | `{available:boolean}` | 200/204 | Courier |
-| POST `/dispatch/assignments` | `{parcelId,courierId,assignedDate}` | 200/204 | Admin |
-| GET `/pricing/zones` | — | `Zone[]` | Authenticated actors |
-| PUT `/pricing/zones/{id}` | `Zone` | 200/204 | Admin |
-| GET `/notifications` | — | `Notice[]` owned by caller | Customer/merchant/courier |
-| PATCH `/notifications/{id}/read` | — | 200/204 | Notification owner |
-| GET `/merchants/me/integration` | — | `Integration` | Approved merchant |
-| POST `/merchants/me/integration/rotate` | — | `Integration` containing the new secret in `apiKey` | Approved merchant |
-| PUT `/merchants/me/webhook` | `{webhookUrl,enabled}` | 200/204 | Approved merchant |
-| GET `/merchants/me/webhook/attempts` | — | `WebhookAttempt[]` | Approved merchant |
-| POST `/merchants/me/webhook/attempts/{id}/retry` | — | 200/204 | Attempt owner |
-| GET `/auth/me/profile` | — | `Profile` | Authenticated actor |
-| PUT `/auth/me/profile` | `Profile` | 200/204 | Profile owner |
-| GET `/auth/me/addresses` | — | `SavedAddress[]` | Customer |
-| PUT `/auth/me/addresses` | `{addresses:SavedAddress[]}` | 200/204 | Customer |
-| PATCH `/admin/users/{id}` | `{roles:string[],status:'ACTIVE'|'INACTIVE'|'SUSPENDED'}` | 200/204 | Admin |
-| POST `/pricing/quotes/bulk` | `{orders:Booking[]}` | `Quote[]`, matching input order | Approved merchant |
-| POST `/parcels/bulk` | `{orders:(Booking & {quoteId})[]}` | 200/201 | Approved merchant |
+Merchant credentials/webhooks and bulk orders are excluded until Merchant Service is merged. AI Assistant is also excluded. Existing identity registration and merchant approvals continue to work. Parcel booking and estimates verify the current approval decision with Identity; pending merchants receive HTTP 403 even with a valid merchant token.
 
-`POST /parcels` sends `Idempotency-Key: <quoteId>`. Bulk create sends a stable UUID idempotency key for retries of the same selected batch. The server must atomically consume quotes and prevent duplicate bookings, including after a timeout. Bulk creation must be all-or-nothing and return row-indexed validation errors on failure. Limit batches to 100 orders and file uploads to 1 MB in the UI; enforce server limits independently.
+Dispatch, notification and pricing verify signed JWTs. Courier directory/registration and dispatch assignment creation require ADMIN; a courier can access/update only their own profile and assignments. Parcel access checks enforce assignment ownership, and delivered status requires the dispatch proof endpoint. Public tracking excludes private notes in the frontend. Notification history, preferences and read-state operations are scoped to the authenticated recipient.
 
-Quote amounts are authoritative and bound to the complete booking payload. Reject changed/expired quotes. The preview formula is `max(actual kg, length*width*height/5000) * perKg + base`, multiplied by the express multiplier when selected. Coordinate this formula with the pricing owner; previews are illustrative, not production pricing authority.
-
-The status endpoint must validate legal transitions and require recipient proof for delivery, a reason for failure, and appropriate COD handover handling. Courier identity comes from authenticated claims, not a client-supplied ID. Assignment must atomically verify availability/capacity and avoid double assignment. Owners/roles/scope must be enforced by the server even when a caller changes query parameters.
-
-User administration must prevent self-lockout and removal of the last active administrator. Updating an email may require a verification flow in the identity service. API-key operations must require merchant approval. Store key hashes server-side; GET integration should return `apiKey: ''` and `hasKey: true` for an existing key. Only key generation returns the raw key, which the frontend holds in component memory for that view.
-
-## Public tracking and events
-
-GET `/tracking/{trackingNumber}` and SSE GET `/tracking/{trackingNumber}/events` are anonymous and must return only:
-
-```json
-{
-  "trackingNumber": "SD-EXAMPLE-1001",
-  "status": "IN_TRANSIT",
-  "updatedAt": "2026-11-13T08:00:00Z",
-  "history": [
-    {"status":"CREATED","timestamp":"2026-11-13T04:00:00Z"},
-    {"status":"PICKED_UP","timestamp":"2026-11-13T06:00:00Z"},
-    {"status":"IN_TRANSIT","timestamp":"2026-11-13T08:00:00Z"}
-  ]
-}
-```
-
-Use default SSE `message` events (`data: <JSON payload>\n\n`), `Content-Type: text/event-stream`, and periodic heartbeat comments. The UI attempts SSE and independently polls every 10 seconds for recovery; terminal states stop further polling. No names, phone numbers, addresses, proof, or private notes are rendered on public tracking. Return 404 for unknown numbers. Configure allowed origins if the API is hosted separately. Gateway must preserve streaming; frontend Nginx disables API proxy buffering.
-
-After a status transition, backend services publish the event, update tracking, persist notifications, send email/mock SMS, and enqueue merchant webhooks with signatures and retry/backoff. The UI displays the resulting records; **it does not replace the broker, notification consumer, or webhook worker**. HTTPS URL validation in the UI does not replace server-side SSRF validation.
-
-## Integration checklist
-
-1. Confirm DTOs, paths, status names, and response envelopes against the types above.
-2. Implement server authorization/validation, not just frontend guards.
-3. Return ISO timestamps and use the authenticated subject for resource ownership.
-4. Test expired quotes, duplicate create retries, capacity conflicts, webhook failure/retry, and another courier's parcel.
-5. Verify the complete live workflow with preview mode disabled. Existing domain services are placeholders in this checkout.
+SMTP delivery uses Mailpit locally. Production email requires SMTP credentials. Google social login requires valid external credentials. Durable event outbox/replay and immediate cross-service access-token revocation remain production-hardening work.

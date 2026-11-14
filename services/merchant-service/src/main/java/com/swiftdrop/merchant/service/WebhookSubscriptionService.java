@@ -46,7 +46,7 @@ public class WebhookSubscriptionService {
         return toResponse(subscription, secret);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<WebhookSubscriptionResponse> list(MerchantPrincipal principal) {
         MerchantProfile profile = requireHumanApprovedMerchant(principal);
         return subscriptionRepository.findByMerchantIdOrderByCreatedAtDesc(profile.getId())
@@ -74,7 +74,7 @@ public class WebhookSubscriptionService {
         subscriptionRepository.save(subscription);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<WebhookDeliveryResponse> deliveries(MerchantPrincipal principal, Long webhookId) {
         MerchantProfile profile = requireHumanApprovedMerchant(principal);
         WebhookSubscription subscription = getOwnedSubscription(webhookId, profile.getId());
@@ -133,10 +133,15 @@ public class WebhookSubscriptionService {
                 subscription.isActive(), oneTimeSecret, subscription.getCreatedAt(), subscription.getUpdatedAt());
     }
 
+    private String payloadField(WebhookDelivery delivery,String field) {
+        try {return new com.fasterxml.jackson.databind.ObjectMapper().readTree(delivery.getEventPayload()).path(field).asText("");}
+        catch(Exception e){return "";}
+    }
+
     private WebhookDeliveryResponse toDeliveryResponse(WebhookDelivery delivery) {
         return new WebhookDeliveryResponse(delivery.getId(), delivery.getWebhookId(), delivery.getEventKey(),
                 delivery.getStatus().name(), delivery.getAttemptCount(), delivery.getNextAttemptAt(),
                 delivery.getLastHttpStatus(), delivery.getLastError(), delivery.getCreatedAt(),
-                delivery.getDeliveredAt());
+                delivery.getDeliveredAt(), payloadField(delivery,"trackingNumber"),payloadField(delivery,"status"));
     }
 }

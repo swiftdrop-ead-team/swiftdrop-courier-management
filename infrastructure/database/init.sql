@@ -24,13 +24,10 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'swiftdrop_tracking')
 \gexec
 SELECT 'CREATE DATABASE swiftdrop_notification'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'swiftdrop_notification')
+
 \gexec
 
--- Grant permissions
-GRANT ALL PRIVILEGES ON DATABASE swiftdrop_identity TO swiftdrop_user;
-GRANT ALL PRIVILEGES ON DATABASE swiftdrop_parcel TO swiftdrop_user;
-GRANT ALL PRIVILEGES ON DATABASE swiftdrop_merchant TO swiftdrop_user;
-GRANT ALL PRIVILEGES ON DATABASE swiftdrop_dispatch TO swiftdrop_user;
-GRANT ALL PRIVILEGES ON DATABASE swiftdrop_pricing TO swiftdrop_user;
-GRANT ALL PRIVILEGES ON DATABASE swiftdrop_tracking TO swiftdrop_user;
-GRANT ALL PRIVILEGES ON DATABASE swiftdrop_notification TO swiftdrop_user;
+-- Grant privileges to the configured PostgreSQL initialization user.
+SELECT format('GRANT ALL PRIVILEGES ON DATABASE %I TO %I', datname, current_user)
+FROM pg_database WHERE datname LIKE 'swiftdrop_%'
+\gexec

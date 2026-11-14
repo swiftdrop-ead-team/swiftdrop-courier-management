@@ -12,5 +12,5 @@ public record WebhookDeliveryResponse(
         Integer lastHttpStatus,
         String lastError,
         LocalDateTime createdAt,
-        LocalDateTime deliveredAt) {
+        LocalDateTime deliveredAt, String trackingNumber, String parcelStatus) {
 }

@@ -24,6 +24,7 @@ public class MerchantOrderService {
     private final WebhookDeliveryRepository deliveryRepository;
     private final MerchantProfileService profileService;
     private final ParcelClient parcelClient;
+    private final com.fasterxml.jackson.databind.ObjectMapper requestMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
     @Transactional
     public MerchantOrderResponse create(MerchantPrincipal principal, String idempotencyKey,
@@ -41,7 +42,7 @@ public class MerchantOrderService {
         return createNew(profile, idempotencyKey, request);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<MerchantOrderResponse> getOrders(MerchantPrincipal principal) {
         requireScope(principal, "orders:read");
         MerchantProfile profile = profileService.requireApproved(principal);
@@ -49,7 +50,7 @@ public class MerchantOrderService {
                 .stream().map(this::toResponse).toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public MerchantDashboardResponse dashboard(MerchantPrincipal principal) {
         requireScope(principal, "dashboard:read");
         MerchantProfile profile = profileService.requireApproved(principal);
@@ -62,13 +63,17 @@ public class MerchantOrderService {
     }
 
     private MerchantOrderResponse createNew(MerchantProfile profile, String key, MerchantOrderRequest request) {
+        var details=requestMapper.convertValue(request, new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String,Object>>(){});
+        if(details.get("senderName")==null)details.put("senderName",profile.getBusinessName());
+        if(details.get("senderPhone")==null)details.put("senderPhone",profile.getPhoneNumber());
         ParcelOrderRequest parcelRequest = new ParcelOrderRequest(key, request.getRecipientName().trim(),
                 request.getRecipientPhone().trim(), request.getDeliveryAddress().trim(),
-                request.getPickupAddress().trim(), trimToNull(request.getDescription()), request.getWeightKg());
+                request.getPickupAddress().trim(), trimToNull(request.getDescription()), request.getWeightKg(), details);
         ParcelOrderResponse parcel = parcelClient.createParcel(key, parcelRequest);
         MerchantOrder order = MerchantOrder.builder()
                 .merchantId(profile.getId())
                 .idempotencyKey(key)
+                .requestFingerprint(fingerprint(request))
                 .parcelId(parcel.parcelId())
                 .trackingNumber(parcel.trackingNumber())
                 .recipientName(parcelRequest.recipientName())
@@ -98,7 +103,11 @@ public class MerchantOrderService {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
+    private String fingerprint(MerchantOrderRequest request) {
+        try {var node=requestMapper.valueToTree(request); ((com.fasterxml.jackson.databind.node.ObjectNode)node).remove("estimateId"); return requestMapper.writeValueAsString(node);}catch(Exception e){throw new IllegalArgumentException("Invalid order payload",e);}
+    }
     private boolean matches(MerchantOrder order, MerchantOrderRequest request) {
+        if(order.getRequestFingerprint()!=null)return order.getRequestFingerprint().equals(fingerprint(request));
         return order.getRecipientName().equals(request.getRecipientName().trim())
                 && order.getRecipientPhone().equals(request.getRecipientPhone().trim())
                 && order.getDeliveryAddress().equals(request.getDeliveryAddress().trim())

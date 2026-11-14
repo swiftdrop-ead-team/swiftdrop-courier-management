@@ -56,7 +56,7 @@ public class MerchantApiKeyService {
                 saved.getScopes(), saved.getCreatedAt());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<MerchantApiKeyResponse> list(MerchantPrincipal principal) {
         ensureHumanPrincipal(principal);
         MerchantProfile profile = profileService.requireApproved(principal);
@@ -77,6 +77,17 @@ public class MerchantApiKeyService {
             apiKey.setRevokedAt(LocalDateTime.now());
             apiKeyRepository.save(apiKey);
         }
+    }
+
+    @Transactional
+    public MerchantApiKeyIssuedResponse rotate(MerchantPrincipal principal, MerchantApiKeyRequest request) {
+        ensureHumanPrincipal(principal);
+        var profile=profileService.requireApprovedForOrder(principal);
+        var issued=issue(principal,request);
+        apiKeyRepository.findByMerchantIdOrderByCreatedAtDesc(profile.getId()).stream()
+            .filter(key -> !key.getId().equals(issued.id()) && key.getRevokedAt()==null)
+            .forEach(key -> {key.setRevokedAt(LocalDateTime.now());apiKeyRepository.save(key);});
+        return issued;
     }
 
     private void ensureHumanPrincipal(MerchantPrincipal principal) {
