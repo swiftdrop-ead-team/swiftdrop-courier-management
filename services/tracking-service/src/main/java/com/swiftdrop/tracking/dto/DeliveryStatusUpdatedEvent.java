@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 
 import java.time.LocalDateTime;
 
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
 public class DeliveryStatusUpdatedEvent {
     private String eventId;
     private String parcelId;
