@@ -1,6 +1,5 @@
 package com.swiftdrop.pricing.strategy;
 
-import com.swiftdrop.pricing.calculator.WeightCalculationResult;
 import com.swiftdrop.pricing.calculator.WeightCalculator;
 import com.swiftdrop.pricing.entity.PricingRule;
 import com.swiftdrop.pricing.entity.ServiceType;

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(NotificationController.class)
+@org.springframework.context.annotation.Import(com.swiftdrop.notification.security.SecurityConfig.class)
+@org.springframework.security.test.context.support.WithMockUser(roles="ADMIN")
 class NotificationControllerTest {
 
     @Autowired
@@ -34,7 +36,13 @@ class NotificationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
+    private com.swiftdrop.notification.security.JwtService jwtService;
+
+    @MockitoBean
+    private com.swiftdrop.notification.repository.NotificationLogRepository logs;
+
+    @MockitoBean
     private NotificationService notificationService;
 
     @Test
@@ -90,6 +98,15 @@ class NotificationControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.parcelId").value("PRC-200"));
+    }
+    @Test @org.springframework.security.test.context.support.WithAnonymousUser
+    void anonymousCannotReadHistory() throws Exception {
+        mockMvc.perform(get("/api/v1/notifications/history")).andExpect(status().isUnauthorized());
+    }
+    @Test @org.springframework.security.test.context.support.WithMockUser(roles="CUSTOMER")
+    void customerCannotReadOthersHistory() throws Exception {
+        when(notificationService.getAllHistory()).thenReturn(List.of(NotificationLog.builder().recipientEmail("someone@example.com").build()));
+        mockMvc.perform(get("/api/v1/notifications/history")).andExpect(status().isOk()).andExpect(jsonPath("$.data").isEmpty());
     }
 }
 

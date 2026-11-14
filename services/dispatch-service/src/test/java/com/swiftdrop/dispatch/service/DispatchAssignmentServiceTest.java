@@ -7,7 +7,6 @@ import com.swiftdrop.dispatch.event.DeliveryStatusUpdatedEvent;
 import com.swiftdrop.dispatch.exception.CourierOverloadException;
 import com.swiftdrop.dispatch.exception.CourierUnavailableException;
 import com.swiftdrop.dispatch.exception.InvalidAssignmentException;
-import com.swiftdrop.dispatch.exception.ResourceNotFoundException;
 import com.swiftdrop.dispatch.repository.CourierRepository;
 import com.swiftdrop.dispatch.repository.DispatchAssignmentRepository;
 import com.swiftdrop.dispatch.repository.ProofOfDeliveryRepository;
@@ -188,7 +187,8 @@ class DispatchAssignmentServiceTest {
         when(assignmentRepository.save(any(DispatchAssignment.class))).thenReturn(sampleAssignment);
 
         UpdateAssignmentStatusRequest request = UpdateAssignmentStatusRequest.builder()
-                .status(AssignmentStatus.DELIVERED)
+                .status(AssignmentStatus.FAILED)
+                .failureReason("Recipient unavailable")
                 .notes("Left with security guard")
                 .build();
 
@@ -197,7 +197,7 @@ class DispatchAssignmentServiceTest {
         DispatchAssignmentResponse response = assignmentService.updateAssignmentStatus(100L, request);
 
         assertThat(response).isNotNull();
-        assertThat(sampleAssignment.getStatus()).isEqualTo(AssignmentStatus.DELIVERED);
+        assertThat(sampleAssignment.getStatus()).isEqualTo(AssignmentStatus.FAILED);
         assertThat(availableCourier.getCurrentActiveDeliveries()).isEqualTo(initialCourierLoad - 1);
 
         verify(courierRepository, times(1)).save(availableCourier);
@@ -221,6 +221,7 @@ class DispatchAssignmentServiceTest {
     @Test
     @DisplayName("Should successfully record Proof of Delivery")
     void shouldSubmitProofOfDelivery() {
+        sampleAssignment.setStatus(AssignmentStatus.OUT_FOR_DELIVERY);
         when(assignmentRepository.findById(100L)).thenReturn(Optional.of(sampleAssignment));
         when(proofOfDeliveryRepository.save(any(ProofOfDelivery.class))).thenAnswer(invocation -> {
             ProofOfDelivery p = invocation.getArgument(0);
@@ -243,6 +244,21 @@ class DispatchAssignmentServiceTest {
         assertThat(sampleAssignment.getStatus()).isEqualTo(AssignmentStatus.DELIVERED);
 
         verify(proofOfDeliveryRepository, times(1)).save(any(ProofOfDelivery.class));
+    }
+    @Test void rejectsDeliveryWithoutProof() {
+        when(assignmentRepository.findById(100L)).thenReturn(Optional.of(sampleAssignment));
+        assertThatThrownBy(() -> assignmentService.updateAssignmentStatus(100L,
+            UpdateAssignmentStatusRequest.builder().status(AssignmentStatus.DELIVERED).build()))
+            .isInstanceOf(InvalidAssignmentException.class);
+        verify(assignmentRepository, never()).save(any());
+    }
+    @Test void rejectsProofForCancelledAssignment() {
+        sampleAssignment.setStatus(AssignmentStatus.CANCELLED);
+        when(assignmentRepository.findById(100L)).thenReturn(Optional.of(sampleAssignment));
+        assertThatThrownBy(() -> assignmentService.submitProofOfDelivery(100L,
+            ProofOfDeliveryRequest.builder().recipientName("Recipient").build()))
+            .isInstanceOf(InvalidAssignmentException.class);
+        verify(proofOfDeliveryRepository, never()).save(any());
     }
 }
 

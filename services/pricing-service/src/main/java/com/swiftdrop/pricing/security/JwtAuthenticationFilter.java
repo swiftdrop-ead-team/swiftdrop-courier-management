@@ -52,6 +52,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else if (StringUtils.hasText(token) && "POST".equals(request.getMethod())
+                    && "/api/v1/pricing/calculate".equals(request.getServletPath())) {
+                // API-key orders are forwarded by the merchant service to parcel pricing.
+                UUID userId = jwtTokenProvider.getMerchantServiceUser(token);
+                var authentication = new UsernamePasswordAuthenticationToken(userId.toString(), null,
+                        List.of(new SimpleGrantedAuthority("ROLE_MERCHANT")));
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context: {}", ex.getMessage());
