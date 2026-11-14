@@ -54,6 +54,9 @@ class AuthServiceTest {
     private CookieUtils cookieUtils;
 
     @Mock
+    private PasswordResetMailer resetMailer;
+
+    @Mock
     private RateLimiterService rateLimiterService;
 
     @Mock
@@ -66,12 +69,10 @@ class AuthServiceTest {
     private AuthService authService;
 
     private Role customerRole;
-    private Role merchantRole;
 
     @BeforeEach
     void setUp() {
         customerRole = Role.builder().id(UUID.randomUUID()).name(RoleName.ROLE_CUSTOMER).description("Customer").build();
-        merchantRole = Role.builder().id(UUID.randomUUID()).name(RoleName.ROLE_MERCHANT).description("Merchant").build();
     }
 
     @Test

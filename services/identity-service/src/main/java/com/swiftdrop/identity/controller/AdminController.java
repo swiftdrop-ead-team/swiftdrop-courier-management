@@ -22,6 +22,15 @@ import java.util.UUID;
 public class AdminController {
 
     private final AdminService adminService;
+    public record AccessRequest(@jakarta.validation.constraints.NotEmpty java.util.Set<@jakarta.validation.constraints.Pattern(regexp="ADMIN|CUSTOMER|COURIER|MERCHANT") String> roles,
+        @jakarta.validation.constraints.NotNull com.swiftdrop.identity.entity.UserStatus status) {}
+    @PatchMapping("/users/{id}")
+    public Map<String,Object> access(@PathVariable UUID id,@jakarta.validation.Valid @RequestBody AccessRequest request,
+        @AuthenticationPrincipal UserPrincipal admin) {
+        adminService.updateAccess(id,admin.getId(),request.roles().stream().map(r -> com.swiftdrop.identity.entity.RoleName.valueOf("ROLE_"+r)).collect(java.util.stream.Collectors.toSet()),request.status());
+        return Map.of("success",true,"message","Account access updated");
+    }
+
 
     @GetMapping("/users")
     public ResponseEntity<List<UserProfileResponse>> getAllUsers() {

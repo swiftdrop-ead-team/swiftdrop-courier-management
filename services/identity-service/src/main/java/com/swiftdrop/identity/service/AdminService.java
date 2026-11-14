@@ -20,6 +20,20 @@ import java.util.stream.Collectors;
 public class AdminService {
 
     private final UserRepository userRepository;
+    private final com.swiftdrop.identity.repository.RoleRepository roleRepository;
+    private final com.swiftdrop.identity.repository.RefreshSessionRepository sessions;
+    @Transactional
+    public void updateAccess(UUID id,UUID actor,java.util.Set<RoleName> roles,UserStatus status) {
+        if(id.equals(actor) && (status!=UserStatus.ACTIVE || !roles.contains(RoleName.ROLE_ADMIN)))
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,"You cannot remove your own administrator access");
+        var user=userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        // Merchant approval remains a separate workflow; role edits do not provision merchant records.
+        if(roles.contains(RoleName.ROLE_MERCHANT) && user.getMerchantRecord()==null)
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,"Register a merchant account before assigning the merchant role");
+        user.setRoles(roles.stream().map(r -> roleRepository.findByName(r).orElseThrow()).collect(java.util.stream.Collectors.toSet()));
+        user.setStatus(status);userRepository.save(user);sessions.revokeAllByUserId(id);
+    }
+
     private final MerchantApprovalRecordRepository merchantApprovalRecordRepository;
 
     @Transactional(readOnly = true)
