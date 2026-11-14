@@ -217,6 +217,7 @@ class PricingEntitiesTest {
 
     @Test
     @DisplayName("FuelSurchargeIndex entity persists and findFirstByIsActiveTrue / findLatestActive returns most recent active rate")
+    @SuppressWarnings("deprecation") // Deliberately verify the legacy repository delegate remains compatible.
     void testFuelSurchargeIndexPersistence() {
         FuelSurchargeIndex older = FuelSurchargeIndex.builder()
                 .ratePercentage(new BigDecimal("3.50"))

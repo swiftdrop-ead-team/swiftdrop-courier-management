@@ -1,6 +1,5 @@
 package com.swiftdrop.pricing.calculator;
 
-import com.swiftdrop.pricing.entity.ServiceType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
