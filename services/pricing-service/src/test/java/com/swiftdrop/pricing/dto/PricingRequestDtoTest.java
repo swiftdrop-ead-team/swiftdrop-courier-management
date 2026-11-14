@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for {@link PricingRequestDto} Bean Validation constraints.
- * No Spring context is required – we use the standard jakarta.validation API.
+ * No Spring context is required – uses the standard jakarta.validation API.
  */
 class PricingRequestDtoTest {
 
@@ -41,11 +41,11 @@ class PricingRequestDtoTest {
                 .serviceType(ServiceType.STANDARD)
                 .originZone("ZONE_A")
                 .destinationZone("ZONE_B")
-                .physicalWeightKg(new BigDecimal("1.5"))
-                .lengthCm(new BigDecimal("30"))
-                .widthCm(new BigDecimal("20"))
-                .heightCm(new BigDecimal("10"))
-                .distanceKm(new BigDecimal("100"))
+                .physicalWeightKg(new BigDecimal("1.50"))
+                .lengthCm(new BigDecimal("30.00"))
+                .widthCm(new BigDecimal("20.00"))
+                .heightCm(new BigDecimal("10.00"))
+                .distanceKm(new BigDecimal("100.00"))
                 .promoCode("PROMO10")
                 .orderReference("ORDER123")
                 .customerId("CUST001")
@@ -89,6 +89,55 @@ class PricingRequestDtoTest {
     }
 
     @Nested
+    @DisplayName("String length constraints")
+    class StringLengths {
+        @Test
+        @DisplayName("Origin zone exceeding 50 characters is rejected")
+        void originZoneTooLong() {
+            PricingRequestDto dto = validDto();
+            dto.setOriginZone("A".repeat(51));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("originZone")));
+        }
+
+        @Test
+        @DisplayName("Destination zone exceeding 50 characters is rejected")
+        void destinationZoneTooLong() {
+            PricingRequestDto dto = validDto();
+            dto.setDestinationZone("B".repeat(51));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("destinationZone")));
+        }
+
+        @Test
+        @DisplayName("Promo code exceeding 50 characters is rejected")
+        void promoCodeTooLong() {
+            PricingRequestDto dto = validDto();
+            dto.setPromoCode("P".repeat(51));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("promoCode")));
+        }
+
+        @Test
+        @DisplayName("Order reference exceeding 100 characters is rejected")
+        void orderReferenceTooLong() {
+            PricingRequestDto dto = validDto();
+            dto.setOrderReference("O".repeat(101));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("orderReference")));
+        }
+
+        @Test
+        @DisplayName("Customer ID exceeding 100 characters is rejected")
+        void customerIdTooLong() {
+            PricingRequestDto dto = validDto();
+            dto.setCustomerId("C".repeat(101));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("customerId")));
+        }
+    }
+
+    @Nested
     @DisplayName("Physical weight constraints")
     class PhysicalWeight {
         @Test
@@ -102,7 +151,34 @@ class PricingRequestDtoTest {
         @Test
         void negativePhysicalWeight() {
             PricingRequestDto dto = validDto();
-            dto.setPhysicalWeightKg(new BigDecimal("-1"));
+            dto.setPhysicalWeightKg(new BigDecimal("-1.00"));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("physicalWeightKg")));
+        }
+
+        @Test
+        @DisplayName("Maximum boundary value 999999.99 is accepted")
+        void maxPhysicalWeightAccepted() {
+            PricingRequestDto dto = validDto();
+            dto.setPhysicalWeightKg(new BigDecimal("999999.99"));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.isEmpty(), "999999.99 kg must be valid");
+        }
+
+        @Test
+        @DisplayName("Physical weight 1000000 is rejected")
+        void exceedingMaxPhysicalWeightRejected() {
+            PricingRequestDto dto = validDto();
+            dto.setPhysicalWeightKg(new BigDecimal("1000000.00"));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("physicalWeightKg")));
+        }
+
+        @Test
+        @DisplayName("More than 2 decimal places is rejected")
+        void excessiveDecimalsRejected() {
+            PricingRequestDto dto = validDto();
+            dto.setPhysicalWeightKg(new BigDecimal("1.234"));
             Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
             assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("physicalWeightKg")));
         }
@@ -122,7 +198,7 @@ class PricingRequestDtoTest {
         @Test
         void negativeWidth() {
             PricingRequestDto dto = validDto();
-            dto.setWidthCm(new BigDecimal("-5"));
+            dto.setWidthCm(new BigDecimal("-5.00"));
             Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
             assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("widthCm")));
         }
@@ -130,9 +206,38 @@ class PricingRequestDtoTest {
         @Test
         void negativeHeight() {
             PricingRequestDto dto = validDto();
-            dto.setHeightCm(new BigDecimal("-2"));
+            dto.setHeightCm(new BigDecimal("-2.00"));
             Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
             assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("heightCm")));
+        }
+
+        @Test
+        @DisplayName("Dimension at maximum boundary 999999.99 is accepted")
+        void maxDimensionAccepted() {
+            PricingRequestDto dto = validDto();
+            dto.setLengthCm(new BigDecimal("999999.99"));
+            dto.setWidthCm(new BigDecimal("999999.99"));
+            dto.setHeightCm(new BigDecimal("999999.99"));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.isEmpty(), "999999.99 cm must be valid");
+        }
+
+        @Test
+        @DisplayName("Dimension 1000000 is rejected")
+        void exceedingMaxDimensionRejected() {
+            PricingRequestDto dto = validDto();
+            dto.setLengthCm(new BigDecimal("1000000.00"));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("lengthCm")));
+        }
+
+        @Test
+        @DisplayName("Dimension with more than 2 decimal places is rejected")
+        void excessiveDimensionDecimalsRejected() {
+            PricingRequestDto dto = validDto();
+            dto.setWidthCm(new BigDecimal("25.125"));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("widthCm")));
         }
     }
 
@@ -150,7 +255,34 @@ class PricingRequestDtoTest {
         @Test
         void negativeDistance() {
             PricingRequestDto dto = validDto();
-            dto.setDistanceKm(new BigDecimal("-10"));
+            dto.setDistanceKm(new BigDecimal("-10.00"));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("distanceKm")));
+        }
+
+        @Test
+        @DisplayName("Distance at maximum boundary 999999.99 is accepted")
+        void maxDistanceAccepted() {
+            PricingRequestDto dto = validDto();
+            dto.setDistanceKm(new BigDecimal("999999.99"));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.isEmpty(), "999999.99 km must be valid");
+        }
+
+        @Test
+        @DisplayName("Distance 1000000 is rejected")
+        void exceedingMaxDistanceRejected() {
+            PricingRequestDto dto = validDto();
+            dto.setDistanceKm(new BigDecimal("1000000.00"));
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("distanceKm")));
+        }
+
+        @Test
+        @DisplayName("Distance with more than 2 decimal places is rejected")
+        void excessiveDistanceDecimalsRejected() {
+            PricingRequestDto dto = validDto();
+            dto.setDistanceKm(new BigDecimal("15.555"));
             Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
             assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("distanceKm")));
         }
@@ -167,6 +299,16 @@ class PricingRequestDtoTest {
             dto.setCustomerId(null);
             Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
             assertTrue(violations.isEmpty(), "Optional promo fields may be null");
+        }
+
+        @Test
+        void emptyPromoFieldsAreValid() {
+            PricingRequestDto dto = validDto();
+            dto.setPromoCode("");
+            dto.setOrderReference("");
+            dto.setCustomerId("");
+            Set<ConstraintViolation<PricingRequestDto>> violations = validator.validate(dto);
+            assertTrue(violations.isEmpty(), "Empty string promo fields are allowed by @Size");
         }
     }
 }
