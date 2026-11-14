@@ -36,6 +36,11 @@ pricing:
   quote:
     ttl-minutes: ${PRICING_QUOTE_TTL_MINUTES:30}
 
+swiftdrop:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+
 management:
   endpoints:
     web:
