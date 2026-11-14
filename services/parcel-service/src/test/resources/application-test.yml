@@ -1,0 +1,49 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: parcel-service-test
+
+  datasource:
+    url: jdbc:h2:mem:parceltestdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: false
+
+  # Disable rabbit auto-connection in tests
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+swiftdrop:
+  security:
+    jwt:
+      secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      expiration: 900000
+  rabbitmq:
+    exchange:
+      parcel: swiftdrop.parcel.exchange
+    routing-keys:
+      parcel-created: parcel.created
+      parcel-status-updated: parcel.status_updated
+      parcel-cancelled: parcel.cancelled
+    queues:
+      tracking: swiftdrop.tracking.parcel-updates
+      notification: swiftdrop.notification.parcel-updates
+  pricing-service:
+    url: http://localhost:8085
+    connect-timeout-ms: 1000
+    read-timeout-ms: 1000
+

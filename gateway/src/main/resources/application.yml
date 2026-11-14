@@ -5,6 +5,12 @@ spring:
   application:
     name: api-gateway
 
+  # Redis configuration for Rate Limiting
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
   cloud:
     gateway:
       globalcors:
@@ -30,78 +36,102 @@ spring:
 
       routes:
         # ======================================================================
-        # 1. Identity & Authentication Routes (Implemented - Member 2)
+        # 1. Identity & Authentication Routes (Public & Protected)
         # ======================================================================
         - id: identity-auth-service
           uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/v1/auth/**
+          filters:
+            # Rate limit logins to prevent brute-force attacks
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userIpKeyResolver}"
 
         - id: identity-admin-service
           uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/v1/admin/**
+          filters:
+            - AuthenticationFilter
 
         - id: oauth2-authorization-flow
           uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/oauth2/**
+          # Public
 
         - id: oauth2-callback-flow
           uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/login/oauth2/**
+          # Public
 
         # ======================================================================
-        # 2. Parcel Service Routes (Reserved - Member 3)
+        # 2. Parcel Service Routes (Protected)
         # ======================================================================
         - id: parcel-service
           uri: ${PARCEL_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/v1/parcels/**
+          filters:
+            - AuthenticationFilter
 
         # ======================================================================
-        # 3. Merchant Service Routes (Reserved - Member 4)
+        # 3. Merchant Service Routes (Protected)
         # ======================================================================
         - id: merchant-service
           uri: ${MERCHANT_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/v1/merchants/**
+          filters:
+            - AuthenticationFilter
 
         # ======================================================================
-        # 4. Dispatch Service Routes (Reserved - Member 5)
+        # 4. Dispatch Service Routes (Protected)
         # ======================================================================
         - id: dispatch-service
           uri: ${DISPATCH_SERVICE_URL:http://localhost:8084}
           predicates:
-            - Path=/api/v1/dispatch/**
+            - Path=/api/v1/dispatch/**, /api/v1/couriers/**
+          filters:
+            - AuthenticationFilter
 
         # ======================================================================
-        # 5. Pricing Service Routes (Reserved - Member 6)
+        # 5. Pricing Service Routes (Protected)
         # ======================================================================
         - id: pricing-service
           uri: ${PRICING_SERVICE_URL:http://localhost:8085}
           predicates:
-            - Path=/api/v1/pricing/**
+            - Path=/api/v1/pricing/**, /api/v1/zones/**
+          filters:
+            - AuthenticationFilter
 
         # ======================================================================
-        # 6. Tracking Service Routes (Reserved - Member 7)
+        # 6. Tracking Service Routes (Public & Protected mixed)
         # ======================================================================
         - id: tracking-service
           uri: ${TRACKING_SERVICE_URL:http://localhost:8086}
           predicates:
             - Path=/api/v1/tracking/**
+          # Note: Public tracking usually doesn't require a JWT.
+          # If only certain tracking endpoints are protected, you might handle security in the tracking-service itself.
 
         # ======================================================================
-        # 7. Notification Service Routes (Reserved - Member 8)
+        # 7. Notification Service Routes (Protected)
         # ======================================================================
         - id: notification-service
           uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8087}
           predicates:
             - Path=/api/v1/notifications/**
+          filters:
+            - AuthenticationFilter
 
         # ======================================================================
-        # 8. AI Assistant Service Routes (Reserved - Member 9)
+        # 8. AI Assistant Service Routes (Protected)
         # ======================================================================
         - id: ai-assistant-service
           uri: ${AI_SERVICE_URL:http://localhost:8089}
@@ -116,3 +146,6 @@ management:
   endpoint:
     health:
       show-details: always
+
+jwt:
+  secret: ${JWT_SECRET:8a3c9b4e7d2f5a1c6e9b4d8f2a3c7e1b5f9d2a4c6e8b1d3f5a7c9b2e4d6f8a1c}
