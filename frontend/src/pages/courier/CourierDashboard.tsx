@@ -11,7 +11,7 @@ import SoftBadge from 'components/SoftBadge';
 import MiniStatisticsCard from 'examples/Cards/StatisticsCards/MiniStatisticsCard';
 import Table from 'examples/Tables/Table';
 import courierIllustration from '../../assets/images/courier-shift.png';
-import { CourierProfile, CourierProfileDetails } from './CourierProfile';
+import { CourierProfile, CourierProfileDetails } from './tabs/Profile';
 import { CourierDelivery, DeliveryStatus, isCompleted, lkr, previewDeliveries } from './courierData';
 
 const tabs = ['overview', 'deliveries', 'route', 'history', 'profile'] as const;
