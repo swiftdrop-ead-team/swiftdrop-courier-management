@@ -4,9 +4,9 @@ import { Check, Edit2, ShieldCheck, Users, Building2 } from 'lucide-react';
 import SoftTypography from 'components/SoftTypography';
 import SoftInput from 'components/SoftInput';
 import SoftButton from 'components/SoftButton';
-import type { User } from '../../types/auth';
-import { AdminBadge, AdminDetails, adminActionStyle } from './AdminShared';
-import { dateTime } from './adminData';
+import type { User } from '@/types/auth';
+import { AdminBadge, AdminDetails, adminActionStyle } from '../AdminShared';
+import { dateTime } from '../adminData';
 
 export function AdminProfile({ account, previewMode, onSave }: { account: User; previewMode: boolean; onSave: (user: User) => void }) {
   const [editing, setEditing] = useState(false);

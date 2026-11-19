@@ -1,7 +1,11 @@
+import { AdminPagination as WorkspacePagination } from "./AdminPagination";
+import { Activity } from "./tabs/Activity";
+import { Users } from "./tabs/Users";
+import { Merchants } from "./tabs/Merchants";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Alert, Box, Card, Dialog, DialogActions, DialogContent, DialogTitle, Grid, LinearProgress, Snackbar, TablePagination, TextField } from '@mui/material';
-import { ArrowRight, Building2, Check, Download, RefreshCw, ShieldCheck, Users, X } from 'lucide-react';
+import { Alert, Box, Card, Dialog, DialogActions, DialogContent, DialogTitle, Grid, LinearProgress, Snackbar, TextField } from '@mui/material';
+import { ArrowRight, Building2, Check, RefreshCw, ShieldCheck, X } from 'lucide-react';
 import SoftBox from 'components/SoftBox';
 import SoftTypography from 'components/SoftTypography';
 import SoftButton from 'components/SoftButton';
@@ -12,8 +16,9 @@ import adminIllustration from '../../assets/images/admin-review.png';
 import { useAuth } from '../../hooks/useAuth';
 import { adminService } from '../../services/authService';
 import type { PendingMerchant, User } from '../../types/auth';
-import { AdminProfile } from './AdminProfile';
-import { AdminActivity, createAdminPreview, dateTime, downloadCsv } from './adminData';
+import { AdminWorkspaceHeader } from './AdminWorkspaceUI';
+import { AdminProfile } from './tabs/Profile';
+import { AdminActivity, createAdminPreview, dateTime } from './adminData';
 import { AdminBadge, AdminDetails, AdminEmpty, adminActionStyle, adminSelectStyle } from './AdminShared';
 
 const headings = {
@@ -37,7 +42,7 @@ export const AdminDashboard: React.FC<{ previewMode?: boolean }> = ({ previewMod
   const [merchants, setMerchants] = useState<PendingMerchant[] | null>(() => previewMode ? createAdminPreview().merchants : null);
   const [account, setAccount] = useState<User>(() => createAdminPreview().users[0]);
   const [loading, setLoading] = useState(!previewMode);
-  const [errors, setErrors] = useState({ users: '', merchants: '' });
+  const [errors, setErrors] = useState({ users: '', merchants: '', activity: '' });
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [activity, setActivity] = useState<AdminActivity[]>([]);
   const [query, setQuery] = useState('');
@@ -60,15 +65,26 @@ export const AdminDashboard: React.FC<{ previewMode?: boolean }> = ({ previewMod
   const loadData = useCallback(async () => {
     if (previewMode) return;
     const request = ++requestSequence.current;
-    setLoading(true); setPage(0); setErrors({ users: '', merchants: '' });
-    const [userResult, merchantResult] = await Promise.allSettled([adminService.getAllUsers(), adminService.getPendingMerchants()]);
+    setLoading(true); setPage(0); setErrors({ users: '', merchants: '', activity: '' });
+    const needUsers = activeTab === 'overview' || activeTab === 'users';
+    const needMerchants = activeTab === 'overview' || activeTab === 'merchants';
+    const [userResult, merchantResult, reviews] = await Promise.allSettled([
+      needUsers ? adminService.getAllUsers() : null,
+      needMerchants ? adminService.getPendingMerchants() : null,
+      activeTab === 'activity' ? adminService.getMerchantReviews() : null,
+    ]);
     if (request !== requestSequence.current) return;
-    setUsers(userResult.status === 'fulfilled' ? userResult.value : null);
-    setMerchants(merchantResult.status === 'fulfilled' ? merchantResult.value : null);
-    setErrors({ users: userResult.status === 'rejected' ? 'User accounts could not be loaded. Refresh to try again.' : '', merchants: merchantResult.status === 'rejected' ? 'Merchant applications could not be loaded. Refresh to try again.' : '' });
+    if (needUsers) setUsers(userResult.status === 'fulfilled' ? userResult.value : null);
+    if (needMerchants) setMerchants(merchantResult.status === 'fulfilled' ? merchantResult.value : null);
+    if (activeTab === 'activity') setActivity(reviews.status === 'fulfilled' ? reviews.value || [] : []);
+    setErrors({
+      users: userResult.status === 'rejected' ? 'User accounts could not be loaded. Refresh to try again.' : '',
+      merchants: merchantResult.status === 'rejected' ? 'Merchant applications could not be loaded. Refresh to try again.' : '',
+      activity: reviews.status === 'rejected' ? 'Review history could not be loaded. Refresh to try again.' : '',
+    });
     setUpdatedAt(userResult.status === 'fulfilled' && merchantResult.status === 'fulfilled' ? new Date().toISOString() : null);
     setLoading(false);
-  }, [previewMode]);
+  }, [activeTab, previewMode]);
   useEffect(() => { void loadData(); return () => { requestSequence.current += 1; }; }, [loadData]);
   useEffect(() => { setQuery(''); setRole('All'); setStatus('All'); setPage(0); setSelectedMerchant(null); setSelectedUser(null); }, [activeTab]);
 
@@ -92,7 +108,7 @@ export const AdminDashboard: React.FC<{ previewMode?: boolean }> = ({ previewMod
         if (!result.success) throw new Error(result.message || 'The decision could not be saved.');
       }
       const timestamp = new Date().toISOString();
-      setActivity((items) => [{ id: `${application.id}-${timestamp}`, merchant: application.businessName, decision, notes: notes.trim(), timestamp, actor: name }, ...items]);
+      if (previewMode) setActivity((items) => [{ id: `${application.id}-${timestamp}`, merchant: application.businessName, decision, notes: notes.trim(), timestamp, actor: name }, ...items]);
       if (previewMode) setMerchants((items) => (items || []).map((item) => item.id === application.id ? { ...item, approvalStatus: decision, notes: notes.trim() } : item));
       else setMerchants((items) => (items || []).filter((item) => item.id !== application.id));
       setUsers((items) => items?.map((item) => item.id === application.userId ? { ...item, merchantApprovalStatus: decision } : item) || null);
@@ -107,13 +123,13 @@ export const AdminDashboard: React.FC<{ previewMode?: boolean }> = ({ previewMod
   }
 
   function pagination(count: number) {
-    return <TablePagination component="div" count={count} page={page} rowsPerPage={pageSize} rowsPerPageOptions={[5, 10, 25]} onPageChange={(_, value) => setPage(value)} onRowsPerPageChange={(event) => { setPageSize(Number(event.target.value)); setPage(0); }} sx={{ '& .MuiTablePagination-toolbar': { flexWrap: 'wrap', px: 2 } }} />;
+    return <WorkspacePagination count={count} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />;
   }
   function select(label: string, value: string, values: string[], setter: (value: string) => void) {
     return <Box><SoftTypography component="label" htmlFor={`admin-filter-${label}`} variant="caption" fontWeight="bold" display="block" mb={1}>{label}</SoftTypography><Box component="select" id={`admin-filter-${label}`} aria-label={label} value={value} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => resetPage(event.target.value, setter)} sx={adminSelectStyle}>{values.map((option) => <option key={option} value={option}>{option === 'All' ? 'All ' + label.toLowerCase() : option}</option>)}</Box></Box>;
   }
   function search(label: string) {
-    return <Box sx={{ flex: '1 1 240px', maxWidth: { xs: '100%', md: 380 } }}><SoftTypography component="label" htmlFor="admin-search" variant="caption" fontWeight="bold" display="block" mb={1}>{label}</SoftTypography><SoftInput id="admin-search" fullWidth placeholder={activeTab === 'users' ? 'Name, email or phone' : 'Business, contact or notes'} value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => resetPage(event.target.value, setQuery)} /></Box>;
+    return <Box sx={{ flex: '1 1 240px', maxWidth: { xs: '100%', md: 380 } }}><SoftTypography component="label" htmlFor="admin-search" variant="caption" fontWeight="bold" display="block" mb={1}>{label}</SoftTypography><SoftInput id="admin-search" fullWidth placeholder={activeTab === 'users' ? 'Name, email or phone' : activeTab === 'activity' ? 'Business, reviewer or notes' : 'Business, contact or email'} value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => resetPage(event.target.value, setQuery)} /></Box>;
   }
   function merchantTable(items: PendingMerchant[]) {
     if (!items.length) return <AdminEmpty title={query || status !== 'All' ? 'No matching applications' : 'No pending applications'} text="New merchant registrations will appear here for review." />;
@@ -165,28 +181,93 @@ export const AdminDashboard: React.FC<{ previewMode?: boolean }> = ({ previewMod
     </Grid>;
   }
 
-  function merchantsPage() {
-    if (!merchants) return <Card><AdminEmpty title="Review queue unavailable" text="Refresh to retry loading merchant applications." /></Card>;
-    return <Card><Box sx={{ p: 3 }}><SoftTypography variant="h6" fontWeight="bold">{previewMode ? 'Merchant applications' : 'Pending applications'}</SoftTypography><SoftTypography variant="button" color="text" fontWeight="regular">{previewMode ? 'Review sample businesses and see how decisions update the workspace.' : 'This queue contains applications currently awaiting a decision.'}</SoftTypography><Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2, mt: 3 }}>{search('Search applications')}{previewMode && select('Application status', status, ['All', 'PENDING', 'APPROVED', 'REJECTED'], setStatus)}</Box></Box>{merchantTable(pageRows(visibleMerchants))}{pagination(visibleMerchants.length)}</Card>;
-  }
-  function usersPage() {
-    if (!users) return <Card><AdminEmpty title="Account directory unavailable" text="Refresh to retry loading user accounts." /></Card>;
-    return <Card><Box sx={{ p: 3 }}><Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 2 }}><Box><SoftTypography variant="h6" fontWeight="bold">Account directory</SoftTypography><SoftTypography variant="button" color="text" fontWeight="regular">{visibleUsers.length} matching accounts</SoftTypography></Box><SoftButton variant="outlined" color="dark" disabled={!visibleUsers.length} onClick={() => downloadCsv('swiftdrop-users.csv', [['Name', 'Email', 'Phone', 'Roles', 'Status', 'Merchant status'], ...visibleUsers.map((item) => [item.fullName, item.email, item.phoneNumber || '', item.roles.join(', '), item.status, item.merchantApprovalStatus || ''])])}><Download size={14} style={{ marginRight: 6 }} />Export users</SoftButton></Box><Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2, mt: 3 }}>{search('Search users')}{select('Role', role, ['All', ...roles], setRole)}{select('Account status', status, ['All', 'ACTIVE', 'INACTIVE', 'SUSPENDED'], setStatus)}</Box></Box>{userTable(pageRows(visibleUsers))}{pagination(visibleUsers.length)}</Card>;
-  }
-  function activityPage() {
-    return <Card><Box sx={{ p: 3 }}><SoftTypography variant="h6" fontWeight="bold">Session review log</SoftTypography><SoftTypography variant="button" color="text" fontWeight="regular" display="block">Only successful decisions made in this browser session appear here. This is not the platform audit history; reloading clears this list.</SoftTypography><Box sx={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2, mt: 3 }}>{search('Search activity')}{select('Decision', status, ['All', 'APPROVED', 'REJECTED'], setStatus)}</Box></Box>{visibleActivity.length ? <Table columns={[{ name: 'business', align: 'left' }, { name: 'decision', align: 'center' }, { name: 'reviewer', align: 'left' }, { name: 'time', align: 'left' }, { name: 'notes', align: 'left' }]} rows={pageRows(visibleActivity).map((item) => ({ id: item.id, hasBorder: true, business: item.merchant, decision: <AdminBadge status={item.decision} />, reviewer: item.actor, time: dateTime(item.timestamp), notes: <Box component="span" sx={{ display: 'block', whiteSpace: 'normal', maxWidth: 260, overflowWrap: 'anywhere' }}>{item.notes || 'No notes added'}</Box> }))} /> : <AdminEmpty title={query || status !== 'All' ? 'No matching activity' : 'No decisions this session'} text="Successful merchant approval decisions will appear here." />}{pagination(visibleActivity.length)}</Card>;
-  }
 
-  return <Box sx={{ '& .MuiCard-root': { minWidth: 0 } }}>
+
+
+
+  return <Box className={activeTab === "overview" ? undefined : "workspace-tab admin-workspace"} sx={{ '& .MuiCard-root': { minWidth: 0 } }}>
     {previewMode && <Alert severity="info" sx={{ mb: 3, borderRadius: 3, fontSize: 12 }}>Preview workspace / Sample accounts and applications. Changes reset when you reload. No live accounts are modified.</Alert>}
-    <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}><Box><SoftTypography component="h1" variant="h4" fontWeight="bold">{headings[activeTab][0]}</SoftTypography><SoftTypography variant="body2" color="text" mt={0.5}>{headings[activeTab][1]}</SoftTypography></Box><SoftButton variant="outlined" color="dark" disabled={loading || busy} onClick={() => previewMode ? setResetOpen(true) : void loadData()}><RefreshCw size={14} style={{ marginRight: 6 }} />{previewMode ? 'Reset preview' : 'Refresh data'}</SoftButton></Box>
+    {activeTab === 'overview' ? <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}><Box><SoftTypography component="h1" variant="h4" fontWeight="bold">{headings[activeTab][0]}</SoftTypography><SoftTypography variant="body2" color="text" mt={0.5}>{headings[activeTab][1]}</SoftTypography></Box><SoftButton variant="outlined" color="dark" disabled={loading || busy} onClick={() => previewMode ? setResetOpen(true) : void loadData()}><RefreshCw size={14} style={{ marginRight: 6 }} />{previewMode ? 'Reset preview' : 'Refresh data'}</SoftButton></Box> : <Box mb={3}><AdminWorkspaceHeader page={activeTab} action={<SoftButton variant="outlined" color="dark" disabled={loading || busy} onClick={() => previewMode ? setResetOpen(true) : void loadData()}><RefreshCw size={14} style={{ marginRight: 6 }} />{previewMode ? 'Reset preview' : 'Refresh data'}</SoftButton>} /></Box>}
     {errors.users && <Alert severity="error" sx={{ mb: 2 }}>{errors.users}</Alert>}{errors.merchants && <Alert severity="error" sx={{ mb: 2 }}>{errors.merchants}</Alert>}
     {loading ? <Box role="status" aria-label="Loading admin workspace" sx={{ py: 4 }}><LinearProgress /><SoftTypography variant="button" color="text" display="block" mt={2}>Loading administration data...</SoftTypography></Box> : <>
-      {activeTab === 'overview' && overview()}{activeTab === 'merchants' && merchantsPage()}{activeTab === 'users' && usersPage()}{activeTab === 'activity' && activityPage()}
+      {activeTab === 'overview' && overview()}
+        {activeTab === 'merchants' && (
+          <Merchants
+            available={Boolean(merchants)}
+            pendingCount={pending.length}
+            count={visibleMerchants.length}
+            filters={
+              <>
+                {search('Search applications')}
+                {previewMode &&
+                  select(
+                    'Application status',
+                    status,
+                    ['All', 'PENDING', 'APPROVED', 'REJECTED'],
+                    setStatus,
+                  )}
+              </>
+            }
+          >
+            {merchants && (
+              <>
+                {merchantTable(pageRows(visibleMerchants))}
+                {pagination(visibleMerchants.length)}
+              </>
+            )}
+          </Merchants>
+        )}
+        {activeTab === 'users' && (
+          <Users
+            users={users}
+            matches={visibleUsers}
+            filters={
+              <>
+                {search('Search users')}
+                {select('Role', role, ['All', ...roles], setRole)}
+                {select(
+                  'Account status',
+                  status,
+                  ['All', 'ACTIVE', 'INACTIVE', 'SUSPENDED'],
+                  setStatus,
+                )}
+              </>
+            }
+          >
+            {users && (
+              <>
+                {userTable(pageRows(visibleUsers))}
+                {pagination(visibleUsers.length)}
+              </>
+            )}
+          </Users>
+        )}
+        {activeTab === 'activity' && (
+          <Activity
+            error={errors.activity}
+            count={visibleActivity.length}
+            total={activity.length}
+            items={pageRows(visibleActivity)}
+            filtered={Boolean(query || status !== 'All')}
+            filters={
+              <>
+                {search('Search activity')}
+                {select(
+                  'Decision',
+                  status,
+                  ['All', 'APPROVED', 'REJECTED'],
+                  setStatus,
+                )}
+              </>
+            }
+          >
+            {pagination(visibleActivity.length)}
+          </Activity>
+        )}
       {activeTab === 'profile' && (displayAccount ? <AdminProfile account={displayAccount} previewMode={previewMode} onSave={(updated) => { setAccount(updated); setUsers((items) => items?.map((entry) => entry.id === updated.id ? updated : entry) || null); setMessage('Preview profile updated.'); }} /> : <Card><AdminEmpty title="Account unavailable" text="Your signed-in profile could not be loaded." /></Card>)}
     </>}
     <Dialog open={Boolean(selectedMerchant)} onClose={() => { if (!busy) setSelectedMerchant(null); }} fullWidth maxWidth="sm" aria-labelledby="merchant-review-title"><DialogTitle id="merchant-review-title">{selectedMerchant?.businessName}</DialogTitle>{selectedMerchant && <><DialogContent><Box sx={{ display: 'grid', gap: 3 }}><AdminBadge status={selectedMerchant.approvalStatus} /><AdminDetails items={[["Contact person", selectedMerchant.contactPerson], ['Email address', selectedMerchant.email], ['Phone number', selectedMerchant.phoneNumber], ['Business address', selectedMerchant.businessAddress], ['Registered', dateTime(selectedMerchant.registeredAt)], ['Application ID', selectedMerchant.id]]} />{selectedMerchant.approvalStatus !== 'PENDING' && <AdminDetails items={[["Review notes", selectedMerchant.notes || 'No notes added']]} />}{decision && <><Alert severity={decision === 'APPROVED' ? 'info' : 'warning'}>{previewMode ? 'Preview decision only. ' : ''}{decision === 'APPROVED' ? 'Approval enables merchant access. Confirm the business details before continuing.' : 'The merchant will be marked as rejected. Include a clear reason.'}</Alert><TextField fullWidth multiline minRows={3} label="Review notes" required={decision === 'REJECTED'} value={notes} disabled={busy} onChange={(event) => { setNotes(event.target.value); setReviewError(''); }} inputProps={{ maxLength: 2000 }} helperText={decision === 'REJECTED' ? 'A rejection reason is required.' : 'Optional context for this decision.'} /></>}{reviewError && <Alert severity="error">{reviewError}</Alert>}</Box></DialogContent><DialogActions sx={{ p: 3, gap: 1, flexWrap: 'wrap' }}><SoftButton variant="text" color="secondary" disabled={busy} onClick={() => setSelectedMerchant(null)}>Close</SoftButton>{selectedMerchant.approvalStatus === 'PENDING' && (decision ? <><SoftButton variant="text" color="secondary" disabled={busy} onClick={() => { setDecision(null); setReviewError(''); }}>Back</SoftButton><SoftButton variant="gradient" color={decision === 'APPROVED' ? 'primary' : 'error'} sx={decision === 'APPROVED' ? adminActionStyle : undefined} disabled={busy} onClick={() => void submitDecision()}>{busy ? 'Saving decision...' : decision === 'APPROVED' ? 'Confirm approval' : 'Confirm rejection'}</SoftButton></> : <><SoftButton variant="outlined" color="error" disabled={busy || loading} onClick={() => setDecision('REJECTED')}><X size={14} style={{ marginRight: 6 }} />Reject application</SoftButton><SoftButton variant="gradient" color="primary" sx={adminActionStyle} disabled={busy || loading} onClick={() => setDecision('APPROVED')}><Check size={14} style={{ marginRight: 6 }} />Approve application</SoftButton></>)}</DialogActions></>}</Dialog>
-    <Dialog open={Boolean(selectedUser)} onClose={() => setSelectedUser(null)} fullWidth maxWidth="sm" aria-labelledby="user-detail-title"><DialogTitle id="user-detail-title">{selectedUser?.fullName}</DialogTitle>{selectedUser && <DialogContent><Box mb={3}><AdminBadge status={selectedUser.status} /></Box><AdminDetails items={[["Email address", selectedUser.email], ['Phone number', selectedUser.phoneNumber || 'Not provided'], ['Roles', selectedUser.roles.join(', ')], ['Merchant status', selectedUser.merchantApprovalStatus || 'Not applicable'], ['Registered', dateTime(selectedUser.createdAt)], ['Last updated', dateTime(selectedUser.updatedAt)], ['Account ID', selectedUser.id]]} /><SoftTypography variant="caption" color="text" display="block" mt={3}>Role and account status changes are not available in this workspace.</SoftTypography></DialogContent>}<DialogActions sx={{ p: 3 }}><SoftButton variant="text" color="secondary" onClick={() => setSelectedUser(null)}>Close</SoftButton></DialogActions></Dialog>
+    <Dialog open={Boolean(selectedUser)} onClose={() => setSelectedUser(null)} fullWidth maxWidth="sm" aria-labelledby="user-detail-title"><DialogTitle id="user-detail-title">{selectedUser?.fullName}</DialogTitle>{selectedUser && <DialogContent><Box mb={3}><AdminBadge status={selectedUser.status} /></Box><AdminDetails items={[["Email address", selectedUser.email], ['Phone number', selectedUser.phoneNumber || 'Not provided'], ['Roles', selectedUser.roles.join(', ')], ['Merchant status', selectedUser.merchantApprovalStatus || 'Not applicable'], ['Registered', dateTime(selectedUser.createdAt)], ['Last updated', dateTime(selectedUser.updatedAt)], ['Account ID', selectedUser.id]]} /><SoftTypography variant="caption" color="text" display="block" mt={3}>Open Manage user access to edit roles or account status.</SoftTypography></DialogContent>}<DialogActions sx={{ p: 3 }}><SoftButton variant="text" color="secondary" onClick={() => setSelectedUser(null)}>Close</SoftButton></DialogActions></Dialog>
     <Dialog open={resetOpen} onClose={() => setResetOpen(false)} fullWidth maxWidth="xs" aria-labelledby="admin-reset-title"><DialogTitle id="admin-reset-title">Reset preview workspace?</DialogTitle><DialogContent><SoftTypography variant="body2" color="text">Restore sample accounts and applications and clear this session's decisions. Your preview profile edits will be reset too.</SoftTypography></DialogContent><DialogActions sx={{ p: 3 }}><SoftButton variant="text" color="secondary" onClick={() => setResetOpen(false)}>Keep changes</SoftButton><SoftButton variant="gradient" color="primary" sx={adminActionStyle} onClick={() => { const data = createAdminPreview(); setUsers(data.users); setMerchants(data.merchants); setAccount(data.users[0]); setActivity([]); setQuery(''); setRole('All'); setStatus('All'); setPage(0); setResetOpen(false); setMessage('Preview workspace reset.'); }}>Reset workspace</SoftButton></DialogActions></Dialog>
     <Snackbar open={Boolean(message)} message={message} autoHideDuration={4500} onClose={() => setMessage('')} />
   </Box>;
