@@ -4,6 +4,7 @@ import {
   Autocomplete,
   Card,
   TextField,
+  MenuItem,
   createFilterOptions,
   Box,
   Dialog,
@@ -24,6 +25,7 @@ import {
   ActionButton,
   Empty,
   Field,
+  Panel,
   SelectField,
   WorkspaceText as Text,
 } from "@/features/delivery/components";
@@ -190,6 +192,8 @@ const filterParcels = createFilterOptions<ParcelRecord>({
 export function Dispatch({ workspace: w }: { workspace: Workspace }) {
   const [parcelInput, setParcelInput] = useState("");
   const [parcelId, setParcelId] = useState("");
+  const [reassignParcel, setReassignParcel] = useState("");
+  const [reassignCourier, setReassignCourier] = useState("");
   const [courierId, setCourierId] = useState("");
   const [scheduled, setScheduled] = useState(day);
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -244,6 +248,23 @@ export function Dispatch({ workspace: w }: { workspace: Workspace }) {
   }
   return (
     <>
+      {!w.preview && <Panel title="Reassign before pickup" subtitle="Transfer an existing assignment to another eligible courier. The previous courier loses access.">
+        <Field select label="Assigned parcel" value={reassignParcel} onChange={event => { setReassignParcel(event.target.value); setReassignCourier(""); }}>
+          <MenuItem value="">Choose a parcel</MenuItem>
+          {w.parcels.filter(p => p.status === "CREATED" && p.assignmentId).map(p => <MenuItem key={p.id} value={p.id}>{p.trackingNumber}</MenuItem>)}
+        </Field>
+        <Field select label="New courier" value={reassignCourier} onChange={event => setReassignCourier(event.target.value)}>
+          <MenuItem value="">Choose a courier</MenuItem>
+          {eligible.filter(c => c.id !== w.parcels.find(p => p.id === reassignParcel)?.courierId).map(c => <MenuItem key={c.id} value={c.dispatchId}>{c.name}</MenuItem>)}
+        </Field>
+        <ActionButton disabled={w.busy || !reassignParcel || !reassignCourier} onClick={() => void w.act(async () => {
+          const parcel = w.parcels.find(p => p.id === reassignParcel);
+          if (!parcel?.assignmentId) throw new Error("Refresh the assignment list");
+          await deliveryApi.reassign(parcel.assignmentId, reassignCourier);
+          setReassignParcel(""); setReassignCourier("");
+        }, "Courier reassigned.")}>Reassign courier</ActionButton>
+      </Panel>}
+
       <Card className="admin-dispatch-layout" sx={{ width: "100%", maxWidth: "100%", overflow: "hidden" }}>
         <Box
           component="form"

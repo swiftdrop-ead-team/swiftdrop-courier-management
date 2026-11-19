@@ -1,3 +1,4 @@
+import { BookingForm } from "@/features/delivery/tabs/BookingForm";
 import { Analytics } from "@/features/delivery/tabs/Analytics";
 import type { DashboardTabs } from "@/features/delivery/tabs/types";
 import { Dispatch } from "./Dispatch";
@@ -9,6 +10,7 @@ import { UserAdministration } from "./Access";
 import { Account } from "@/features/delivery/tabs/Account";
 
 export const adminTabs: DashboardTabs = {
+  "create-booking": ({ workspace, onBooked }) => <BookingForm workspace={workspace} onBooked={onBooked} />,
   analytics: ({ workspace }) => <Analytics workspace={workspace} />,
   dispatch: ({ workspace }) => <Dispatch workspace={workspace} />,
   deliveries: ({ workspace }) => <ParcelList workspace={workspace} />,

@@ -1,6 +1,6 @@
 import { MapPin, Package, UserRound } from "lucide-react";
 import { WorkspaceText as Typography } from "@/features/delivery/components";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Box,
@@ -21,6 +21,8 @@ import {
 import { previewBook, previewQuote } from "@/features/delivery/preview";
 import { deliveryApi, errorMessage } from "@/features/delivery/service";
 import type { Workspace } from "@/features/delivery/useDeliveryWorkspace";
+import { adminService } from "@/services/authService";
+import type { User } from "@/types/auth";
 import { Field, Panel } from "@/features/delivery/components";
 
 export function BookingForm({
@@ -35,6 +37,20 @@ export function BookingForm({
     senderPhone: w.profile.phone,
     pickupAddress: w.profile.address,
   }));
+  const [customers, setCustomers] = useState<User[]>([]);
+  const [customerId, setCustomerId] = useState("");
+  const [customerLoading, setCustomerLoading] = useState(w.role === "ADMIN");
+  const [customerError, setCustomerError] = useState("");
+  const [customerRevision, setCustomerRevision] = useState(0);
+  useEffect(() => {
+    if (w.role !== "ADMIN") return;
+    let active = true;
+    setCustomerLoading(true); setCustomerError("");
+    adminService.getAllUsers().then(users => { if (active) setCustomers(users.filter(u => u.roles.includes("CUSTOMER") && u.status === "ACTIVE")); })
+      .catch(error => { if (active) setCustomerError(errorMessage(error)); })
+      .finally(() => { if (active) setCustomerLoading(false); });
+    return () => { active = false; };
+  }, [w.role, customerRevision]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [quote, setQuote] = useState<Quote | null>(null);
   const [estimating, setEstimating] = useState(false);
@@ -43,6 +59,7 @@ export function BookingForm({
   const disabled =
     w.busy ||
     estimating ||
+    (w.role === "ADMIN" && (!customerId || customerLoading || Boolean(customerError))) ||
     (w.role === "MERCHANT" &&
       !w.preview &&
       w.user?.merchantApprovalStatus !== "APPROVED");
@@ -76,7 +93,7 @@ export function BookingForm({
     try {
       setForm(booking);
       setQuote(
-        w.preview ? previewQuote(booking) : await deliveryApi.quote(booking),
+        w.preview ? previewQuote(booking) : await deliveryApi.quote(booking, customerId || undefined),
       );
     } catch (error) {
       setFailure(errorMessage(error));
@@ -96,7 +113,7 @@ export function BookingForm({
     const ok = await w.act(async () => {
       const parcel = w.preview
         ? previewBook(booking, quote.id, w.ownerId, w.role)
-        : await deliveryApi.create(booking, quote.id);
+        : await deliveryApi.create(booking, quote.id, quote.id, customerId || undefined);
       tracking = parcel.trackingNumber;
     }, "Your delivery request is confirmed.");
     if (ok) {
@@ -146,6 +163,19 @@ export function BookingForm({
       title="Delivery details"
       subtitle="Enter parcel details, check your fee, then confirm your pickup."
     >
+      {w.role === "ADMIN" && <>
+        {customerError && <Alert severity="error" action={<SoftButton onClick={() => setCustomerRevision(n => n + 1)}>Retry</SoftButton>}>{customerError}</Alert>}
+        <Field select label="Customer account" value={customerId} required disabled={w.busy || customerLoading}
+          helperText={customerLoading ? "Loading customer accounts..." : !customers.length ? "No active customer accounts available." : "The booking will belong to this customer."}
+          onChange={event => {
+            const id = event.target.value, customer = customers.find(u => u.id === id);
+            setCustomerId(id); setQuote(null); setAccepted(false); setFailure("");
+            setForm(previous => ({ ...previous, senderName: customer?.fullName || "", senderPhone: customer?.phoneNumber || "", pickupAddress: "" }));
+          }}>
+          <MenuItem value="">Choose a customer</MenuItem>
+          {customers.map(customer => <MenuItem key={customer.id} value={customer.id}>{customer.fullName} - {customer.email}</MenuItem>)}
+        </Field>
+      </>}
       {w.role === "MERCHANT" &&
         !w.preview &&
         w.user?.merchantApprovalStatus !== "APPROVED" && (
@@ -156,7 +186,7 @@ export function BookingForm({
         )}
       {!w.preview && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          Pickup is available today. Cash collection is unavailable for this booking.
+          Choose a pickup date and confirm the quoted delivery fee before booking.
         </Alert>
       )}
       <Box component="form" onSubmit={getQuote} noValidate>

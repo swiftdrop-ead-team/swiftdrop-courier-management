@@ -223,6 +223,9 @@ export const deliveryApi = {
     const assigned = new Set(unwrap(assignments.data).map((a) => a.parcelId));
     return parcels.filter((p) => p.status === "CREATED" && !p.assignedCourierId && !assigned.has(p.id)).map(mapParcel);
   },
+  reassign: async (assignmentId: string, courierId: string) => {
+    await api.patch(`/dispatch/assignments/${encodeURIComponent(assignmentId)}/courier`, { courierId: Number(courierId) });
+  },
   registerCourier: async (
     userId: string,
     fullName: string,
@@ -303,15 +306,16 @@ export const deliveryApi = {
       ),
     );
   },
-  quote: async (b: Booking): Promise<Quote> =>
-    (await api.post<Quote>("/parcels/estimate", bookingPayload(b))).data,
+  quote: async (b: Booking, customerId?: string): Promise<Quote> =>
+    (await api.post<Quote>("/parcels/estimate", { ...bookingPayload(b), ...(customerId ? { customerId } : {}) })).data,
   create: async (
     b: Booking,
     estimateId: string,
     idempotencyKey = estimateId,
+    customerId?: string,
   ): Promise<ParcelRecord> => {
     const user = await authService.getCurrentUser();
-    if (user.roles.includes("MERCHANT")) {
+    if (!customerId && user.roles.includes("MERCHANT")) {
       const order = unwrap(
         (
           await api.post<Envelope<{ parcelId: string }>>(
@@ -330,6 +334,7 @@ export const deliveryApi = {
         await api.post<BackendParcel>("/parcels", {
           ...bookingPayload(b),
           estimateId,
+          ...(customerId ? { customerId } : {}),
         })
       ).data,
     );

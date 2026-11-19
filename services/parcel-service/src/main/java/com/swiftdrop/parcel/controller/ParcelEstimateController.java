@@ -21,6 +21,7 @@ public class ParcelEstimateController {
     @PreAuthorize("hasAnyRole('CUSTOMER','MERCHANT','ADMIN')")
     public ParcelEstimateService.Estimate estimate(@Valid @RequestBody CreateParcelRequest request, @AuthenticationPrincipal UserPrincipal user) {
         eligibility.ensureApproved(user);
+        eligibility.ensureCustomer(request, user);
         return estimates.estimate(request, user.getId());
     }
 }

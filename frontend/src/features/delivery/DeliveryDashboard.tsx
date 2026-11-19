@@ -308,7 +308,7 @@ export function DeliveryDashboard({
       trackingNumber: params.get("number") || "",
       onBooked(tracking) {
         setBooked(tracking);
-        navigate(`${base}/${role === "MERCHANT" ? "shipments" : "history"}`);
+        navigate(`${base}/${role === "ADMIN" ? "deliveries" : role === "MERCHANT" ? "shipments" : "history"}`);
       },
     });
   };

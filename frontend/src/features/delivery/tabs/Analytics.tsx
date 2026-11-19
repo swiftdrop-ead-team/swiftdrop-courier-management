@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTheme, alpha } from "@mui/material/styles";
 import { Alert, Box, LinearProgress, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend, Filler } from "chart.js";
 import { Line, Doughnut } from "react-chartjs-2";
@@ -35,7 +36,7 @@ const chartLegend: any = {
   labels: {
     usePointStyle: true,
     padding: 20,
-    font: { size: 11, weight: "600", family: "'Inter', 'Segoe UI', sans-serif" },
+    font: { size: 12, weight: "600", family: "'Inter', 'Segoe UI', sans-serif" },
     color: "#64748b",
     boxWidth: 8,
     boxHeight: 8,
@@ -47,21 +48,11 @@ const chartGrid: any = {
   lineWidth: 1,
 };
 const chartTicks: any = {
-  font: { size: 11, family: "'Inter', 'Segoe UI', sans-serif" },
-  color: "#94a3b8",
+  font: { size: 12, family: "'Inter', 'Segoe UI', sans-serif" },
+  color: "#64748b",
 };
 
 /* ── Status colors — project semantic palette ── */
-const statusColors: Record<ParcelStatus, string> = {
-  CREATED: "#94a3b8",
-  PICKED_UP: "#2563eb",
-  IN_TRANSIT: "#7c3aed",
-  OUT_FOR_DELIVERY: "#d97706",
-  DELIVERED: "#16a34a",
-  FAILED: "#dc2626",
-  CANCELLED: "#cbd5e1",
-};
-
 const rate = (value: number | null) => value === null ? "Not available" : `${value.toFixed(1)}%`;
 const fee = (value: number, currency: string) => /^[A-Z]{3}$/.test(currency) ? money(value, currency) : `${value.toFixed(2)} (currency unavailable)`;
 
@@ -91,7 +82,7 @@ function KPICard({ label, value, icon, color, change, note }: {
     <div className="analytics-kpi">
       <div className={`analytics-kpi__icon analytics-kpi__icon--${color}`}>{icon}</div>
       <span className="analytics-kpi__label">{label}</span>
-      <span className="analytics-kpi__value">{value}</span>
+      <h3 className={`analytics-kpi__value${value === "Not available" ? " analytics-kpi__value--unavailable" : ""}`}>{value}</h3>
       {change !== undefined && <ChangeBadge current={change.current} previous={change.previous} />}
       {note && <span className="analytics-kpi__note">{note}</span>}
     </div>
@@ -164,6 +155,24 @@ function AccountGrowth({ from, to, preview }: { from: string; to: string; previe
 }
 
 export function Analytics({ workspace: w }: { workspace: Workspace }) {
+  const { palette, typography } = useTheme();
+  const chartPrimary = palette.secondary.main;
+  const chartSecondary = palette.primary.main;
+  const statusColors: Record<ParcelStatus, string> = {
+    CREATED: palette.grey[500], PICKED_UP: palette.info.main,
+    IN_TRANSIT: chartPrimary, OUT_FOR_DELIVERY: palette.warning.main,
+    DELIVERED: palette.success.main, FAILED: palette.error.main, CANCELLED: palette.grey[300],
+  };
+  const themeStyle = {
+    "--analytics-primary": chartPrimary,
+    "--analytics-accent": chartSecondary,
+    "--analytics-tint": alpha(chartSecondary, 0.14),
+    "--analytics-ink": palette.brand.navy,
+  };
+  const tooltip = { ...chartTooltip, backgroundColor: palette.brand.navy,
+    titleFont: { family: typography.fontFamily, size: 13 }, bodyFont: { family: typography.fontFamily, size: 13 } };
+  const legend = { ...chartLegend, labels: { ...chartLegend.labels, font: { family: typography.fontFamily, size: 12 } } };
+  const ticks = { ...chartTicks, font: { family: typography.fontFamily, size: 12 } };
   const [range, setRange] = useState(() => presetRange("month"));
   const [preset, setPreset] = useState<string>("month");
   const [period, setPeriod] = useState<Period>("day");
@@ -204,13 +213,13 @@ export function Analytics({ workspace: w }: { workspace: Workspace }) {
     for (const s of statuses) counts[s] = 0;
     for (const p of current) counts[p.status] = (counts[p.status] || 0) + 1;
     return { labels: statuses.map(s => labels[s]), counts: statuses.map(s => counts[s] || 0), colors: statuses.map(s => statusColors[s]) };
-  }, [current]);
+  }, [current, palette]);
 
   // Guard: role check
-  if (!["ADMIN", "MERCHANT", "COURIER"].includes(w.role)) return <Alert severity="info">Analytics is available for operational roles.</Alert>;
+  if (!["ADMIN", "MERCHANT", "COURIER", "CUSTOMER"].includes(w.role)) return <Alert severity="info">Analytics is available for operational roles.</Alert>;
 
   // Loading state with skeletons
-  if (w.loading) return <Box className="analytics-page" role="status">
+  if (w.loading) return <Box className="analytics-page" sx={themeStyle} role="status">
     <Panel title="Loading analytics" subtitle="Fetching your delivery data...">
       <LinearProgress />
     </Panel>
@@ -219,19 +228,19 @@ export function Analytics({ workspace: w }: { workspace: Workspace }) {
   </Box>;
 
   // Error state
-  if (w.errors.parcels) return <Box className="analytics-page">
+  if (w.errors.parcels) return <Box className="analytics-page" sx={themeStyle}>
     <Panel title="Analytics unavailable">
       <EmptyState title="Unable to load analytics" description="Delivery records could not be loaded from the server. No statistics are shown until the connection is restored." />
-      <ActionButton onClick={() => void w.refresh()} sx={{ mt: 2, display: "flex", justifyContent: "center" }}>Retry loading analytics</ActionButton>
+      <ActionButton onClick={() => void w.refresh()} sx={{ mt: 2, display: "flex", justifyContent: "center" }}>Retry analytics</ActionButton>
     </Panel>
   </Box>;
 
   const changeRange = (key: "from" | "to", value: string) => { setRange(previous => ({ ...previous, [key]: value })); setPreset("custom"); setPage(0); setGroupPage(0); };
 
-  return <Box className="analytics-page">
+  return <Box className="analytics-page" sx={themeStyle}>
     {/* ── Filters Panel ── */}
-    <Panel title="Performance over time" subtitle={courier ? "Your assigned deliveries, grouped by assignment date." : admin ? "Platform shipments, grouped by booking date." : "Your business shipments, grouped by booking date."}
-      actions={<ActionButton startIcon={<Download size={16} />} disabled={!valid || !current.length} onClick={() => downloadCsv(`${w.role.toLowerCase()}-analytics.csv`, exportRows)}>Export analytics</ActionButton>}>
+    <Panel title="Reporting period" subtitle={courier ? "Your assigned deliveries, grouped by assignment date." : admin ? "Platform shipments, grouped by booking date." : w.role === "CUSTOMER" ? "Your personal shipments, grouped by booking date." : "Your business shipments, grouped by booking date."}
+      actions={<ActionButton color="primary" variant="contained" startIcon={<Download size={16} />} disabled={!valid || !current.length} onClick={() => downloadCsv(`${w.role.toLowerCase()}-analytics.csv`, exportRows)}>Export analytics</ActionButton>}>
       <Box className="analytics-filters">
         <SelectField label="Date range" value={preset} options={[{value:"day",label:"Today"},{value:"week",label:"Last 7 days"},{value:"month",label:"This month"},{value:"year",label:"This year"},{value:"custom",label:"Custom range"}]}
           onChange={value => { setPreset(value); if (value !== "custom") { setRange(presetRange(value as Period)); setPeriod(value === "year" ? "month" : "day"); } setPage(0); setGroupPage(0); }} />
@@ -263,7 +272,7 @@ export function Analytics({ workspace: w }: { workspace: Workspace }) {
 
         {/* ── Row 1: Trend Chart + Status Distribution ── */}
         <Box className="analytics-chart-layout">
-          <Panel title={metric === "fees" && !courier ? `Delivery fee trend – ${currency}` : "Shipment trend"} subtitle="Hover over the chart for values. Toggle a series in the legend, or expand the data table below."
+          <Panel title={metric === "fees" && !courier ? `Delivery fee trend – ${currency}` : "Shipment trend"} subtitle="Volume and outcomes by period. Exact values are available in the trend data table."
             actions={!courier && <ToggleButtonGroup size="small" exclusive value={metric} onChange={(_, value) => { if(value) setMetric(value); }} aria-label="Trend metric"><ToggleButton value="volume">Shipments</ToggleButton><ToggleButton value="fees">Delivery fees</ToggleButton></ToggleButtonGroup>}>
             {!courier && metric === "fees" && <SelectField label="Currency" value={currency} options={currencies.map(value=>({value,label:value}))} onChange={setCurrency} />}
             <Box className="analytics-chart analytics-chart--tall" role="img" aria-label={`${metric === "fees" && !courier ? "Delivery fees" : "Shipment counts"} by ${period}. Exact values are available in Trend data below.`}>
@@ -273,70 +282,70 @@ export function Analytics({ workspace: w }: { workspace: Workspace }) {
                   datasets: metric === "fees" && !courier ? [{
                     label: `Delivery fees (${currency})`,
                     data: bins.map(bin => bin.fees[currency] || 0),
-                    borderColor: "#2563eb",
-                    backgroundColor: "rgba(37, 99, 235, 0.06)",
+                    borderColor: chartPrimary,
+                    backgroundColor: alpha(chartPrimary, 0.05),
                     borderWidth: 2,
-                    tension: 0.3,
+                    tension: 0.15,
                     fill: true,
                     pointBackgroundColor: "#ffffff",
-                    pointBorderColor: "#2563eb",
+                    pointBorderColor: chartPrimary,
                     pointBorderWidth: 2,
-                    pointRadius: bins.length > 30 ? 0 : 4,
+                    pointRadius: bins.length > 30 ? 0 : 2,
                     pointHoverRadius: 6,
                     pointHoverBorderWidth: 2,
-                    pointHoverBackgroundColor: "#2563eb",
+                    pointHoverBackgroundColor: chartPrimary,
                     pointHoverBorderColor: "#ffffff",
                   }] : [{
                     label: courier ? "Assigned" : "Booked",
                     data: bins.map(bin => bin.total),
-                    borderColor: "#2563eb",
-                    backgroundColor: "rgba(37, 99, 235, 0.06)",
+                    borderColor: chartPrimary,
+                    backgroundColor: alpha(chartPrimary, 0.05),
                     borderWidth: 2,
-                    tension: 0.3,
+                    tension: 0.15,
                     fill: true,
                     pointBackgroundColor: "#ffffff",
-                    pointBorderColor: "#2563eb",
+                    pointBorderColor: chartPrimary,
                     pointBorderWidth: 2,
-                    pointRadius: bins.length > 30 ? 0 : 4,
+                    pointRadius: bins.length > 30 ? 0 : 2,
                     pointHoverRadius: 6,
                     pointHoverBorderWidth: 2,
-                    pointHoverBackgroundColor: "#2563eb",
+                    pointHoverBackgroundColor: chartPrimary,
                     pointHoverBorderColor: "#ffffff",
                   }, {
                     label: "Now delivered",
                     data: bins.map(bin => bin.delivered),
-                    borderColor: "#16a34a",
-                    backgroundColor: "rgba(22, 163, 74, 0.06)",
+                    borderColor: chartSecondary,
+                    backgroundColor: alpha(chartSecondary, 0.08),
                     borderWidth: 2,
-                    tension: 0.3,
+                    tension: 0.15,
                     fill: true,
                     pointBackgroundColor: "#ffffff",
-                    pointBorderColor: "#16a34a",
+                    pointBorderColor: chartSecondary,
                     pointBorderWidth: 2,
-                    pointRadius: bins.length > 30 ? 0 : 4,
+                    pointRadius: bins.length > 30 ? 0 : 2,
                     pointHoverRadius: 6,
                     pointHoverBorderWidth: 2,
-                    pointHoverBackgroundColor: "#16a34a",
+                    pointHoverBackgroundColor: chartSecondary,
                     pointHoverBorderColor: "#ffffff",
                   }]
                 }}
                 options={{
                   responsive: true,
                   maintainAspectRatio: false,
-                  animation: { duration: 500, easing: "easeOutQuart" },
+                  animation: false,
                   interaction: { mode: "index" as const, intersect: false },
                   plugins: {
-                    tooltip: chartTooltip,
-                    legend: chartLegend,
+                    tooltip,
+                    legend,
                   },
                   scales: {
                     x: {
                       grid: { display: false },
-                      ticks: { maxTicksLimit: 10, maxRotation: 0, ...chartTicks },
+                      ticks: { maxTicksLimit: 4, maxRotation: 0, ...ticks },
                     },
                     y: {
                       beginAtZero: true,
-                      ticks: metric === "fees" ? chartTicks : { ...chartTicks, precision: 0 },
+                      ticks: metric === "fees" ? ticks : { ...ticks, precision: 0, maxTicksLimit: 6 },
                       grid: chartGrid,
                     },
                   },
@@ -345,9 +354,9 @@ export function Analytics({ workspace: w }: { workspace: Workspace }) {
             </Box>
           </Panel>
 
-          {/* ── Status Distribution Donut + Progress Bars ── */}
-          <Panel title="Order status distribution" subtitle="Current states of shipments in the selected period.">
-            {current.length > 0 && <Box className="analytics-chart analytics-chart--donut" role="img" aria-label="Order status distribution donut chart">
+          {/* ── Status Distribution Donut + Status Legend ── */}
+          <Panel title="Shipment status" subtitle="Current states of shipments in the selected period.">
+            {current.length > 0 && <Box className="analytics-chart analytics-chart--donut" role="img" aria-label="Shipment status donut chart">
               <Doughnut
                 data={{
                   labels: statusDistribution.labels,
@@ -356,27 +365,17 @@ export function Analytics({ workspace: w }: { workspace: Workspace }) {
                     backgroundColor: statusDistribution.colors,
                     borderWidth: 2,
                     borderColor: "#ffffff",
-                    hoverOffset: 6,
+                    hoverOffset: 3,
                   }]
                 }}
                 options={{
                   responsive: true,
                   maintainAspectRatio: false,
-                  animation: { duration: 500, easing: "easeOutQuart" },
+                  animation: false,
                   cutout: "65%",
                   plugins: {
-                    tooltip: chartTooltip,
-                    legend: {
-                      position: "bottom" as const,
-                      labels: {
-                        usePointStyle: true,
-                        padding: 12,
-                        font: { size: 10, weight: "600", family: "'Inter', 'Segoe UI', sans-serif" },
-                        color: "#64748b",
-                        boxWidth: 8,
-                        boxHeight: 8,
-                      },
-                    },
+                    tooltip,
+                    legend: { display: false },
                   },
                 }}
               />
@@ -394,9 +393,6 @@ export function Analytics({ workspace: w }: { workspace: Workspace }) {
                       </span>
                       <span className="analytics-outcome__count">{count} ({pct.toFixed(0)}%)</span>
                     </Box>
-                    <progress className="analytics-outcome__bar" aria-label={labels[status]} max={current.length} value={count} style={{
-                      ["--value-color" as any]: statusColors[status],
-                    }} />
                   </Box>
                 );
               })}
@@ -472,6 +468,7 @@ export function Analytics({ workspace: w }: { workspace: Workspace }) {
         <Text variant="body2" sx={{ color: "#67748e", lineHeight: 1.6 }}>
           {courier ? "Only your assignments are included. Shipments without an assignment date are excluded; missing timing events are not estimated."
             : admin ? "Delivery fees are available; recognized revenue, payment settlements and product sales are not tracked by these records."
+            : w.role === "CUSTOMER" ? "Only your own bookings are included. Fees are quoted delivery charges; refunds and settled payments are not available in these records."
             : "These insights cover your shipments. Product sales, product rankings, sales revenue and average order value are not available in the current data."}
         </Text>
       </Box>

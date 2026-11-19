@@ -6,6 +6,7 @@ import SoftTypography from "components/SoftTypography";
 import "./admin-workspace.css";
 
 const pages = {
+  "create-booking": { title: "Create customer booking", description: "Book a delivery for an existing customer, then assign a courier.", Icon: Package },
   analytics: { title: "Platform analytics", description: "Explore shipment trends, delivery outcomes and account growth.", Icon: BarChart3 },
   merchants: { title: "Merchant approvals", description: "Review business details and decide which applications to approve.", Icon: Building2 },
   users: { title: "User management", description: "Find an account by name, contact details, role or status.", Icon: UsersRound },

@@ -24,7 +24,7 @@ export function presetRange(period: Period, today = day()): Range {
 export function permittedParcels(records: ParcelRecord[], role: UserRole, ownerId: string) {
   if (role === "ADMIN") return records;
   if (!ownerId) return [];
-  if (role === "MERCHANT") return records.filter(p => p.ownerId === ownerId);
+  if (role === "MERCHANT" || role === "CUSTOMER") return records.filter(p => p.ownerId === ownerId);
   if (role === "COURIER") return records.filter(p => p.courierId === ownerId);
   return [];
 }

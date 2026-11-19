@@ -20,6 +20,7 @@ import {
 } from "../features/delivery/preview";
 import { api } from "../services/api";
 import { deliveryApi } from "../features/delivery/service";
+import { adminService } from "../services/authService";
 import type { UserRole } from "../types/auth";
 
 vi.mock("../hooks/useAuth", () => ({
@@ -63,7 +64,7 @@ async function choose(label: string, value: string) {
 describe("Assignment frontend workflows", () => {
   it("uses live capacity and reloads the queue after the dispatch service accepts an assignment", async () => {
     const parcel = getPreview().parcels.find((p) => !p.courierId && p.status === "CREATED")!;
-    const queue = vi.spyOn(deliveryApi, "unassignedParcels").mockResolvedValueOnce([parcel]).mockResolvedValue([]);
+    const queue = vi.spyOn(deliveryApi, "parcels").mockResolvedValueOnce([parcel]).mockResolvedValue([]);
     const driver = { id: "linked", name: "Available driver", capacity: 6, available: true,
       activeDeliveries: 4, accountLinked: true, availableForAssignment: true };
     vi.spyOn(deliveryApi, "couriers").mockResolvedValue([
@@ -84,6 +85,38 @@ describe("Assignment frontend workflows", () => {
     expect(assign).toHaveBeenCalledWith(parcel.id, driver.id, expect.any(String));
     expect(await screen.findByText(/No parcels are waiting for assignment/)).toBeInTheDocument();
     expect(queue).toHaveBeenCalledTimes(2);
+  });
+  it("books for the selected customer and sends that owner through estimate and confirmation", async () => {
+    vi.spyOn(adminService, "getAllUsers").mockResolvedValue([{ id: "selected-customer", fullName: "Booking Customer", email: "booking@example.com", phoneNumber: "0771234567", roles: ["CUSTOMER"], status: "ACTIVE" }] as any);
+    const quote = vi.spyOn(deliveryApi, "quote").mockResolvedValue({ id: "estimate", amount: 250, currency: "LKR", expiresAt: new Date(Date.now()+60000).toISOString() });
+    const create = vi.spyOn(deliveryApi, "create").mockResolvedValue({ ...getPreview().parcels[0], trackingNumber: "SD-ADMIN-BOOKED" });
+    vi.spyOn(deliveryApi, "parcels").mockResolvedValue([]);
+    vi.spyOn(deliveryApi, "couriers").mockResolvedValue([]);
+    workspace("ADMIN", "create-booking", false);
+    await screen.findByLabelText(/Customer account/);
+    fireEvent.mouseDown(await screen.findByLabelText(/Customer account/));
+    fireEvent.click(await screen.findByRole("option", { name: "Booking Customer - booking@example.com" }));
+    for (const [label,value] of [["Pickup address","24 Main Road Colombo"],["Recipient name","Recipient"],["Recipient phone","0772345678"],["Drop-off address","18 Main Road Kandy"],["Delivery city","Kandy"],["Parcel contents","Books"]])
+      fireEvent.change(screen.getByRole("textbox", { name: label }), { target: { value } });
+    fireEvent.click(screen.getByRole("button", { name: "Get delivery estimate" }));
+    const confirm = await screen.findByRole("button", { name: "Confirm delivery request" });
+    expect(quote).toHaveBeenCalledWith(expect.objectContaining({senderName:"Booking Customer"}), "selected-customer");
+    fireEvent.click(screen.getByRole("checkbox", { name: /I confirm the addresses/ }));
+    fireEvent.click(confirm);
+    await waitFor(() => expect(create).toHaveBeenCalledWith(expect.anything(), "estimate", "estimate", "selected-customer"));
+  });
+  it("reassigns the selected parcel using its existing assignment ID and refreshes", async () => {
+    const parcel = {...getPreview().parcels[0], status:"CREATED" as const, assignmentId:"7", courierId:"old"};
+    const load = vi.spyOn(deliveryApi,"parcels").mockResolvedValue([parcel]);
+    vi.spyOn(deliveryApi,"couriers").mockResolvedValue([{id:"new",dispatchId:"4",name:"Replacement driver",capacity:5,available:true,activeDeliveries:0,accountLinked:true,availableForAssignment:true}]);
+    const reassign=vi.spyOn(deliveryApi,"reassign").mockResolvedValue();
+    workspace("ADMIN","dispatch",false);
+    await screen.findByLabelText("Assigned parcel");
+    await choose("Assigned parcel",parcel.trackingNumber);
+    await choose("New courier","Replacement driver");
+    fireEvent.click(screen.getByRole("button",{name:"Reassign courier"}));
+    await waitFor(() => expect(reassign).toHaveBeenCalledWith("7","4"));
+    await waitFor(() => expect(load).toHaveBeenCalledTimes(2));
   });
   it("clears previously loaded parcels when a refresh fails", async () => {
     const get = vi.spyOn(api, "get").mockResolvedValue({ data: {

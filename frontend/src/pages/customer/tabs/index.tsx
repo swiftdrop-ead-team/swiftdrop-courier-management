@@ -1,4 +1,5 @@
-import { Bell, History, MapPin, PackagePlus, Settings } from "lucide-react";
+import { Analytics } from "@/features/delivery/tabs/Analytics";
+import { BarChart3, Bell, History, MapPin, PackagePlus, Settings } from "lucide-react";
 import type { DashboardTabs, TabHeading } from "@/features/delivery/tabs/types";
 import { BookingForm } from "@/features/delivery/tabs/BookingForm";
 import { TrackingView } from "@/features/delivery/tabs/TrackingView";
@@ -7,6 +8,7 @@ import { Account } from "@/features/delivery/tabs/Account";
 import { Notifications } from "@/features/delivery/tabs/Notifications";
 
 export const customerTabs: DashboardTabs = {
+  analytics: ({ workspace }) => <Analytics workspace={workspace} />,
   send: ({ workspace, onBooked }) => (
     <BookingForm workspace={workspace} onBooked={onBooked} />
   ),
@@ -19,6 +21,7 @@ export const customerTabs: DashboardTabs = {
 };
 
 export const customerHeadings: Record<string, TabHeading> = {
+  analytics: { title: "Analytics", description: "Explore your shipment history, delivery outcomes, and fees.", Icon: BarChart3 },
   send: { title: "Send a parcel", description: "Get an estimate and confirm your delivery.", Icon: PackagePlus },
   track: { title: "Track a shipment", description: "Follow your parcel through each delivery stage.", Icon: MapPin },
   history: { title: "Delivery history", description: "Review deliveries and download receipts.", Icon: History },

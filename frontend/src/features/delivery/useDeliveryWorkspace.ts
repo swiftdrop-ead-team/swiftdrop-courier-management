@@ -85,9 +85,7 @@ export function useDeliveryWorkspace(
       jobs.push([
         "parcels",
         () =>
-          role === "ADMIN" && tab === "dispatch"
-            ? deliveryApi.unassignedParcels(request.signal)
-            : deliveryApi.parcels(
+          deliveryApi.parcels(
                 role === "ADMIN" ? "all" : role === "COURIER" ? "assigned" : "mine",
                 request.signal,
               ),

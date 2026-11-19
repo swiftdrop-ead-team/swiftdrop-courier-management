@@ -114,6 +114,40 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
         DispatchAssignment savedAssignment = assignmentRepository.save(assignment);
 
         // Step 6: Publish event to RabbitMQ for Notification Service
+        publishAssignment(savedAssignment, courier);
+
+        return mapToResponse(savedAssignment);
+    }
+
+    @Override
+    @Transactional
+    public DispatchAssignmentResponse reassignCourier(Long assignmentId, Long courierId) {
+        DispatchAssignment assignment = assignmentRepository.findForUpdate(assignmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
+        if (assignment.getStatus() != AssignmentStatus.ASSIGNED)
+            throw new InvalidAssignmentException("Reassignment is only available before pickup");
+        Long previousId = assignment.getCourier().getId();
+        if (previousId.equals(courierId)) return mapToResponse(assignment);
+        // Lock both fleet rows in ID order to avoid opposing-transfer deadlocks.
+        Courier first = courierRepository.findForUpdate(Math.min(previousId, courierId))
+                .orElseThrow(() -> new ResourceNotFoundException("Courier not found"));
+        Courier second = courierRepository.findForUpdate(Math.max(previousId, courierId))
+                .orElseThrow(() -> new ResourceNotFoundException("Courier not found"));
+        Courier previous = previousId.equals(first.getId()) ? first : second;
+        Courier next = courierId.equals(first.getId()) ? first : second;
+        if (!next.canAcceptMoreDeliveries())
+            throw new CourierUnavailableException("Choose an available courier with remaining capacity");
+        if (next.getUserId() == null || !next.getUserId().matches("[0-9a-fA-F-]{36}"))
+            throw new InvalidAssignmentException("Courier must have a linked identity account");
+        previous.decrementDeliveries(); next.incrementDeliveries();
+        courierRepository.save(previous); courierRepository.save(next);
+        assignment.setCourier(next); assignment.setAssignedAt(LocalDateTime.now());
+        assignmentRepository.saveAndFlush(assignment);
+        publishAssignment(assignment, next);
+        return mapToResponse(assignment);
+    }
+
+    private void publishAssignment(DispatchAssignment savedAssignment, Courier courier) {
         CourierAssignedEvent event = CourierAssignedEvent.builder()
                 .assignmentId(savedAssignment.getId())
                 .parcelId(savedAssignment.getParcelId())
@@ -131,7 +165,6 @@ public class DispatchAssignmentServiceImpl implements DispatchAssignmentService 
                 .build();
         eventPublisherService.publishCourierAssigned(event);
 
-        return mapToResponse(savedAssignment);
     }
 
     /**

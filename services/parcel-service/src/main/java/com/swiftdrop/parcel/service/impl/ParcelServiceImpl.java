@@ -55,6 +55,7 @@ public class ParcelServiceImpl implements ParcelService {
     @Transactional
     public ParcelResponse createParcel(CreateParcelRequest request, UserPrincipal currentUser) {
         eligibility.ensureApproved(currentUser);
+        eligibility.ensureCustomer(request, currentUser);
         String merchantFingerprint = null;
         if(request.getMerchantOrderReference()!=null) {
             if(!hasRole(currentUser,"ROLE_MERCHANT")) throw new UnauthorizedParcelAccessException("Merchant reference requires a merchant account");
@@ -69,7 +70,7 @@ public class ParcelServiceImpl implements ParcelService {
         }
         log.info("Creating parcel request for user [{}]", currentUser.getId());
 
-        SenderType senderType = hasRole(currentUser, "ROLE_MERCHANT")
+        SenderType senderType = request.getCustomerId() == null && hasRole(currentUser, "ROLE_MERCHANT")
                 ? SenderType.MERCHANT
                 : SenderType.CUSTOMER;
 
@@ -148,7 +149,7 @@ public class ParcelServiceImpl implements ParcelService {
         Parcel parcel = Parcel.builder()
                 .merchantOrderReference(request.getMerchantOrderReference()).merchantRequestFingerprint(merchantFingerprint)
                 .trackingNumber(trackingNumber)
-                .senderId(currentUser.getId())
+                .senderId(request.getCustomerId() == null ? currentUser.getId() : request.getCustomerId())
                 .senderType(senderType)
                 .senderName(senderName)
                 .senderPhone(senderPhone)

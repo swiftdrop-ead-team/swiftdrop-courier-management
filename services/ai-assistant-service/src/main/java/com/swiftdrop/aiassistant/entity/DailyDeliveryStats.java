@@ -28,18 +28,23 @@ public class DailyDeliveryStats {
     private LocalDate reportDate;
 
     @Column(name = "total_deliveries", nullable = false)
+    @Builder.Default
     private Integer totalDeliveries = 0;
 
     @Column(name = "successful_deliveries", nullable = false)
+    @Builder.Default
     private Integer successfulDeliveries = 0;
 
     @Column(name = "failed_deliveries", nullable = false)
+    @Builder.Default
     private Integer failedDeliveries = 0;
 
     @Column(name = "success_rate", nullable = false, precision = 5, scale = 2)
+    @Builder.Default
     private BigDecimal successRate = BigDecimal.ZERO;
 
     @Column(name = "failure_rate", nullable = false, precision = 5, scale = 2)
+    @Builder.Default
     private BigDecimal failureRate = BigDecimal.ZERO;
 
     @CreationTimestamp

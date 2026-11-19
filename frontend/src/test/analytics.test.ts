@@ -3,13 +3,14 @@ import { bucket, comparison, deliveryHours, permittedParcels, presetRange, previ
 import { emptyBooking, type ParcelRecord } from "../features/delivery/model";
 const parcel = (patch: Partial<ParcelRecord> = {}): ParcelRecord => ({ ...emptyBooking(), id: "one", trackingNumber: "SD-ONE", ownerId: "merchant-a", ownerRole: "MERCHANT", createdAt: "2026-11-18T20:00:00Z", status: "DELIVERED", amount: 250, currency: "LKR", history: [], ...patch });
 describe("analytics calculations", () => {
-  it("limits merchants and couriers to their own records and excludes customer analytics", () => {
+  it("limits customers, merchants and couriers to their own records", () => {
     const own = parcel({courierId:"courier-a"}), other = parcel({id:"two",ownerId:"merchant-b",courierId:"courier-b"});
     expect(permittedParcels([own,other],"MERCHANT","merchant-a")).toEqual([own]);
     expect(permittedParcels([own,other],"COURIER","courier-a")).toEqual([own]);
     expect(permittedParcels([own,other],"ADMIN","admin")).toHaveLength(2);
     expect(permittedParcels([own,other],"MERCHANT","")).toEqual([]);
-    expect(permittedParcels([own,other],"CUSTOMER","merchant-a")).toEqual([]);
+    expect(permittedParcels([own,other],"CUSTOMER","")).toEqual([]);
+    expect(permittedParcels([own,other],"CUSTOMER","merchant-a")).toEqual([own]);
   });
   it("uses Colombo booking dates and assignment dates for courier cohorts", () => {
     const p=parcel({assignedDate:"2026-11-20"});

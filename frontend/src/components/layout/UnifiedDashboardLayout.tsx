@@ -26,7 +26,7 @@ function buildNavigation(role: string, base: string): NavSection[] {
   switch (role) {
     case "CUSTOMER":
       return [
-        { heading: 'HOME', items: [{ tab: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: `${base}/overview` }] },
+        { heading: 'HOME', items: [{ tab: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: `${base}/overview` }, { tab: 'analytics', label: 'Analytics', icon: BarChart3, path: `${base}/analytics` }] },
         { heading: 'DELIVERIES', items: [
           { tab: 'send', label: 'Send a parcel', icon: Send, path: `${base}/send`, badge: 'New' },
           { tab: 'track', label: 'Track shipment', icon: MapPin, path: `${base}/track` },
@@ -45,6 +45,7 @@ function buildNavigation(role: string, base: string): NavSection[] {
             { tab: "merchants", label: "Merchant Approvals", icon: Clock, path: `${base}/merchants` },
             { tab: "users", label: "User Management", icon: Users, path: `${base}/users` },
             { tab: "activity", label: "Review Activity", icon: FileSpreadsheet, path: `${base}/activity` },
+            { tab: "create-booking", label: "Create customer booking", icon: Package, path: `${base}/create-booking` },
             { tab: 'dispatch', label: 'Dispatch & workloads', icon: Truck, path: `${base}/dispatch` },
             { tab: 'deliveries', label: 'All deliveries', icon: Package, path: `${base}/deliveries` },
             { tab: 'pricing', label: 'Delivery pricing', icon: MapPin, path: `${base}/pricing` },

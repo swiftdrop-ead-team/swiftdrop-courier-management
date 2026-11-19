@@ -28,6 +28,33 @@ public class MerchantEligibility {
         this.identityUrl = identityUrl;
     }
 
+    /** Only administrators may book for a current, active customer account. */
+    public void ensureCustomer(com.swiftdrop.parcel.dto.request.CreateParcelRequest request, UserPrincipal user) {
+        if (request.getCustomerId() == null) return;
+        if (user.getAuthorities().stream().noneMatch(a -> "ROLE_ADMIN".equals(a.getAuthority())))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only administrators may book for a customer");
+        var attributes = RequestContextHolder.getRequestAttributes();
+        if (!(attributes instanceof ServletRequestAttributes servlet))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account access is required");
+        var headers = new HttpHeaders();
+        headers.set("Authorization", servlet.getRequest().getHeader("Authorization"));
+        try {
+            var response = client.exchange(identityUrl + "/api/v1/admin/users", HttpMethod.GET,
+                    new HttpEntity<>(headers), java.util.List.class).getBody();
+            if (response != null) for (Object item : response) {
+                if (item instanceof Map<?, ?> account && request.getCustomerId().toString().equals(account.get("id"))
+                        && account.get("roles") instanceof java.util.List<?> roles && roles.contains("CUSTOMER")
+                        && "ACTIVE".equals(account.get("status"))) {
+                    request.setSenderEmail((String) account.get("email"));
+                    return;
+                }
+            }
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select an active customer account");
+        } catch (RestClientException ex) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Customer account could not be verified");
+        }
+    }
+
     public void ensureApproved(UserPrincipal user) {
         boolean merchant = user.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_MERCHANT".equals(a.getAuthority()));

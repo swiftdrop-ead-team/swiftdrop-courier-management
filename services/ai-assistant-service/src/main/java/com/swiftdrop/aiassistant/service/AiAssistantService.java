@@ -23,8 +23,8 @@ public class AiAssistantService {
 
     public ChatResponse processQuery(String userMessage, String userEmail, List<String> roles) {
         if (geminiApiKey == null || geminiApiKey.isBlank()) {
-            return new ChatResponse("AI Assistant is currently offline (Gemini API key not configured). " +
-                    "However, I can confirm you asked: \"" + userMessage + "\". Your role is " + roles);
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                    "AI Assistant is unavailable: provider credentials are not configured");
         }
 
         try {
@@ -53,8 +53,9 @@ public class AiAssistantService {
             return new ChatResponse(aiAnswer);
 
         } catch (Exception e) {
-            log.error("Error communicating with Gemini API", e);
-            return new ChatResponse("Sorry, I encountered an error processing your request with the AI assistant.");
+            log.warn("AI provider request failed ({})", e.getClass().getSimpleName());
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_GATEWAY,
+                    "AI provider request failed. Please try again later.");
         }
     }
 
@@ -76,6 +77,6 @@ public class AiAssistantService {
         } catch (Exception e) {
             log.error("Failed to parse Gemini response structure", e);
         }
-        return "I received an empty response from the AI model.";
+        throw new IllegalStateException("AI provider returned no answer");
     }
 }
