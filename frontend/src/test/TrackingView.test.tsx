@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "assets/theme";
 import axios from "axios";
-import { TrackingView } from "../features/delivery/TrackingView";
+import { TrackingView } from "@/features/delivery/tabs/TrackingView";
 
 class FakeEventSource {
   static instances: FakeEventSource[] = [];

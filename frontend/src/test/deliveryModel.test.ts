@@ -19,7 +19,7 @@ import {
   parseCsv,
   parseOrders,
   csvHeaders,
-} from "../features/delivery/BulkOrders";
+} from "@/pages/merchant/tabs/BulkUpload";
 import { csvDocument } from "../pages/admin/adminData";
 
 const booking = () => ({
