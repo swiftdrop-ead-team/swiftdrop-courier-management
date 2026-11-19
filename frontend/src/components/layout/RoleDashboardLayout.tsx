@@ -368,13 +368,13 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
                 <span>{breadcrumbRole}</span>
                 <Box component="span" sx={{ color: "text.primary", fontWeight: 600 }}>{active?.label}</Box>
               </Breadcrumbs>
-              <SoftTypography
+              {active?.tab === "overview" && <SoftTypography
                 variant="h6"
                 fontWeight="bold"
                 sx={{ fontSize: "1.15rem", letterSpacing: "-0.02em", lineHeight: 1.3 }}
               >
                 {active?.label}
-              </SoftTypography>
+              </SoftTypography>}
             </Box>
           </Box>
 
@@ -422,7 +422,7 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
             </IconButton>
           </Box>}
         </Box>
-        <Box component="main" id="dashboard-main" sx={{ minWidth: 0 }}>
+        <Box component="main" id="dashboard-main" sx={{ minWidth: 0, pt: active?.tab === "overview" ? 0 : 2.5 }}>
           <Outlet key={preview ? "preview" : user?.id || "customer"} />
         </Box>
         <Box

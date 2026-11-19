@@ -9,11 +9,12 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
   ({ label, error, icon, endAdornment, id, className = '', ...props }, ref) => {
-    const inputId = id || props.name;
+    const generatedId = React.useId();
+    const inputId = id || props.name || generatedId;
 
     return (
       <div className="space-y-1.5">
-        <label htmlFor={inputId} className="block text-xs font-bold uppercase tracking-[0.12em] text-slate-600">
+        <label htmlFor={inputId} className="block text-sm font-semibold text-slate-600">
           {label}
         </label>
         <div className="relative">
@@ -27,12 +28,12 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
             id={inputId}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? `${inputId}-error` : undefined}
-            className={`min-h-12 w-full rounded-lg border bg-white text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-4 ${icon ? 'pl-10' : 'pl-4'} ${endAdornment ? 'pr-12' : 'pr-4'} ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-100' : 'border-slate-200 focus:border-yellow-500 focus:ring-yellow-100'} ${className}`}
+            className={`product-input min-h-12 w-full rounded-lg border bg-white text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-4 ${icon ? 'pl-10' : 'pl-4'} ${endAdornment ? 'pr-12' : 'pr-4'} ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-100' : 'border-slate-200 focus:border-yellow-500 focus:ring-yellow-100'} ${className}`}
             {...props}
           />
           {endAdornment && <span className="absolute inset-y-0 right-0 flex items-center pr-3.5">{endAdornment}</span>}
         </div>
-        {error && <p id={`${inputId}-error`} className="break-words text-xs font-medium text-red-600">{error}</p>}
+        {error && <p id={`${inputId}-error`} className="break-words text-sm font-medium text-red-600">{error}</p>}
       </div>
     );
   }

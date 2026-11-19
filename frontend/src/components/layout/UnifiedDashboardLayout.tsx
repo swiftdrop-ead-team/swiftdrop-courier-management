@@ -1,6 +1,7 @@
 import React from "react";
 import { type Location } from "react-router-dom";
 import {
+  BarChart3,
   Bell,
   Building2,
   Clock,
@@ -40,6 +41,7 @@ function buildNavigation(role: string, base: string): NavSection[] {
           heading: "ADMINISTRATION",
           items: [
             { tab: "overview", label: "Admin Overview", icon: LayoutDashboard, path: `${base}/overview` },
+            { tab: "analytics", label: "Analytics", icon: BarChart3, path: `${base}/analytics` },
             { tab: "merchants", label: "Merchant Approvals", icon: Clock, path: `${base}/merchants` },
             { tab: "users", label: "User Management", icon: Users, path: `${base}/users` },
             { tab: "activity", label: "Review Activity", icon: FileSpreadsheet, path: `${base}/activity` },
@@ -58,6 +60,7 @@ function buildNavigation(role: string, base: string): NavSection[] {
           heading: "BUSINESS",
           items: [
             { tab: "overview", label: "Overview", icon: LayoutDashboard, path: `${base}/overview` },
+            { tab: "analytics", label: "Analytics", icon: BarChart3, path: `${base}/analytics` },
             { tab: "reports", label: "Reports & COD", icon: FileSpreadsheet, path: `${base}/reports` },
           ],
         },
@@ -86,6 +89,7 @@ function buildNavigation(role: string, base: string): NavSection[] {
           heading: "DISPATCH CONSOLE",
           items: [
             { tab: "overview", label: "Overview", icon: LayoutDashboard, path: `${base}/overview` },
+            { tab: "analytics", label: "Analytics", icon: BarChart3, path: `${base}/analytics` },
             { tab: "deliveries", label: "Assigned Deliveries", icon: Truck, path: `${base}/deliveries` },
             { tab: "route", label: "Active Route", icon: MapPin, path: `${base}/route` },
             { tab: "history", label: "Delivery History", icon: Clock, path: `${base}/history` },
