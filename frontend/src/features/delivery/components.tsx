@@ -103,7 +103,8 @@ export function Field({
         id={fieldId}
         SelectProps={{
           ...SelectProps,
-          ...(props.select ? { labelId: `${fieldId}-label` } : {}),
+          labelId: `${fieldId}-label`,
+          displayEmpty: true,
         }}
         helperText={helperText}
         InputProps={InputProps}
@@ -111,6 +112,7 @@ export function Field({
           {
             "& .MuiInputBase-root": { minHeight: 44 },
             "& input": { py: 1.25 },
+            "& .MuiSelect-icon": { display: "block", color: "#00274c" },
           },
           ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
         ]}
@@ -165,26 +167,14 @@ export function Panel({
   title,
   children,
   subtitle,
+  actions,
 }: {
   title: string;
   children: React.ReactNode;
   subtitle?: string;
+  actions?: React.ReactNode;
 }) {
-  return (
-    <Card sx={{
-      p: { xs: 2.5, md: 3 },
-      minWidth: 0,
-      height: "100%",
-      gap: 1,
-      overflow: "hidden",
-      borderRadius: "12px",
-      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)",
-      border: "1px solid rgba(0, 0, 0, 0.06)",
-      transition: "box-shadow 200ms ease",
-      "&:hover": {
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)",
-      },
-    }}>
+  const heading = <>
       <SoftTypography component="h2" variant="h6" fontWeight="bold" mb={0.5} sx={{
         fontSize: "1.05rem",
         letterSpacing: "-0.01em",
@@ -192,13 +182,37 @@ export function Panel({
         {title}
       </SoftTypography>
       {subtitle && (
-        <Typography variant="body2" color="text.secondary" mb={2.5} sx={{
+        <Typography variant="body2" color="text.secondary" mb={actions ? 0 : 2.5} sx={{
           fontSize: "0.82rem",
           lineHeight: 1.5,
         }}>
           {subtitle}
         </Typography>
       )}
+  </>;
+  return (
+    <Card sx={{
+      p: { xs: 2.5, md: 3 },
+      minWidth: 0,
+      height: "100%",
+      gap: 1,
+      overflow: "hidden",
+      borderRadius: "1rem",
+      boxShadow: "0 20px 27px 0 rgba(0, 0, 0, 0.05)",
+      border: "1px solid rgba(0, 0, 0, 0.04)",
+      background: "#ffffff",
+      transition: "box-shadow 200ms ease, transform 200ms ease",
+      "&:hover": {
+        boxShadow: "0 8px 24px rgba(0, 39, 76, 0.08), 0 2px 6px rgba(0, 39, 76, 0.04)",
+        transform: "translateY(-2px)",
+      },
+    }}>
+      {actions ? (
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2, mb: 2.5 }}>
+          <Box sx={{ flex: "1 1 240px", minWidth: 0 }}>{heading}</Box>
+          {actions}
+        </Box>
+      ) : <Box sx={{ mb: 2.5 }}>{heading}</Box>}
       {children}
     </Card>
   );
@@ -210,6 +224,7 @@ export function Empty({
 }) {
   return (
     <Typography
+      className="workspace-empty"
       variant="body2"
       color="text.secondary"
       sx={{ py: 4, textAlign: "center" }}

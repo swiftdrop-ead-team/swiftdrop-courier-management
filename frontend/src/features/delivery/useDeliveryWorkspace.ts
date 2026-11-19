@@ -75,6 +75,7 @@ export function useDeliveryWorkspace(
         "deliveries",
         "dispatch",
         "reports",
+        "analytics",
         "history",
         "route",
         "shipments",
@@ -84,10 +85,12 @@ export function useDeliveryWorkspace(
       jobs.push([
         "parcels",
         () =>
-          deliveryApi.parcels(
-            role === "ADMIN" ? "all" : role === "COURIER" ? "assigned" : "mine",
-            request.signal,
-          ),
+          role === "ADMIN" && tab === "dispatch"
+            ? deliveryApi.unassignedParcels(request.signal)
+            : deliveryApi.parcels(
+                role === "ADMIN" ? "all" : role === "COURIER" ? "assigned" : "mine",
+                request.signal,
+              ),
       ]);
     if (["profile", "settings", "send", "create-shipment"].includes(tab)) {
       jobs.push(["profile", () => deliveryApi.profile(request.signal)]);

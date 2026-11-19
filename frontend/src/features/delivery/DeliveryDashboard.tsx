@@ -29,88 +29,18 @@ import { day, money, terminal } from "./model";
 import { previewStorageError, resetPreview, updatePreview } from "./preview";
 import { deliveryApi } from "./service";
 import { useDeliveryWorkspace, type Workspace } from "./useDeliveryWorkspace";
-import { BookingForm } from "./BookingForm";
-import { Dispatch, ParcelList } from "./ParcelViews";
-import { LivePricing } from "./LivePricing";
-import { Pricing, Reports, UserAdministration } from "./AdminOperations";
-import { Account, MerchantIntegration, Notifications } from "./AccountViews";
-import { BulkOrders } from "./BulkOrders";
-import { TrackingView } from "./TrackingView";
-import { MerchantOverview, MerchantReports } from "./MerchantWorkspace";
+import SoftBadge from "components/SoftBadge";
+import { WorkspaceHeader } from "@/components/ui/WorkspaceHeader";
+import { AdminWorkspaceHeader, type AdminPage } from "@/pages/admin/AdminWorkspaceUI";
+import { adminTabs } from "@/pages/admin/tabs";
+import { courierTabs, courierHeadings } from "@/pages/courier/tabs";
+import { customerTabs, customerHeadings } from "@/pages/customer/tabs";
+import { merchantTabs, merchantHeadings } from "@/pages/merchant/tabs";
+import { MerchantOverview } from "@/pages/merchant/tabs/Overview";
 import { Metrics, Panel, Status } from "./components";
 
-const headings: Record<string, [string, string]> = {
-  overview: [
-    "Your deliveries, connected.",
-    "A clear view of your next pickup and every delivery in progress.",
-  ],
-  send: ["Send a parcel", "Get an estimate and confirm your delivery."],
-  "create-shipment": ["Send a parcel", "Create an order for your business."],
-  shipments: ["My shipments", "All your orders and their delivery states."],
-  deliveries: [
-    "Deliveries",
-    "Review assignments and update delivery progress.",
-  ],
-  route: ["Active route", "Your pickups and deliveries for the day."],
-  history: ["Delivery history", "Review deliveries and download receipts."],
-  track: [
-    "Track a shipment",
-    "Follow your parcel through each delivery stage.",
-  ],
-  tracking: [
-    "Track a parcel",
-    "Follow delivery progress using a tracking number.",
-  ],
-  dispatch: [
-    "Dispatch workspace",
-    "Assign parcels and monitor courier workloads.",
-  ],
-  pricing: ["Delivery pricing", "Manage service rates for new bookings."],
-  reports: ["Delivery reports", "Understand delivery volumes and outcomes."],
-  profile: ["Your profile", "Manage contact details and delivery preferences."],
-  settings: [
-    "Account settings",
-    "Your profile, preferences, and saved addresses.",
-  ],
-  api: ["Store connections", "Optional: automate orders and delivery updates with API keys and webhooks."],
-  notifications: ["Notifications", "Keep track of important delivery updates."],
-  "bulk-upload": [
-    "Upload orders",
-    "Validate a CSV and create multiple delivery requests.",
-  ],
-  access: ["User access", "Manage account status and roles."],
-};
-const roleTabs: Record<UserRole, string[]> = {
-  CUSTOMER: [
-    "overview",
-    "send",
-    "track",
-    "history",
-    "settings",
-    "notifications",
-  ],
-  MERCHANT: [
-    "overview",
-    "shipments",
-    "create-shipment",
-    "bulk-upload",
-    "tracking",
-    "history",
-    "profile",
-    "reports",
-    "api",
-    "notifications",
-  ],
-  COURIER: [
-    "overview",
-    "deliveries",
-    "route",
-    "history",
-    "profile",
-    "notifications",
-  ],
-  ADMIN: ["dispatch", "deliveries", "pricing", "reports", "access", "profile"],
-};
+const roleHeadings = { MERCHANT: merchantHeadings, COURIER: courierHeadings, CUSTOMER: customerHeadings };
+const tabViews = { ADMIN: adminTabs, CUSTOMER: customerTabs, COURIER: courierTabs, MERCHANT: merchantTabs };
 function Overview({
   workspace: w,
   base,
@@ -355,7 +285,7 @@ export function DeliveryDashboard({
         : `/${role.toLowerCase()}/dashboard`;
   const requestedTab =
     role === "MERCHANT" && tab === "settings" ? "profile" : tab;
-  const active = roleTabs[role].includes(requestedTab)
+  const active = (role !== "ADMIN" && requestedTab === "overview") || Object.prototype.hasOwnProperty.call(tabViews[role], requestedTab)
     ? requestedTab
     : role === "ADMIN"
       ? "dispatch"
@@ -371,65 +301,42 @@ export function DeliveryDashboard({
       navigate(`${base}/profile`, { replace: true });
   }, [base, navigate, role, tab]);
   const content = () => {
-    switch (active) {
-      case "overview":
-        return role === "MERCHANT" ? <MerchantOverview workspace={w} base={base} /> : <Overview workspace={w} base={base} />;
-      case "send":
-      case "create-shipment":
-        return (
-          <BookingForm
-            workspace={w}
-            onBooked={(tracking) => {
-              setBooked(tracking);
-              navigate(
-                `${base}/${role === "MERCHANT" ? "shipments" : "history"}`,
-              );
-            }}
-          />
-        );
-      case "shipments":
-      case "deliveries":
-        return <ParcelList workspace={w} />;
-      case "history":
-        return (
-          <ParcelList
-            workspace={w}
-            history={role === "COURIER" || role === "MERCHANT"}
-          />
-        );
-      case "route":
-        return <ParcelList workspace={w} route />;
-      case "track":
-      case "tracking":
-        return (
-          <TrackingView
-            preview={previewMode}
-            initialNumber={params.get("number") || ""}
-          />
-        );
-      case "dispatch":
-        return <Dispatch workspace={w} />;
-      case "pricing":
-        return previewMode ? <Pricing workspace={w} /> : <LivePricing />;
-      case "reports":
-        return role === "MERCHANT" ? <MerchantReports workspace={w} /> : <Reports workspace={w} />;
-      case "access":
-        return <UserAdministration preview={previewMode} />;
-      case "profile":
-      case "settings":
-        return <Account workspace={w} />;
-      case "api":
-        return <MerchantIntegration workspace={w} />;
-      case "notifications":
-        return <Notifications workspace={w} />;
-      case "bulk-upload":
-        return <BulkOrders workspace={w} />;
-      default:
-        return null;
-    }
+    if (active === "overview")
+      return role === "MERCHANT" ? <MerchantOverview workspace={w} base={base} /> : <Overview workspace={w} base={base} />;
+    return tabViews[role][active]({
+      workspace: w,
+      trackingNumber: params.get("number") || "",
+      onBooked(tracking) {
+        setBooked(tracking);
+        navigate(`${base}/${role === "MERCHANT" ? "shipments" : "history"}`);
+      },
+    });
   };
+  const approvedMerchant = role === "MERCHANT" && (previewMode || w.user?.merchantApprovalStatus === "APPROVED");
+  const refreshAction = (
+    <SoftButton
+      variant="outlined"
+      color="dark"
+      disabled={w.loading || w.busy}
+      onClick={() => {
+        if (previewMode) setResetOpen(true);
+        else
+          void (async () => {
+            await w.refresh();
+            if (role === "MERCHANT") await w.refreshAccount();
+          })();
+      }}
+      sx={{
+        borderRadius: "8px",
+        flexShrink: 0,
+      }}
+    >
+      {previewMode ? "Reset shared preview" : "Refresh data"}
+    </SoftButton>
+  );
   return (
     <Box
+      className={active === "overview" ? undefined : role === "ADMIN" ? `workspace-tab admin-workspace admin-page-${active}` : "workspace-tab"}
       sx={{
         "& .MuiCard-root": { minWidth: 0 },
         "& .MuiTypography-root": { overflowWrap: "anywhere" },
@@ -449,51 +356,42 @@ export function DeliveryDashboard({
           {previewStorageError()}
         </Alert>
       )}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: 2,
-          flexWrap: "wrap",
-        }}
-      >
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography component="h1" variant="h4" fontWeight={700} sx={{
-            fontSize: "1.5rem",
-            letterSpacing: "-0.02em",
-            lineHeight: 1.2,
-          }}>
-            {role === "MERCHANT" && active === "overview" ? "Business overview" : role === "MERCHANT" && active === "reports" ? "Reports & COD" : headings[active][0]}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" mt={0.5} sx={{
-            fontSize: "0.88rem",
-            lineHeight: 1.5,
-          }}>
-            {headings[active][1]}
-          </Typography>
-        </Box>
-        <SoftButton
-          variant="outlined"
-          color="dark"
-          disabled={w.loading || w.busy}
-          onClick={() => {
-            if (previewMode) setResetOpen(true);
-            else
-              void (async () => {
-                await w.refresh();
-                if (role === "MERCHANT") await w.refreshAccount();
-              })();
-          }}
+      {role === "ADMIN" ? (
+        <AdminWorkspaceHeader page={active as AdminPage} action={refreshAction} />
+      ) : active !== "overview" ? (
+        <WorkspaceHeader {...roleHeadings[role][active]} action={<Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+          {approvedMerchant && !previewMode && <SoftBadge container size="sm" color="success" badgeContent="Business approved" />}
+          {refreshAction}
+        </Box>} />
+      ) : (
+        <Box
           sx={{
-            borderRadius: "8px",
-            flexShrink: 0,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 2,
+            flexWrap: "wrap",
           }}
         >
-          {previewMode ? "Reset shared preview" : "Refresh data"}
-        </SoftButton>
-      </Box>
-      {role === "MERCHANT" && (
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography component="h1" variant="h4" fontWeight={700} sx={{
+              fontSize: "1.5rem",
+              letterSpacing: "-0.02em",
+              lineHeight: 1.2,
+            }}>
+              {role === "MERCHANT" ? "Business overview" : "Your deliveries, connected."}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mt={0.5} sx={{
+              fontSize: "0.88rem",
+              lineHeight: 1.5,
+            }}>
+              A clear view of your next pickup and every delivery in progress.
+            </Typography>
+          </Box>
+          {refreshAction}
+        </Box>
+      )}
+      {role === "MERCHANT" && (active === "overview" || previewMode || !approvedMerchant) && (
         <Alert
           severity={
             previewMode || w.user?.merchantApprovalStatus === "APPROVED"
@@ -587,7 +485,7 @@ export function AdminWorkspace({
   previewMode?: boolean;
 }) {
   const { tab } = useParams();
-  return roleTabs.ADMIN.includes(tab || "") ? (
+  return Object.prototype.hasOwnProperty.call(adminTabs, tab || "") ? (
     <DeliveryDashboard role="ADMIN" previewMode={previewMode} />
   ) : (
     <AdminDashboard previewMode={previewMode} />

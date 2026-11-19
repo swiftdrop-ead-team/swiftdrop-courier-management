@@ -1,4 +1,5 @@
-import { WorkspaceText as Typography } from "./components";
+import { MapPin, Package, UserRound } from "lucide-react";
+import { WorkspaceText as Typography } from "@/features/delivery/components";
 import React, { useState } from "react";
 import {
   Alert,
@@ -8,20 +9,19 @@ import {
   Grid,
   MenuItem,
 } from "@mui/material";
-import { ActionButton as SoftButton } from "./components";
+import { ActionButton as SoftButton } from "@/features/delivery/components";
 import {
   bookingSchema,
-  day,
   emptyBooking,
   money,
   time,
   type Booking,
   type Quote,
-} from "./model";
-import { previewBook, previewQuote } from "./preview";
-import { deliveryApi, errorMessage } from "./service";
-import type { Workspace } from "./useDeliveryWorkspace";
-import { Field, Panel } from "./components";
+} from "@/features/delivery/model";
+import { previewBook, previewQuote } from "@/features/delivery/preview";
+import { deliveryApi, errorMessage } from "@/features/delivery/service";
+import type { Workspace } from "@/features/delivery/useDeliveryWorkspace";
+import { Field, Panel } from "@/features/delivery/components";
 
 export function BookingForm({
   workspace: w,
@@ -143,7 +143,7 @@ export function BookingForm({
   );
   return (
     <Panel
-      title="Book a delivery"
+      title="Delivery details"
       subtitle="Enter parcel details, check your fee, then confirm your pickup."
     >
       {w.role === "MERCHANT" &&
@@ -156,15 +156,14 @@ export function BookingForm({
         )}
       {!w.preview && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          Live booking currently supports today's pickup without cash
-          collection. The fee is returned in the backend's currency.
+          Pickup is available today. Cash collection is unavailable for this booking.
         </Alert>
       )}
       <Box component="form" onSubmit={getQuote} noValidate>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Typography fontWeight={700}>Pickup contact</Typography>
-          </Grid>
+        <Box className="booking-sections">
+          <Box component="fieldset">
+            <Typography component="legend" variant="h6"><MapPin size={18} aria-hidden="true" />Pickup contact</Typography>
+            <Grid container spacing={1.5}>
           <Grid item xs={12} sm={6}>
             {text("senderName", "Sender name")}
           </Grid>
@@ -191,9 +190,11 @@ export function BookingForm({
               </Field>
             )}
           </Grid>
-          <Grid item xs={12}>
-            <Typography fontWeight={700}>Recipient</Typography>
-          </Grid>
+            </Grid>
+          </Box>
+          <Box component="fieldset">
+            <Typography component="legend" variant="h6"><UserRound size={18} aria-hidden="true" />Recipient</Typography>
+            <Grid container spacing={1.5}>
           <Grid item xs={12} sm={6}>
             {text("recipientName", "Recipient name")}
           </Grid>
@@ -203,6 +204,11 @@ export function BookingForm({
           <Grid item xs={12}>
             {text("dropoffAddress", "Drop-off address")}
           </Grid>
+            </Grid>
+          </Box>
+          <Box component="fieldset">
+            <Typography component="legend" variant="h6"><Package size={18} aria-hidden="true" />Parcel and service</Typography>
+            <Grid container spacing={1.5}>
           <Grid item xs={12} sm={6}>
             {!w.preview ? (
               <Field
@@ -272,6 +278,8 @@ export function BookingForm({
             {text("instructions", "Delivery instructions (optional)")}
           </Grid>
         </Grid>
+          </Box>
+        </Box>
         {failure && (
           <Alert severity="error" sx={{ mt: 2 }}>
             {failure}

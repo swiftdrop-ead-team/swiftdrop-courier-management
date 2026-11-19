@@ -60,6 +60,7 @@ interface BackendCourier {
   fullName: string;
   status: string;
   maxActiveDeliveries: number;
+  currentActiveDeliveries: number;
   availableForAssignment: boolean;
 }
 interface Assignment {
@@ -214,6 +215,14 @@ async function merchantHooks(signal?: AbortSignal): Promise<MerchantHook[]> {
 }
 
 export const deliveryApi = {
+  unassignedParcels: async (signal?: AbortSignal): Promise<ParcelRecord[]> => {
+    const [parcels, assignments] = await Promise.all([
+      pages("/parcels", signal),
+      api.get<Envelope<Assignment[]>>("/dispatch/assignments", { signal }),
+    ]);
+    const assigned = new Set(unwrap(assignments.data).map((a) => a.parcelId));
+    return parcels.filter((p) => p.status === "CREATED" && !p.assignedCourierId && !assigned.has(p.id)).map(mapParcel);
+  },
   registerCourier: async (
     userId: string,
     fullName: string,
@@ -387,15 +396,17 @@ export const deliveryApi = {
             ).data,
           ),
         ];
-    return records
-      .filter((c) => /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(c.userId))
-      .map((c) => ({
-        id: c.userId,
-        dispatchId: String(c.id),
-        name: c.fullName,
-        available: c.status !== "OFFLINE",
-        capacity: c.maxActiveDeliveries,
-      }));
+    return records.map((c) => ({
+      id: c.userId,
+      // Parcel sync requires an identity UUID. Legacy fleet profiles can still show workload.
+      accountLinked: /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(c.userId),
+      dispatchId: String(c.id),
+      name: c.fullName,
+      available: c.status !== "OFFLINE",
+      capacity: c.maxActiveDeliveries,
+      activeDeliveries: c.currentActiveDeliveries,
+      availableForAssignment: c.availableForAssignment,
+    }));
   },
   availability: async (available: boolean) => {
     const user = await authService.getCurrentUser();

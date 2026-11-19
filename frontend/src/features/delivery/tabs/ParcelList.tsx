@@ -1,5 +1,10 @@
-import { WorkspaceText as Typography } from "./components";
-import React, { useEffect, useState } from "react";
+import { AdminPagination } from "@/pages/admin/AdminPagination";
+import { RouteStops } from "@/pages/courier/tabs/RouteStops";
+import { WorkspacePagination } from "@/components/ui/WorkspacePagination";
+import SoftTypography from "components/SoftTypography";
+import { WorkspaceText as Typography } from "@/features/delivery/components";
+import Table from "examples/Tables/Table";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Box,
@@ -10,15 +15,8 @@ import {
   DialogTitle,
   FormControlLabel,
   Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
 } from "@mui/material";
-import { ActionButton as SoftButton } from "./components";
+import { ActionButton as SoftButton } from "@/features/delivery/components";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   day,
@@ -31,12 +29,10 @@ import {
   time,
   type ParcelRecord,
   type ParcelStatus,
-} from "./model";
-import { previewStatus, updatePreview } from "./preview";
-import { deliveryApi } from "./service";
-import { adminService } from "../../services/authService";
-import type { User } from "../../types/auth";
-import type { Workspace } from "./useDeliveryWorkspace";
+} from "@/features/delivery/model";
+import { previewStatus } from "@/features/delivery/preview";
+import { deliveryApi } from "@/features/delivery/service";
+import type { Workspace } from "@/features/delivery/useDeliveryWorkspace";
 import {
   downloadReceipt,
   Empty,
@@ -46,7 +42,7 @@ import {
   SelectField,
   Status,
   TrackingTimeline,
-} from "./components";
+} from "@/features/delivery/components";
 
 export function ParcelList({
   workspace: w,
@@ -57,10 +53,13 @@ export function ParcelList({
   history?: boolean;
   route?: boolean;
 }) {
+  const Pagination = w.role === "ADMIN" ? AdminPagination : WorkspacePagination;
   const [params] = useSearchParams();
   const searchQuery = params.get("q") || "";
   const [query, setQuery] = useState(searchQuery);
-  const statusQuery = statuses.includes(params.get("status") as ParcelStatus) ? params.get("status")! : "ALL";
+  const statusQuery = statuses.includes(params.get("status") as ParcelStatus)
+    ? params.get("status")!
+    : "ALL";
   const [status, setStatus] = useState(statusQuery);
   const [date, setDate] = useState(
     w.role === "COURIER" && !history ? day() : "",
@@ -138,14 +137,24 @@ export function ParcelList({
   };
   return (
     <Panel
+      actions={
+        <SoftButton
+            variant="outlined"
+            color="dark"
+            disabled={!list.length}
+            onClick={() => exportParcels(list)}
+          >
+            Export CSV
+          </SoftButton>
+      }
       title={
         route
-          ? "Your active route"
+          ? "Pickup and drop-off stops"
           : history
-            ? "Delivery history"
+            ? "Completed shipments"
             : w.role === "COURIER"
               ? "Assigned deliveries"
-              : "Your shipments"
+              : w.role === "ADMIN" ? "Shipment register" : "Your shipments"
       }
       subtitle={
         route
@@ -153,10 +162,12 @@ export function ParcelList({
           : "Search, filter, inspect delivery details, and download receipts."
       }
     >
-      <Grid container spacing={2} alignItems="center">
-        <Grid item xs={12} md={4}>
+      <Box sx={{ bgcolor: "#f7f9fc", border: "1px solid #e5eaf0", borderRadius: 2, px: 2, py: 0.5, mt: 1 }}>
+      <Grid container spacing={1.5} alignItems="flex-end">
+        <Grid item xs={12} md={6}>
           <Field
             label="Search deliveries"
+            placeholder="Tracking number, recipient or address"
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -164,7 +175,7 @@ export function ParcelList({
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={5} md={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <SelectField
             label="Delivery status"
             value={status}
@@ -178,7 +189,7 @@ export function ParcelList({
             ]}
           />
         </Grid>
-        <Grid item xs={12} sm={5} md={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <Field
             type="date"
             label={
@@ -193,94 +204,79 @@ export function ParcelList({
             }}
           />
         </Grid>
-        <Grid item xs={12} md={2}>
-          <SoftButton
-            variant="outlined"
-            color="dark"
-            disabled={!list.length}
-            onClick={() => exportParcels(list)}
-          >
-            Export CSV
-          </SoftButton>
-        </Grid>
+
       </Grid>
-      <TableContainer sx={{ mt: 2 }}>
-        <Table aria-label="Deliveries">
-          <TableHead>
-            <TableRow>
-              {[
-                "Tracking number",
-                "Recipient / destination",
-                "Status",
-                "Fee",
-                "Action",
-              ].map((label) => (
-                <TableCell key={label}>{label}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {list
-              .slice(currentPage * rows, (currentPage + 1) * rows)
-              .map((parcel) => (
-                <TableRow key={parcel.id}>
-                  <TableCell>
-                    <Typography variant="body2" fontWeight={700}>
-                      {parcel.trackingNumber}
-                    </Typography>
-                    <Typography variant="caption">
-                      {time(parcel.createdAt)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {parcel.recipientName}
-                    </Typography>
-                    <Typography variant="caption">
-                      {parcel.dropoffAddress}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Status value={parcel.status} />
-                  </TableCell>
-                  <TableCell>{money(parcel.amount, parcel.currency)}</TableCell>
-                  <TableCell>
-                    <SoftButton
-                      variant="text"
-                      color="dark"
-                      onClick={() => open(parcel)}
-                      aria-label={`View ${parcel.trackingNumber}`}
-                    >
-                      View details
-                    </SoftButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      </Box>
+      {route && list.length > 0 ? (
+        <RouteStops parcels={list.slice(currentPage * rows, (currentPage + 1) * rows)} onOpen={open} />
+      ) : list.length > 0 && <Box mt={1} sx={{ minWidth: 0, "& thead": { bgcolor: "#f7f9fc" }, "& tbody tr:hover": { bgcolor: "#fafbfd" } }}>
+        <Table
+          aria-label="Deliveries"
+          columns={[
+            "Tracking number",
+            "Recipient / destination",
+            "Status",
+            "Fee",
+            "Action",
+          ].map((name) => ({ name, align: "left" }))}
+          rows={list
+            .slice(currentPage * rows, (currentPage + 1) * rows)
+            .map((parcel) => ({
+              id: parcel.id,
+              hasBorder: true,
+              "Tracking number": (
+                <>
+                  <Typography
+                    component="span"
+                    display="block"
+                    variant="button"
+                    fontWeight={700}
+                  >
+                    {parcel.trackingNumber}
+                  </Typography>
+                  <Typography component="span" variant="caption">
+                    {time(parcel.createdAt)}
+                  </Typography>
+                </>
+              ),
+              "Recipient / destination": (
+                <>
+                  <Typography component="span" display="block" variant="button">
+                    {parcel.recipientName}
+                  </Typography>
+                  <Typography component="span" variant="caption">
+                    {parcel.dropoffAddress}
+                  </Typography>
+                </>
+              ),
+              Status: <Status value={parcel.status} />,
+              Fee: money(parcel.amount, parcel.currency),
+              Action: (
+                <SoftButton
+                  variant="text"
+                  color="dark"
+                  onClick={() => open(parcel)}
+                  aria-label={`View ${parcel.trackingNumber}`}
+                >
+                  View details
+                </SoftButton>
+              ),
+            }))}
+        />
+      </Box>}
       {!list.length && (
         <Empty
           text={
             w.errors.parcels
               ? "Delivery records could not be loaded. Use Refresh data to retry."
-              : "No deliveries match. Clear the filters or create a booking."
+              : w.role === "COURIER"
+                ? "No assignments match these filters. Choose another date or clear your filters."
+                : "No deliveries match. Clear the filters or create a booking."
           }
         />
       )}
-      <TablePagination
-        component="div"
-        count={list.length}
-        page={currentPage}
-        rowsPerPage={rows}
-        rowsPerPageOptions={[5, 10, 25]}
-        onPageChange={(_, value) => setPage(value)}
-        onRowsPerPageChange={(event) => {
-          setRows(Number(event.target.value));
-          setPage(0);
-        }}
-        sx={{ "& .MuiTablePagination-toolbar": { flexWrap: "wrap" } }}
-      />
+      {list.length > 0 && <Pagination count={list.length} page={currentPage} pageSize={rows}
+        onPageChange={setPage} onPageSizeChange={setRows} />}
       <Dialog
         open={Boolean(selected)}
         onClose={() => {
@@ -291,7 +287,9 @@ export function ParcelList({
         aria-labelledby="parcel-details-title"
       >
         <DialogTitle id="parcel-details-title">
-          Delivery {selected?.trackingNumber}
+          <SoftTypography component="span" variant="h5" fontWeight="bold">
+            Delivery {selected?.trackingNumber}
+          </SoftTypography>
         </DialogTitle>
         {selected && (
           <DialogContent>
@@ -498,257 +496,5 @@ export function ParcelList({
         </DialogActions>
       </Dialog>
     </Panel>
-  );
-}
-
-export function Dispatch({ workspace: w }: { workspace: Workspace }) {
-  const [accounts, setAccounts] = useState<User[]>([]);
-  const [accountId, setAccountId] = useState("");
-  const [capacity, setCapacity] = useState(10);
-  useEffect(() => {
-    if (w.preview) return;
-    let active = true;
-    adminService
-      .getAllUsers()
-      .then((users) => {
-        if (active)
-          setAccounts(users.filter((u) => u.roles.includes("COURIER")));
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [w.preview]);
-  const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState("");
-  const [courierId, setCourierId] = useState("");
-  const [date, setDate] = useState(day());
-  const unassigned = w.parcels.filter(
-    (p) =>
-      p.status === "CREATED" &&
-      !p.courierId &&
-      `${p.trackingNumber} ${p.dropoffAddress}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-  );
-  const assign = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!selected || !courierId || date < day()) return;
-    const ok = await w.act(async () => {
-      if (!w.preview) return deliveryApi.assign(selected, courierId, date);
-      updatePreview((draft) => {
-        const parcel = draft.parcels.find((p) => p.id === selected);
-        const courier = draft.couriers.find((c) => c.id === courierId);
-        if (!parcel || parcel.courierId || parcel.status !== "CREATED")
-          throw new Error("This parcel is no longer available for assignment.");
-        const workload = draft.parcels.filter(
-          (p) => p.courierId === courierId && !terminal(p.status),
-        ).length;
-        if (!courier?.available || workload >= courier.capacity)
-          throw new Error(
-            "This courier is unavailable or has reached capacity.",
-          );
-        parcel.courierId = courierId;
-        parcel.assignedDate = date;
-      });
-    }, "Courier assigned. The delivery is now visible in the courier workspace.");
-    if (ok) {
-      setSelected("");
-      setCourierId("");
-    }
-  };
-  return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} lg={8}>
-        <Panel
-          title="Unassigned parcels"
-          subtitle="Choose a delivery and assign an available courier."
-        >
-          <Field
-            label="Search unassigned parcels"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-          {unassigned.map((parcel) => (
-            <Box
-              key={parcel.id}
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 2,
-                py: 2,
-                borderBottom: "1px solid #e2e8f0",
-              }}
-            >
-              <Box>
-                <Typography fontWeight={700}>
-                  {parcel.trackingNumber}
-                </Typography>
-                <Typography variant="body2">
-                  {parcel.pickupAddress} → {parcel.dropoffAddress}
-                </Typography>
-                <Typography variant="caption">
-                  {parcel.weight} kg · {parcel.pickupDate}
-                </Typography>
-              </Box>
-              <SoftButton
-                variant={selected === parcel.id ? "gradient" : "outlined"}
-                color={selected === parcel.id ? "primary" : "dark"}
-                onClick={() => setSelected(parcel.id)}
-              >
-                Select
-              </SoftButton>
-            </Box>
-          ))}
-          {!unassigned.length && (
-            <Empty text="No unassigned parcels match your search." />
-          )}
-          <Box component="form" onSubmit={assign} sx={{ mt: 3 }}>
-            <Typography fontWeight={700}>
-              Assign{" "}
-              {w.parcels.find((p) => p.id === selected)?.trackingNumber ||
-                "a selected parcel"}
-            </Typography>
-            <SelectField
-              label="Available courier"
-              value={courierId}
-              onChange={setCourierId}
-              options={[
-                { value: "", label: "Choose a courier" },
-                ...w.couriers
-                  .filter(
-                    (c) =>
-                      c.available &&
-                      w.parcels.filter(
-                        (p) => p.courierId === c.id && !terminal(p.status),
-                      ).length < c.capacity,
-                  )
-                  .map((c) => ({ value: c.id, label: c.name })),
-              ]}
-            />
-            <Field
-              type="date"
-              label="Assignment date"
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              inputProps={{ min: day(), max: w.preview ? undefined : day() }}
-              required
-            />
-            <SoftButton
-              type="submit"
-              variant="gradient"
-              color="primary"
-              disabled={w.busy || !selected || !courierId || date < day()}
-              sx={{ mt: 2 }}
-            >
-              Confirm assignment
-            </SoftButton>
-          </Box>
-        </Panel>
-      </Grid>
-      <Grid item xs={12} lg={4}>
-        <Panel
-          title="Courier workloads"
-          subtitle="Active deliveries across all assignment dates."
-        >
-          {w.couriers.map((courier) => {
-            const count = w.parcels.filter(
-              (p) => p.courierId === courier.id && !terminal(p.status),
-            ).length;
-            return (
-              <Box
-                key={courier.id}
-                sx={{ py: 2, borderBottom: "1px solid #e2e8f0" }}
-              >
-                <Typography fontWeight={700}>{courier.name}</Typography>
-                <Typography variant="body2">
-                  {courier.available ? "Available" : "Offline"} · {count} /{" "}
-                  {courier.capacity} deliveries
-                </Typography>
-                <Box
-                  role="progressbar"
-                  aria-label={`${courier.name} workload`}
-                  aria-valuenow={count}
-                  aria-valuemin={0}
-                  aria-valuemax={courier.capacity}
-                  sx={{
-                    mt: 1,
-                    bgcolor: "#e2e8f0",
-                    borderRadius: 2,
-                    overflow: "hidden",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: `${Math.min(100, (count / courier.capacity) * 100)}%`,
-                      height: 7,
-                      bgcolor:
-                        count >= courier.capacity ? "#ea0606" : "#ffcb05",
-                    }}
-                  />
-                </Box>
-              </Box>
-            );
-          })}
-          {!w.couriers.length && <Empty text="No couriers are available." />}
-          {!w.preview && (
-            <Box
-              component="form"
-              sx={{ mt: 3 }}
-              onSubmit={async (event) => {
-                event.preventDefault();
-                const user = accounts.find((u) => u.id === accountId);
-                if (!user || !Number.isInteger(capacity) || capacity < 1)
-                  return;
-                if (
-                  await w.act(
-                    () =>
-                      deliveryApi.registerCourier(
-                        user.id,
-                        user.fullName,
-                        user.phoneNumber || "",
-                        capacity,
-                        user.email,
-                      ),
-                    "Courier profile registered.",
-                  )
-                )
-                  setAccountId("");
-              }}
-            >
-              <Typography fontWeight={700}>
-                Register a courier profile
-              </Typography>
-              <SelectField
-                label="Courier account"
-                value={accountId}
-                onChange={setAccountId}
-                options={[
-                  { value: "", label: "Choose a courier account" },
-                  ...accounts
-                    .filter((u) => !w.couriers.some((c) => c.id === u.id))
-                    .map((u) => ({ value: u.id, label: u.fullName })),
-                ]}
-              />
-              <Field
-                label="Maximum active deliveries"
-                type="number"
-                value={capacity}
-                onChange={(e) => setCapacity(Number(e.target.value))}
-                inputProps={{ min: 1, max: 100 }}
-              />
-              <SoftButton
-                type="submit"
-                disabled={w.busy || !accountId || capacity < 1}
-                variant="outlined"
-                color="dark"
-              >
-                Register courier
-              </SoftButton>
-            </Box>
-          )}
-        </Panel>
-      </Grid>
-    </Grid>
   );
 }

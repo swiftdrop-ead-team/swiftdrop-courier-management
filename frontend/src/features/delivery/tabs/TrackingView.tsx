@@ -1,22 +1,28 @@
+import "@/components/ui/workspace.css";
 import React, { useEffect, useState, useSyncExternalStore } from "react";
 import { Alert, Box, LinearProgress, Typography } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "assets/theme";
-import { ActionButton as SoftButton } from "./components";
+import { ActionButton as SoftButton } from "@/features/delivery/components";
 import { useParams, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import axios from "axios";
-import { api } from "../../services/api";
+import { api } from "@/services/api";
 import {
   publicProjection,
   statuses,
   terminal,
   time,
   type PublicTracking,
-} from "./model";
-import { getPreview, subscribePreview } from "./preview";
-import { backendTime, parcelStatus } from "./service";
-import { Field, Panel, Status, TrackingTimeline } from "./components";
+} from "@/features/delivery/model";
+import { getPreview, subscribePreview } from "@/features/delivery/preview";
+import { backendTime, parcelStatus } from "@/features/delivery/service";
+import {
+  Field,
+  Panel,
+  Status,
+  TrackingTimeline,
+} from "@/features/delivery/components";
 
 const trackingSchema = z.object({
   trackingNumber: z.string(),
@@ -231,7 +237,7 @@ export function TrackingView({
       <Box
         component="form"
         onSubmit={submit}
-        sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}
+        sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "flex-end" }}
       >
         <Box sx={{ flex: "1 1 240px" }}>
           <Field
@@ -247,6 +253,7 @@ export function TrackingView({
         </Box>
         <SoftButton
           type="submit"
+          sx={{ alignSelf: "flex-end", mb: 1, minHeight: 44 }}
           variant="gradient"
           color="primary"
           disabled={loading}
@@ -295,6 +302,7 @@ export function PublicTrackingPage({ preview = false }: { preview?: boolean }) {
     <ThemeProvider theme={theme}>
       <Box
         component="main"
+        className="workspace-tab"
         sx={{ maxWidth: 820, mx: "auto", px: { xs: 2, md: 4 }, py: 6 }}
       >
         <Typography variant="h3" fontWeight={700} mb={3} color="#00274c">
