@@ -100,6 +100,9 @@ export interface ParcelRecord extends Booking {
 }
 export interface Courier {
   dispatchId?: string;
+  accountLinked?: boolean;
+  activeDeliveries?: number;
+  availableForAssignment?: boolean;
   id: string;
   name: string;
   available: boolean;

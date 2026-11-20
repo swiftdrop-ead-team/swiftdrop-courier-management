@@ -133,13 +133,19 @@
   color: var(--color-text-muted);
 }
 
-/* High-contrast crisp white cards on middle-gray */
+/* High-contrast crisp white cards on middle-gray — Soft UI */
 .soft-ui-dashboard .bg-white,
 .soft-card {
   background: #ffffff;
-  border: 1px solid rgba(0, 39, 76, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: 1rem;
-  box-shadow: 0 4px 16px rgba(0, 39, 76, 0.05), 0 1px 3px rgba(0, 39, 76, 0.04);
+  box-shadow: 0 20px 27px 0 rgba(0, 0, 0, 0.05);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.soft-ui-dashboard .bg-white:hover,
+.soft-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 39, 76, 0.08), 0 2px 6px rgba(0, 39, 76, 0.04);
+  transform: translateY(-2px);
 }
 
 .soft-ui-dashboard h2,
@@ -296,23 +302,162 @@
 }
 
 .customer-dashboard-shell .MuiCard-root {
-  border: 1px solid rgba(0, 39, 76, 0.06);
-  box-shadow: 0 4px 16px rgba(0, 39, 76, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 27px 0 rgba(0, 0, 0, 0.05);
   border-radius: 1rem;
-  transition: box-shadow 180ms ease, transform 180ms ease;
+  transition: box-shadow 200ms ease, transform 200ms ease;
+  background: #ffffff;
 }
 .customer-dashboard-shell .MuiCard-root:hover {
-  box-shadow: 0 8px 24px rgba(0, 39, 76, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 39, 76, 0.08), 0 2px 6px rgba(0, 39, 76, 0.04);
+  transform: translateY(-2px);
 }
 
 .customer-dashboard-shell .MuiInputBase-root {
   background: #ffffff;
   border-radius: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #e9ecef;
+  transition: all 150ms ease;
 }
 .customer-dashboard-shell .MuiInputBase-root:focus-within {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
   border-color: #2563eb;
+}
+
+/* ── Global MUI Dialog — Soft UI ── */
+.MuiDialog-paper {
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden;
+}
+.MuiDialogTitle-root {
+  padding: 24px 28px 16px !important;
+  border-bottom: 1px solid #e9ecef !important;
+  background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%) !important;
+}
+.MuiDialogContent-root {
+  padding: 24px 28px !important;
+}
+.MuiDialogActions-root {
+  background: linear-gradient(180deg, #fafbfc 0%, #f5f6f8 100%) !important;
+  border-top: 1px solid #e9ecef !important;
+  padding: 16px 28px !important;
+  gap: 10px !important;
+}
+
+/* ── Global MUI Table — Soft UI ── */
+.MuiTableContainer-root {
+  border-radius: 1rem !important;
+  border: 1px solid #e9ecef !important;
+  box-shadow: 0 20px 27px 0 rgba(0, 0, 0, 0.05) !important;
+  background: #ffffff !important;
+  overflow: hidden;
+  transition: box-shadow 200ms ease !important;
+}
+.MuiTableContainer-root:hover {
+  box-shadow: 0 8px 24px rgba(0, 39, 76, 0.08), 0 2px 6px rgba(0, 39, 76, 0.04) !important;
+}
+.MuiTable-root th,
+.MuiTableHead-root th {
+  background: linear-gradient(180deg, #f8f9fa 0%, #f1f3f5 100%) !important;
+  font-size: 0.65rem !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  color: #67748e !important;
+  padding: 14px 18px !important;
+  border-bottom: 2px solid #e9ecef !important;
+}
+.MuiTable-root td {
+  padding: 14px 18px !important;
+  border-bottom: 1px solid #f0f2f5 !important;
+  vertical-align: middle !important;
+}
+.MuiTableRow-root {
+  transition: all 150ms ease !important;
+}
+.MuiTableRow-root:hover,
+.MuiTableRow-root:focus-within {
+  background: linear-gradient(90deg, #f0f7ff 0%, #f8f9fa 100%) !important;
+}
+
+/* ── Global MUI Pagination — Soft UI ── */
+.MuiPaginationItem-root {
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid #e9ecef !important;
+  background: white !important;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  transition: all 150ms ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+.MuiPaginationItem-root:hover:not(.Mui-selected):not(.Mui-disabled) {
+  background: #f0f7ff !important;
+  border-color: #2563eb !important;
+  color: #2563eb !important;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12) !important;
+  transform: translateY(-1px) !important;
+}
+.MuiPaginationItem-root.Mui-selected {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: white !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
+}
+.MuiPaginationItem-root.Mui-disabled {
+  opacity: 0.4 !important;
+  background: #f8f9fa !important;
+}
+.MuiPaginationItem-ellipsis {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ── Global MUI Buttons — Soft UI ── */
+.MuiButton-root {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-weight: 600 !important;
+  border-radius: 0.75rem !important;
+  padding: 8px 18px !important;
+  transition: all 150ms ease !important;
+}
+.MuiButton-root:hover {
+  box-shadow: 0 4px 12px rgba(0, 39, 76, 0.12) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── Global MUI Input — Soft UI ── */
+.MuiOutlinedInput-root {
+  border-radius: 0.75rem !important;
+  background: #ffffff !important;
+  transition: all 150ms ease !important;
+}
+.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: #e9ecef !important;
+}
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #2563eb !important;
+}
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #2563eb !important;
+  border-width: 2px !important;
+}
+
+/* ── Global MUI Alert — Soft UI ── */
+.MuiAlert-root {
+  border-radius: 0.75rem !important;
+  font-weight: 500 !important;
+  font-size: 0.82rem !important;
 }
 
 .customer-dashboard-shell .MuiBreadcrumbs-root a       { color: var(--color-brand-blue); }

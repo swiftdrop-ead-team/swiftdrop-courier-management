@@ -12,6 +12,10 @@ import java.util.Optional;
  * Provides database operations on the "dispatch_assignments" table.
  */
 public interface DispatchAssignmentRepository extends JpaRepository<DispatchAssignment, Long> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select e from DispatchAssignment e where e.id = :id")
+    Optional<DispatchAssignment> findForUpdate(@org.springframework.data.repository.query.Param("id") Long id);
+
 
     // Retrieves all assignments given to a specific courier
     List<DispatchAssignment> findByCourierId(Long courierId);

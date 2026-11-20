@@ -6,7 +6,7 @@ import { UnifiedDashboardLayout } from '../components/layout/UnifiedDashboardLay
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 import { createAdminPreview } from '../pages/admin/adminData';
 
-const service = vi.hoisted(() => ({ getAllUsers: vi.fn(), getPendingMerchants: vi.fn(), approveMerchant: vi.fn(), rejectMerchant: vi.fn() }));
+const service = vi.hoisted(() => ({ getAllUsers: vi.fn(), getPendingMerchants: vi.fn(), getMerchantReviews: vi.fn(), approveMerchant: vi.fn(), rejectMerchant: vi.fn() }));
 vi.mock('../services/authService', () => ({ adminService: service }));
 vi.mock('../hooks/useAuth', () => ({ useAuth: () => ({ user: { id: 'live-admin', fullName: 'Live Administrator', email: 'admin@example.com', roles: ['ADMIN'], status: 'ACTIVE' } }) }));
 vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() })));
@@ -28,6 +28,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   service.getAllUsers.mockResolvedValue(createAdminPreview().users);
   service.getPendingMerchants.mockResolvedValue(createAdminPreview().merchants);
+  service.getMerchantReviews.mockResolvedValue([]);
   service.approveMerchant.mockResolvedValue({ success: true });
   service.rejectMerchant.mockResolvedValue({ success: true });
 });
@@ -107,11 +108,10 @@ describe('Live administration', () => {
   it('reports a partial load failure while keeping available user records usable', async () => {
     service.getPendingMerchants.mockRejectedValue(new Error('Unavailable'));
     workspace('users', false);
-    expect(await screen.findByText('Merchant applications could not be loaded. Refresh to try again.')).toBeInTheDocument();
-    expect(screen.getByText('Asha Silva')).toBeInTheDocument();
+    expect(await screen.findByText('Asha Silva')).toBeInTheDocument();
     expect(service.getAllUsers).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole('link', { name: 'Merchant Approvals' }));
-    expect(screen.getByText('Review queue unavailable')).toBeInTheDocument();
+    expect(await screen.findByText('Review queue unavailable')).toBeInTheDocument();
     expect(screen.queryByText('No pending applications')).not.toBeInTheDocument();
   });
 
@@ -126,12 +126,14 @@ describe('Live administration', () => {
     expect(await dialog.findByText('Decision could not be saved.')).toBeInTheDocument();
     expect(dialog.getByRole('textbox')).toHaveValue('Business information checked.');
     expect(service.approveMerchant).toHaveBeenCalledWith('demo-application-1', 'Business information checked.');
+    service.getMerchantReviews.mockResolvedValue([{ id: 'review-1', merchant: 'Lanka Craft Studio', decision: 'APPROVED', notes: 'Business information checked.', timestamp: '2026-11-18T10:00:00Z', actor: 'Live Administrator' }]);
     service.getPendingMerchants.mockResolvedValue(createAdminPreview().merchants.slice(1));
     fireEvent.click(dialog.getByRole('button', { name: 'Confirm approval' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.queryByText('Lanka Craft Studio')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('link', { name: 'Review Activity' }));
-    expect(screen.getAllByText('Lanka Craft Studio')).toHaveLength(1);
+    expect(await screen.findByText('Lanka Craft Studio')).toBeInTheDocument();
+    expect(service.getMerchantReviews).toHaveBeenCalledTimes(1);
   });
 
   it('does not submit a decision when the review is cancelled', async () => {

@@ -1,6 +1,7 @@
 package com.swiftdrop.identity.controller;
 
 import com.swiftdrop.identity.dto.MerchantApprovalActionRequest;
+import com.swiftdrop.identity.dto.MerchantReviewResponse;
 import com.swiftdrop.identity.dto.PendingMerchantResponse;
 import com.swiftdrop.identity.dto.UserProfileResponse;
 import com.swiftdrop.identity.security.UserPrincipal;
@@ -40,6 +41,11 @@ public class AdminController {
     @GetMapping("/merchants/pending")
     public ResponseEntity<List<PendingMerchantResponse>> getPendingMerchants() {
         return ResponseEntity.ok(adminService.getPendingMerchants());
+    }
+
+    @GetMapping("/merchants/reviews")
+    public List<MerchantReviewResponse> getMerchantReviews() {
+        return adminService.getMerchantReviews();
     }
 
     @PatchMapping("/merchants/{id}/approve")

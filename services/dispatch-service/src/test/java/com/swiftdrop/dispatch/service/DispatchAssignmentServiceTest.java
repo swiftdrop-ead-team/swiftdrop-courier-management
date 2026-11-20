@@ -260,5 +260,41 @@ class DispatchAssignmentServiceTest {
             .isInstanceOf(InvalidAssignmentException.class);
         verify(proofOfDeliveryRepository, never()).save(any());
     }
+
+    @Test
+    void reassignsBeforePickupAndTransfersCapacity() {
+        availableCourier.setUserId(java.util.UUID.randomUUID().toString());
+        Courier next = Courier.builder().id(4L).userId(java.util.UUID.randomUUID().toString())
+            .fullName("Replacement").status(CourierStatus.AVAILABLE).maxActiveDeliveries(5).currentActiveDeliveries(0).build();
+        sampleAssignment.setStatus(AssignmentStatus.ASSIGNED);
+        sampleAssignment.setCourier(availableCourier);
+        when(assignmentRepository.findForUpdate(100L)).thenReturn(Optional.of(sampleAssignment));
+        when(courierRepository.findForUpdate(1L)).thenReturn(Optional.of(availableCourier));
+        when(courierRepository.findForUpdate(4L)).thenReturn(Optional.of(next));
+        assignmentService.reassignCourier(100L, 4L);
+        assertThat(sampleAssignment.getCourier()).isSameAs(next);
+        assertThat(availableCourier.getCurrentActiveDeliveries()).isEqualTo(1);
+        assertThat(next.getCurrentActiveDeliveries()).isEqualTo(1);
+        verify(eventPublisherService).publishCourierAssigned(any(CourierAssignedEvent.class));
+    }
+
+    @Test
+    void rejectsReassignmentAfterPickup() {
+        sampleAssignment.setStatus(AssignmentStatus.PICKED_UP);
+        when(assignmentRepository.findForUpdate(100L)).thenReturn(Optional.of(sampleAssignment));
+        assertThatThrownBy(() -> assignmentService.reassignCourier(100L, 4L)).isInstanceOf(InvalidAssignmentException.class);
+        verifyNoInteractions(eventPublisherService);
+    }
+
+    @Test
+    void rejectsUnavailableReplacementWithoutChangingAssignment() {
+        sampleAssignment.setStatus(AssignmentStatus.ASSIGNED);
+        sampleAssignment.setCourier(availableCourier);
+        when(assignmentRepository.findForUpdate(100L)).thenReturn(Optional.of(sampleAssignment));
+        when(courierRepository.findForUpdate(1L)).thenReturn(Optional.of(availableCourier));
+        when(courierRepository.findForUpdate(2L)).thenReturn(Optional.of(fullCourier));
+        assertThatThrownBy(() -> assignmentService.reassignCourier(100L, 2L)).isInstanceOf(CourierUnavailableException.class);
+        assertThat(sampleAssignment.getCourier()).isSameAs(availableCourier);
+    }
 }
 

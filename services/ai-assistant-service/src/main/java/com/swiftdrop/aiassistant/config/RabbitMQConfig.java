@@ -27,6 +27,15 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(reportsQueue).to(parcelExchange).with(ROUTING_KEY);
     }
 
+    @Bean public TopicExchange bookingExchange() { return new TopicExchange("swiftdrop.parcel.exchange", true, false); }
+    @Bean public TopicExchange dispatchExchange() { return new TopicExchange("dispatch.exchange", true, false); }
+    @Bean public Binding bookingReportsBinding(Queue reportsQueue, TopicExchange bookingExchange) {
+        return BindingBuilder.bind(reportsQueue).to(bookingExchange).with("parcel.created");
+    }
+    @Bean public Binding dispatchReportsBinding(Queue reportsQueue, TopicExchange dispatchExchange) {
+        return BindingBuilder.bind(reportsQueue).to(dispatchExchange).with("dispatch.status.updated");
+    }
+
     @Bean
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();

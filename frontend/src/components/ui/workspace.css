@@ -1,0 +1,181 @@
+/* Shared operational surfaces. Overview content deliberately has no workspace-tab class. */
+.workspace-tab {
+  --line: var(--ui-border);
+  --wash: var(--ui-canvas);
+  --ink: #16324f;
+  --muted: #586b80;
+  --soft-radius: 12px;
+  --soft-radius-sm: 8px;
+  color: var(--ink);
+  min-width: 0;
+}
+.workspace-tab.workspace-tab .MuiCard-root {
+  border: 1px solid var(--line);
+  border-radius: var(--ui-radius-card);
+  box-shadow: var(--ui-shadow-card);
+  transform: none;
+  transition: none;
+}
+.workspace-tab header { padding: 4px 0 12px; }
+.workspace-tab h1 { font-size: clamp(1.5rem, 2vw, 1.875rem); }
+.workspace-tab h2 { font-size: 1.125rem; }
+.workspace-tab .MuiTypography-body2 { font-size: 1rem; line-height: 1.6; }
+.workspace-tab .MuiTypography-caption,
+.workspace-tab label.MuiTypography-root { font-size: .875rem; line-height: 1.5; }
+.workspace-tab .MuiTypography-button { font-size: .9375rem; }
+.workspace-tab.workspace-tab .MuiTableContainer-root {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow-x: auto;
+  background: white;
+}
+/* Restore one native table grid; header and body must share column sizing. */
+.workspace-tab.workspace-tab table { display: table; width: 100%; border-collapse: collapse; table-layout: auto; min-width: 700px; }
+.workspace-tab.workspace-tab thead { display: table-header-group; }
+.workspace-tab.workspace-tab tbody { display: table-row-group; }
+.workspace-tab.workspace-tab tr { display: table-row; background: white; transform: none; }
+.workspace-tab.workspace-tab table th,
+.workspace-tab.workspace-tab table td { display: table-cell; padding: 16px 20px; vertical-align: middle; }
+.workspace-tab.workspace-tab table th {
+  background: #f5f8fb;
+  color: #52667b;
+  font-size: .8125rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: .015em;
+  border-block: 1px solid var(--line);
+  opacity: 1;
+}
+.workspace-tab.workspace-tab table td { border-bottom: 1px solid #edf1f5; }
+.workspace-tab.workspace-tab tbody tr:hover,
+.workspace-tab.workspace-tab tbody tr:focus-within { background: #f5f9fd; }
+.workspace-tab.workspace-tab td > .MuiTypography-root {
+  display: block;
+  width: auto;
+  min-width: 0;
+  max-width: 40ch;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: .9375rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.workspace-tab td .MuiTypography-caption { color: var(--muted); font-size: .8125rem; }
+.workspace-tab.workspace-tab th:last-child,
+.workspace-tab.workspace-tab td:last-child:has(button) { text-align: right; }
+.workspace-tab td[data-column="Fee"] { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.workspace-tab.workspace-tab .MuiButton-root,
+body:has(.workspace-tab) .MuiDialog-paper .MuiButton-root {
+  min-height: 40px;
+  border-radius: var(--ui-radius-control);
+  padding: 8px 16px;
+  font-size: .875rem;
+  font-weight: 600;
+  text-transform: none;
+  box-shadow: none;
+  transform: none;
+  letter-spacing: 0;
+}
+.workspace-tab.workspace-tab td .MuiButton-root { min-height: 34px; padding: 6px 12px; background: white; border: 1px solid #dce4ed; }
+.workspace-tab .MuiButton-root.Mui-disabled,
+body:has(.workspace-tab) .MuiDialog-paper .MuiButton-root.Mui-disabled { opacity: .5; box-shadow: none; }
+.workspace-tab.workspace-tab .MuiInputBase-root,
+body:has(.workspace-tab) .MuiDialog-paper .MuiInputBase-root {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px !important;
+  min-height: 44px;
+  background: white;
+  font-size: .9375rem;
+  box-shadow: none;
+}
+.workspace-tab.workspace-tab .MuiInputBase-root.Mui-disabled { background: #f5f7fa; }
+.workspace-tab.workspace-tab .MuiInputBase-root.Mui-error,
+body:has(.workspace-tab) .MuiDialog-paper .MuiInputBase-root.Mui-error { border-color: #c43c3c; }
+.workspace-tab input { min-width: 0; }
+.workspace-tab select,
+body:has(.workspace-tab) .MuiDialog-paper select { min-height: 44px; padding: 8px 32px 8px 12px; border: 1px solid #cbd5e1; border-radius: var(--ui-radius-control); font-size: .875rem; color: #16324f; background-color: white; }
+.workspace-tab .MuiBadge-badge,
+body:has(.workspace-tab) .MuiDialog-paper .MuiBadge-badge { border-radius: 6px; font-size: .75rem; letter-spacing: .02em; box-shadow: none; padding: 5px 9px; }
+.workspace-tab .MuiAlert-root { border: 0; border-radius: var(--ui-radius-control); font-size: .9375rem; }
+.workspace-tab .admin-filter-grid { width: 100%; margin: 0 0 16px; padding: 0 16px 12px 0; background: #f8fafc; border: 1px solid var(--line); border-radius: var(--ui-radius-control); }
+.workspace-tab .workspace-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; padding: 16px 20px; border-top: 1px solid var(--line); color: var(--muted); background: #fff; font-size: .875rem; }
+.workspace-pagination-size { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.workspace-tab .workspace-pagination-size select { min-height: 36px; }
+.workspace-pagination-pages { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.workspace-tab.workspace-tab .MuiPagination-ul { gap: 4px; }
+.workspace-tab.workspace-tab .MuiPaginationItem-root { min-width: 34px; width: auto; height: 34px; border-radius: 7px; background: white; border: 1px solid var(--line); box-shadow: none; transform: none; font-size: .875rem; }
+.workspace-tab.workspace-tab .MuiPaginationItem-root.Mui-selected { background: #163b60; border-color: #163b60; color: white; }
+.workspace-tab.workspace-tab .MuiPaginationItem-ellipsis { border: 0; }
+.workspace-tab .workspace-empty { margin-block: 16px; padding: 40px 24px; background: #f8fafc; text-align: center; }
+body:has(.workspace-tab) .MuiDialog-paper { border-radius: var(--ui-radius-card); border: 1px solid #e2e8f0; box-shadow: 0 24px 80px rgb(15 39 65 / 20%); }
+body:has(.workspace-tab) .MuiDialogTitle-root { padding: 24px; background: white; border-bottom: 1px solid #e2e8f0; color: #16324f; font-size: 1.25rem; font-weight: 700; }
+body:has(.workspace-tab) .MuiDialogTitle-root .MuiTypography-root { font-size: 1.25rem; }
+body:has(.workspace-tab) .MuiDialogContent-root { padding: 24px; }
+body:has(.workspace-tab) .MuiDialogActions-root { padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; gap: 8px; }
+body:has(.workspace-tab) .MuiDialog-paper label { font-size: .875rem; }
+body:has(.workspace-tab) .MuiDialog-paper .MuiOutlinedInput-notchedOutline { border: 0; }
+body:has(.workspace-tab) .MuiDialog-paper .MuiFormControlLabel-root { display: inline-flex; margin: 8px 12px 12px 0; }
+.workspace-tab :focus-visible,
+body:has(.workspace-tab) .MuiDialog-paper :focus-visible { outline: 2px solid #2d6ca3; outline-offset: 3px; }
+
+@media (max-width: 680px) {
+  .workspace-tab.workspace-tab table thead { position: static; width: auto; height: auto; clip-path: none; overflow: visible; }
+  .workspace-tab.workspace-tab table tr { padding: 0; margin: 0; border: 0; }
+  .workspace-tab.workspace-tab table td[data-column] { display: table-cell; padding: 14px 16px; text-align: left; }
+  .workspace-tab.workspace-tab td[data-column]::before { display: none; }
+  .workspace-tab.workspace-tab .MuiTableContainer-root { overflow-x: auto; padding: 0; }
+  .workspace-tab .workspace-pagination { padding: 16px 8px; gap: 12px; }
+  .workspace-pagination-pages { width: 100%; justify-content: center; }
+  .workspace-tab.workspace-tab .workspace-pagination-pages .MuiButton-root { padding-inline: 8px; min-width: 52px; }
+  .admin-page-dispatch details { margin: 0 16px 16px; }
+  body:has(.workspace-tab) .MuiDialog-paper { margin: 16px; width: calc(100% - 32px); }
+}
+
+
+.workspace-tab .booking-sections { display: grid; gap: 20px; }
+.workspace-tab .booking-sections fieldset,
+.workspace-tab .address-form {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--line);
+  background: #fafbfd;
+  border-radius: var(--ui-radius-card);
+  padding: 8px 16px 14px;
+}
+.workspace-tab .booking-sections legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  color: var(--ink);
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+.workspace-tab .address-form {
+  display: grid;
+  align-items: end;
+  gap: 12px;
+}
+.workspace-tab .address-form button { justify-self: start; margin: 0 0 8px; }
+.workspace-tab .address-form .MuiAlert-root { grid-column: 1 / -1; }
+.workspace-tab .MuiCard-root > [role="status"] { color: var(--muted); }
+.workspace-tab .workspace-empty {
+  background: var(--wash);
+  color: var(--muted);
+  border: 1px dashed #c6d4df;
+  border-radius: 10px;
+  padding: 24px 16px;
+}
+@media (min-width: 900px) {
+  .workspace-tab .booking-sections { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .workspace-tab .booking-sections fieldset:last-child { grid-column: 1 / -1; }
+  .workspace-tab .address-form { grid-template-columns: minmax(120px, 1fr) minmax(180px, 2fr) auto; }
+}
+
+
+.workspace-tab.workspace-tab .MuiOutlinedInput-notchedOutline { border: 0; }
+.workspace-tab.workspace-tab .MuiInputBase-root:focus-within,
+body:has(.workspace-tab) .MuiDialog-paper .MuiInputBase-root:focus-within { border-color: #2d6ca3; box-shadow: 0 0 0 3px rgb(45 108 163 / 12%); }
+.workspace-tab.workspace-tab .MuiInputBase-root.Mui-error:focus-within { border-color: #c43c3c; }

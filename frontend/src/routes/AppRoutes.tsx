@@ -46,7 +46,7 @@ const AdminWorkspace = lazy(() =>
   })),
 );
 const PublicTrackingPage = lazy(() =>
-  import("../features/delivery/TrackingView").then((module) => ({
+  import("@/features/delivery/tabs/TrackingView").then((module) => ({
     default: module.PublicTrackingPage,
   })),
 );

@@ -1,5 +1,6 @@
 import { api, setAccessToken } from './api';
 import { AuthResponse, User, PendingMerchant } from '../types/auth';
+import type { AdminActivity } from '../pages/admin/adminData';
 
 export interface LoginParams {
   email: string;
@@ -88,6 +89,9 @@ export const authService = {
 };
 
 export const adminService = {
+  async getMerchantReviews(): Promise<AdminActivity[]> {
+    return (await api.get<AdminActivity[]>('/admin/merchants/reviews')).data;
+  },
   async getAllUsers(): Promise<User[]> {
     const response = await api.get<User[]>('/admin/users');
     return response.data;

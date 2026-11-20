@@ -30,7 +30,16 @@ public class CreateParcelRequest {
         } catch (java.time.format.DateTimeParseException ex) { return false; }
     }
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @AssertTrue(message = "Customer bookings require sender contact, pickup address, recipient phone and parcel dimensions")
+    public boolean isCustomerBookingComplete() {
+        return customerId == null || (senderName != null && !senderName.isBlank()
+            && senderPhone != null && !senderPhone.isBlank() && pickupAddress != null && !pickupAddress.isBlank()
+            && recipientPhone != null && !recipientPhone.isBlank() && weightKg != null && lengthCm != null && widthCm != null && heightCm != null);
+    }
+
     private java.util.UUID estimateId;
+    private java.util.UUID customerId;
     @Size(max=100)
     private String merchantOrderReference;
 

@@ -35,6 +35,18 @@ services:
   # ==============================================================================
   # Message Broker — RabbitMQ 3
   # ==============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: swiftdrop-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - swiftdrop-net
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: swiftdrop-rabbitmq
@@ -377,6 +389,8 @@ services:
     environment:
       JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m
       SPRING_PROFILES_ACTIVE: docker
+      REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
       MERCHANT_SERVICE_URL: http://merchant-service:8083
       IDENTITY_SERVICE_URL: http://identity-service:8081
       PARCEL_SERVICE_URL: http://parcel-service:8082
@@ -387,6 +401,8 @@ services:
       AI_SERVICE_URL: http://ai-assistant-service:8089
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     depends_on:
+      redis:
+        condition: service_healthy
       merchant-service:
         condition: service_healthy
       parcel-service:

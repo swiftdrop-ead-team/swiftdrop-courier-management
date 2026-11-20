@@ -12,6 +12,8 @@ public interface DispatchAssignmentService {
     // Assigns an unassigned parcel to a courier with capacity validation
     DispatchAssignmentResponse assignCourier(AssignCourierRequest request);
 
+    DispatchAssignmentResponse reassignCourier(Long assignmentId, Long courierId);
+
     // Updates delivery status (e.g. IN_TRANSIT, DELIVERED, FAILED)
     DispatchAssignmentResponse updateAssignmentStatus(Long assignmentId, UpdateAssignmentStatusRequest request);
 

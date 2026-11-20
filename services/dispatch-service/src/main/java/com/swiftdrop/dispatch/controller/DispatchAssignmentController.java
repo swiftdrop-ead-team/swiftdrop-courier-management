@@ -43,6 +43,15 @@ public class DispatchAssignmentController {
                 .body(ApiResponse.ok("Parcel assigned to courier successfully", response));
     }
 
+    public record ReassignRequest(@jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Positive Long courierId) {}
+
+    @PatchMapping("/{id}/courier")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<DispatchAssignmentResponse>> reassign(@PathVariable Long id,
+            @Valid @RequestBody ReassignRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("Courier reassigned", assignmentService.reassignCourier(id, request.courierId())));
+    }
+
     /**
      * Lists all dispatch assignments.
      * HTTP GET /api/v1/dispatch/assignments

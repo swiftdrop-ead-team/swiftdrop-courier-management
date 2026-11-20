@@ -1,0 +1,31 @@
+/* Product tokens: shared by operational workspaces and public pages. */
+:root {
+  --ui-surface: #ffffff;
+  --ui-canvas: #f8fafc;
+  --ui-ink: #16324f;
+  --ui-muted: #586b80;
+  --ui-border: #e2e8f0;
+  --ui-radius-card: 12px;
+  --ui-radius-control: 8px;
+  --ui-shadow-card: 0 3px 12px rgb(15 39 65 / 5%);
+  --ui-shadow-control: 0 1px 3px rgb(15 39 65 / 6%);
+}
+.soft-public { color: var(--ui-ink); background: var(--ui-canvas); }
+.soft-public .product-button { border-radius: var(--ui-radius-control); box-shadow: var(--ui-shadow-control); transform: none; }
+.soft-public .product-input { border-radius: var(--ui-radius-control); border-color: #cbd5e1; font-size: 1rem; box-shadow: var(--ui-shadow-control); }
+.soft-public .product-input[aria-invalid="true"] { border-color: #dc2626; }
+.soft-public .product-input:focus { border-color: #2d6ca3; box-shadow: 0 0 0 3px rgb(45 108 163 / 12%); }
+.soft-public article { border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); }
+.soft-public .bg-white.shadow-2xl { border: 1px solid var(--ui-border); border-radius: var(--ui-radius-card); box-shadow: 0 16px 48px rgb(15 39 65 / 14%); }
+.soft-public .auth-form-content { transform: none; width: 100%; margin-left: 0; }
+.soft-public .auth-form-content label { font-size: .875rem; letter-spacing: normal; }
+.soft-public [role="alert"] { border-radius: var(--ui-radius-control); font-size: .875rem; }
+.soft-public nav { box-shadow: var(--ui-shadow-control); }
+.customer-dashboard-shell:has(.workspace-tab) .mui-sidebar .MuiListItemButton-root { border-radius: var(--ui-radius-control); box-shadow: none; transform: none; }
+.customer-dashboard-shell:has(.workspace-tab) .mui-sidebar .MuiListItemButton-root.Mui-selected { background: #ffdb57; box-shadow: 0 2px 6px rgb(0 0 0 / 10%); }
+@media (prefers-reduced-motion: reduce) { .soft-public *, .workspace-tab * { scroll-behavior: auto; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+.soft-public .bg-white.shadow-xl, .soft-public .bg-white.shadow-lg { border-radius: var(--ui-radius-card); box-shadow: var(--ui-shadow-card); }
+.soft-public form input:not([type="checkbox"]):not([type="radio"]), .soft-public form select, .soft-public form textarea { border-radius: var(--ui-radius-control); font-size: 1rem; min-height: 44px; }
+.soft-public form label { font-size: .875rem; letter-spacing: normal; text-transform: none; }
+.soft-public form button[type="submit"] { border-radius: var(--ui-radius-control); box-shadow: var(--ui-shadow-control); }

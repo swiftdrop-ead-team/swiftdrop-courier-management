@@ -60,6 +60,7 @@ interface BackendCourier {
   fullName: string;
   status: string;
   maxActiveDeliveries: number;
+  currentActiveDeliveries: number;
   availableForAssignment: boolean;
 }
 interface Assignment {
@@ -214,6 +215,17 @@ async function merchantHooks(signal?: AbortSignal): Promise<MerchantHook[]> {
 }
 
 export const deliveryApi = {
+  unassignedParcels: async (signal?: AbortSignal): Promise<ParcelRecord[]> => {
+    const [parcels, assignments] = await Promise.all([
+      pages("/parcels", signal),
+      api.get<Envelope<Assignment[]>>("/dispatch/assignments", { signal }),
+    ]);
+    const assigned = new Set(unwrap(assignments.data).map((a) => a.parcelId));
+    return parcels.filter((p) => p.status === "CREATED" && !p.assignedCourierId && !assigned.has(p.id)).map(mapParcel);
+  },
+  reassign: async (assignmentId: string, courierId: string) => {
+    await api.patch(`/dispatch/assignments/${encodeURIComponent(assignmentId)}/courier`, { courierId: Number(courierId) });
+  },
   registerCourier: async (
     userId: string,
     fullName: string,
@@ -294,15 +306,16 @@ export const deliveryApi = {
       ),
     );
   },
-  quote: async (b: Booking): Promise<Quote> =>
-    (await api.post<Quote>("/parcels/estimate", bookingPayload(b))).data,
+  quote: async (b: Booking, customerId?: string): Promise<Quote> =>
+    (await api.post<Quote>("/parcels/estimate", { ...bookingPayload(b), ...(customerId ? { customerId } : {}) })).data,
   create: async (
     b: Booking,
     estimateId: string,
     idempotencyKey = estimateId,
+    customerId?: string,
   ): Promise<ParcelRecord> => {
     const user = await authService.getCurrentUser();
-    if (user.roles.includes("MERCHANT")) {
+    if (!customerId && user.roles.includes("MERCHANT")) {
       const order = unwrap(
         (
           await api.post<Envelope<{ parcelId: string }>>(
@@ -321,6 +334,7 @@ export const deliveryApi = {
         await api.post<BackendParcel>("/parcels", {
           ...bookingPayload(b),
           estimateId,
+          ...(customerId ? { customerId } : {}),
         })
       ).data,
     );
@@ -387,15 +401,17 @@ export const deliveryApi = {
             ).data,
           ),
         ];
-    return records
-      .filter((c) => /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(c.userId))
-      .map((c) => ({
-        id: c.userId,
-        dispatchId: String(c.id),
-        name: c.fullName,
-        available: c.status !== "OFFLINE",
-        capacity: c.maxActiveDeliveries,
-      }));
+    return records.map((c) => ({
+      id: c.userId,
+      // Parcel sync requires an identity UUID. Legacy fleet profiles can still show workload.
+      accountLinked: /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(c.userId),
+      dispatchId: String(c.id),
+      name: c.fullName,
+      available: c.status !== "OFFLINE",
+      capacity: c.maxActiveDeliveries,
+      activeDeliveries: c.currentActiveDeliveries,
+      availableForAssignment: c.availableForAssignment,
+    }));
   },
   availability: async (available: boolean) => {
     const user = await authService.getCurrentUser();

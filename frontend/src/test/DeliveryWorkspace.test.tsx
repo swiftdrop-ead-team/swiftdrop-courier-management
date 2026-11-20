@@ -11,7 +11,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "assets/theme";
 import { DeliveryDashboard } from "../features/delivery/DeliveryDashboard";
-import { TrackingView } from "../features/delivery/TrackingView";
+import { TrackingView } from "@/features/delivery/tabs/TrackingView";
 import {
   getPreview,
   resetPreview,
@@ -19,6 +19,8 @@ import {
   updatePreview,
 } from "../features/delivery/preview";
 import { api } from "../services/api";
+import { deliveryApi } from "../features/delivery/service";
+import { adminService } from "../services/authService";
 import type { UserRole } from "../types/auth";
 
 vi.mock("../hooks/useAuth", () => ({
@@ -60,6 +62,62 @@ async function choose(label: string, value: string) {
   fireEvent.click(await screen.findByRole("option", { name: value }));
 }
 describe("Assignment frontend workflows", () => {
+  it("uses live capacity and reloads the queue after the dispatch service accepts an assignment", async () => {
+    const parcel = getPreview().parcels.find((p) => !p.courierId && p.status === "CREATED")!;
+    const queue = vi.spyOn(deliveryApi, "parcels").mockResolvedValueOnce([parcel]).mockResolvedValue([]);
+    const driver = { id: "linked", name: "Available driver", capacity: 6, available: true,
+      activeDeliveries: 4, accountLinked: true, availableForAssignment: true };
+    vi.spyOn(deliveryApi, "couriers").mockResolvedValue([
+      driver,
+      { ...driver, id: "busy", name: "Busy driver", availableForAssignment: false },
+      { ...driver, id: "legacy", name: "Unlinked driver", accountLinked: false },
+    ]);
+    const assign = vi.spyOn(deliveryApi, "assign").mockResolvedValue();
+    workspace("ADMIN", "dispatch", false);
+    const form = await screen.findByRole("form", { name: "Assign a parcel" });
+    fireEvent.change(within(form).getByRole("combobox", { name: "Unassigned parcel" }), { target: { value: parcel.recipientName } });
+    fireEvent.click(await screen.findByRole("option", { name: new RegExp(parcel.trackingNumber) }));
+    const picker = screen.getByRole("combobox", { name: "Available courier" });
+    expect(within(picker).getAllByRole("option")).toHaveLength(2);
+    expect(within(picker).getByRole("option", { name: "Available driver · 2 slots open" })).toBeInTheDocument();
+    fireEvent.change(picker, { target: { value: driver.id } });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm assignment" }));
+    expect(assign).toHaveBeenCalledWith(parcel.id, driver.id, expect.any(String));
+    expect(await screen.findByText(/No parcels are waiting for assignment/)).toBeInTheDocument();
+    expect(queue).toHaveBeenCalledTimes(2);
+  });
+  it("books for the selected customer and sends that owner through estimate and confirmation", async () => {
+    vi.spyOn(adminService, "getAllUsers").mockResolvedValue([{ id: "selected-customer", fullName: "Booking Customer", email: "booking@example.com", phoneNumber: "0771234567", roles: ["CUSTOMER"], status: "ACTIVE" }] as any);
+    const quote = vi.spyOn(deliveryApi, "quote").mockResolvedValue({ id: "estimate", amount: 250, currency: "LKR", expiresAt: new Date(Date.now()+60000).toISOString() });
+    const create = vi.spyOn(deliveryApi, "create").mockResolvedValue({ ...getPreview().parcels[0], trackingNumber: "SD-ADMIN-BOOKED" });
+    vi.spyOn(deliveryApi, "parcels").mockResolvedValue([]);
+    vi.spyOn(deliveryApi, "couriers").mockResolvedValue([]);
+    workspace("ADMIN", "create-booking", false);
+    await screen.findByLabelText(/Customer account/);
+    fireEvent.mouseDown(await screen.findByLabelText(/Customer account/));
+    fireEvent.click(await screen.findByRole("option", { name: "Booking Customer - booking@example.com" }));
+    for (const [label,value] of [["Pickup address","24 Main Road Colombo"],["Recipient name","Recipient"],["Recipient phone","0772345678"],["Drop-off address","18 Main Road Kandy"],["Delivery city","Kandy"],["Parcel contents","Books"]])
+      fireEvent.change(screen.getByRole("textbox", { name: label }), { target: { value } });
+    fireEvent.click(screen.getByRole("button", { name: "Get delivery estimate" }));
+    const confirm = await screen.findByRole("button", { name: "Confirm delivery request" });
+    expect(quote).toHaveBeenCalledWith(expect.objectContaining({senderName:"Booking Customer"}), "selected-customer");
+    fireEvent.click(screen.getByRole("checkbox", { name: /I confirm the addresses/ }));
+    fireEvent.click(confirm);
+    await waitFor(() => expect(create).toHaveBeenCalledWith(expect.anything(), "estimate", "estimate", "selected-customer"));
+  });
+  it("reassigns the selected parcel using its existing assignment ID and refreshes", async () => {
+    const parcel = {...getPreview().parcels[0], status:"CREATED" as const, assignmentId:"7", courierId:"old"};
+    const load = vi.spyOn(deliveryApi,"parcels").mockResolvedValue([parcel]);
+    vi.spyOn(deliveryApi,"couriers").mockResolvedValue([{id:"new",dispatchId:"4",name:"Replacement driver",capacity:5,available:true,activeDeliveries:0,accountLinked:true,availableForAssignment:true}]);
+    const reassign=vi.spyOn(deliveryApi,"reassign").mockResolvedValue();
+    workspace("ADMIN","dispatch",false);
+    await screen.findByLabelText("Assigned parcel");
+    await choose("Assigned parcel",parcel.trackingNumber);
+    await choose("New courier","Replacement driver");
+    fireEvent.click(screen.getByRole("button",{name:"Reassign courier"}));
+    await waitFor(() => expect(reassign).toHaveBeenCalledWith("7","4"));
+    await waitFor(() => expect(load).toHaveBeenCalledTimes(2));
+  });
   it("clears previously loaded parcels when a refresh fails", async () => {
     const get = vi.spyOn(api, "get").mockResolvedValue({ data: {
       content: [{ id: "persisted-1", trackingNumber: "SD-PERSISTED-1", senderId: "live-user",
@@ -148,12 +206,11 @@ describe("Assignment frontend workflows", () => {
   });
   it("assigns an unassigned delivery and shares the assignment with the courier view", async () => {
     const rendered = workspace("ADMIN", "dispatch");
-    fireEvent.click(
-      within(
-        screen.getByText("SD-DEMO-1001").parentElement!.parentElement!,
-      ).getByRole("button", { name: "Select" }),
-    );
-    await choose("Available courier", "Courier Preview");
+    fireEvent.change(screen.getByRole("combobox", { name: "Unassigned parcel" }), { target: { value: "SD-DEMO-1001" } });
+    fireEvent.click(await screen.findByRole("option", { name: /SD-DEMO-1001/ }));
+    const picker = screen.getByRole("combobox", { name: "Available courier" });
+    fireEvent.change(picker, { target: { value: "preview-courier" } });
+    expect(picker).toHaveValue("preview-courier");
     fireEvent.click(screen.getByRole("button", { name: "Confirm assignment" }));
     await waitFor(() =>
       expect(
@@ -308,11 +365,31 @@ describe("Assignment frontend workflows", () => {
   });
   it.each<[UserRole, string, string]>([
     ["CUSTOMER", "overview", "Your deliveries, connected."],
-    ["MERCHANT", "bulk-upload", "Upload orders"],
-    ["MERCHANT", "shipments", "My shipments"],
-    ["COURIER", "route", "Active route"],
-    ["COURIER", "notifications", "Notifications"],
+    ["ADMIN", "dispatch", "Dispatch workspace"],
+    ["ADMIN", "deliveries", "All deliveries"],
+    ["ADMIN", "pricing", "Delivery pricing"],
     ["ADMIN", "reports", "Delivery reports"],
+    ["ADMIN", "access", "Manage user access"],
+    ["ADMIN", "profile", "Admin profile"],
+    ["MERCHANT", "shipments", "My shipments"],
+    ["MERCHANT", "create-shipment", "Send a parcel"],
+    ["MERCHANT", "bulk-upload", "Upload orders"],
+    ["MERCHANT", "tracking", "Track a parcel"],
+    ["MERCHANT", "history", "Delivery history"],
+    ["MERCHANT", "profile", "Your profile"],
+    ["MERCHANT", "reports", "Reports & COD"],
+    ["MERCHANT", "api", "Store connections"],
+    ["MERCHANT", "notifications", "Notifications"],
+    ["COURIER", "deliveries", "Deliveries"],
+    ["COURIER", "route", "Active route"],
+    ["COURIER", "history", "Delivery history"],
+    ["COURIER", "profile", "Your profile"],
+    ["COURIER", "notifications", "Notifications"],
+    ["CUSTOMER", "send", "Send a parcel"],
+    ["CUSTOMER", "track", "Track a shipment"],
+    ["CUSTOMER", "history", "Delivery history"],
+    ["CUSTOMER", "settings", "Account settings"],
+    ["CUSTOMER", "notifications", "Notifications"],
   ])("renders the %s %s workspace", (role, tab, title) => {
     workspace(role, tab);
     expect(

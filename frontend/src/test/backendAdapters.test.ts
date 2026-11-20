@@ -3,7 +3,7 @@ import { api } from "../services/api";
 import { authService } from "../services/authService";
 import { deliveryApi, type BackendParcel } from "../features/delivery/service";
 import { day, emptyBooking } from "../features/delivery/model";
-import { normalizeTracking } from "../features/delivery/TrackingView";
+import { normalizeTracking } from "@/features/delivery/tabs/TrackingView";
 const parcel: BackendParcel = {
   id: "parcel-1",
   trackingNumber: "SD-1001-LK",
@@ -33,6 +33,21 @@ const parcel: BackendParcel = {
   ],
 };
 afterEach(() => vi.restoreAllMocks());
+it("keeps committed assignments out of the dispatch queue while parcel updates are in flight", async () => {
+  vi.spyOn(api, "get").mockImplementation(async (path) => {
+    if (path === "/dispatch/assignments")
+      return { data: { success: true, data: [{ parcelId: "just-assigned" }] } };
+    if (path !== "/parcels") throw new Error("Unexpected endpoint");
+    return { data: { totalPages: 1, content: [
+      parcel,
+      { ...parcel, id: "just-assigned" },
+      { ...parcel, id: "already-linked", assignedCourierId: "courier-1" },
+      { ...parcel, id: "cancelled", status: "CANCELLED" },
+    ] } };
+  });
+  const queue = await deliveryApi.unassignedParcels();
+  expect(queue.map((p) => p.id)).toEqual([parcel.id]);
+});
 it("loads every backend page from the owner endpoint and converts actual parcel fields", async () => {
   const get = vi
     .spyOn(api, "get")

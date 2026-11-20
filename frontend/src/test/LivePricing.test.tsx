@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "assets/theme";
-import { LivePricing } from "../features/delivery/LivePricing";
+import { LivePricing } from "@/pages/admin/tabs/LivePricing";
 import { api } from "../services/api";
 
 afterEach(() => vi.restoreAllMocks());

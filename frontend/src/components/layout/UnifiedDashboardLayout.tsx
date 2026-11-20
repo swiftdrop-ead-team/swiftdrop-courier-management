@@ -1,6 +1,7 @@
 import React from "react";
 import { type Location } from "react-router-dom";
 import {
+  BarChart3,
   Bell,
   Building2,
   Clock,
@@ -25,7 +26,7 @@ function buildNavigation(role: string, base: string): NavSection[] {
   switch (role) {
     case "CUSTOMER":
       return [
-        { heading: 'HOME', items: [{ tab: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: `${base}/overview` }] },
+        { heading: 'HOME', items: [{ tab: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: `${base}/overview` }, { tab: 'analytics', label: 'Analytics', icon: BarChart3, path: `${base}/analytics` }] },
         { heading: 'DELIVERIES', items: [
           { tab: 'send', label: 'Send a parcel', icon: Send, path: `${base}/send`, badge: 'New' },
           { tab: 'track', label: 'Track shipment', icon: MapPin, path: `${base}/track` },
@@ -40,9 +41,11 @@ function buildNavigation(role: string, base: string): NavSection[] {
           heading: "ADMINISTRATION",
           items: [
             { tab: "overview", label: "Admin Overview", icon: LayoutDashboard, path: `${base}/overview` },
+            { tab: "analytics", label: "Analytics", icon: BarChart3, path: `${base}/analytics` },
             { tab: "merchants", label: "Merchant Approvals", icon: Clock, path: `${base}/merchants` },
             { tab: "users", label: "User Management", icon: Users, path: `${base}/users` },
             { tab: "activity", label: "Review Activity", icon: FileSpreadsheet, path: `${base}/activity` },
+            { tab: "create-booking", label: "Create customer booking", icon: Package, path: `${base}/create-booking` },
             { tab: 'dispatch', label: 'Dispatch & workloads', icon: Truck, path: `${base}/dispatch` },
             { tab: 'deliveries', label: 'All deliveries', icon: Package, path: `${base}/deliveries` },
             { tab: 'pricing', label: 'Delivery pricing', icon: MapPin, path: `${base}/pricing` },
@@ -58,6 +61,7 @@ function buildNavigation(role: string, base: string): NavSection[] {
           heading: "BUSINESS",
           items: [
             { tab: "overview", label: "Overview", icon: LayoutDashboard, path: `${base}/overview` },
+            { tab: "analytics", label: "Analytics", icon: BarChart3, path: `${base}/analytics` },
             { tab: "reports", label: "Reports & COD", icon: FileSpreadsheet, path: `${base}/reports` },
           ],
         },
@@ -86,6 +90,7 @@ function buildNavigation(role: string, base: string): NavSection[] {
           heading: "DISPATCH CONSOLE",
           items: [
             { tab: "overview", label: "Overview", icon: LayoutDashboard, path: `${base}/overview` },
+            { tab: "analytics", label: "Analytics", icon: BarChart3, path: `${base}/analytics` },
             { tab: "deliveries", label: "Assigned Deliveries", icon: Truck, path: `${base}/deliveries` },
             { tab: "route", label: "Active Route", icon: MapPin, path: `${base}/route` },
             { tab: "history", label: "Delivery History", icon: Clock, path: `${base}/history` },

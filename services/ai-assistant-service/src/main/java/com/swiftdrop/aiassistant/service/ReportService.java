@@ -23,6 +23,36 @@ public class ReportService {
     private final DailyDeliveryStatsRepository statsRepository;
     private final ProcessedEventRepository processedEventRepository;
 
+    @org.springframework.amqp.rabbit.annotation.RabbitListener(queues = com.swiftdrop.aiassistant.config.RabbitMQConfig.REPORTS_QUEUE)
+    @Transactional
+    public void receive(java.util.Map<String, Object> payload) {
+        var event = new ParcelStatusChangedEvent();
+        try {
+            event.setEventId((String) payload.get("eventId"));
+            event.setParcelId((String) payload.get("parcelId"));
+            event.setNewStatus((String) payload.getOrDefault("newStatus", payload.get("status")));
+            Object raw = payload.getOrDefault("occurredAt", payload.get("timestamp"));
+            if (raw instanceof java.util.List<?> parts) {
+                int[] values = parts.stream().mapToInt(part -> ((Number) part).intValue()).toArray();
+                event.setOccurredAt(java.time.LocalDateTime.of(values[0], values[1], values[2], values[3], values[4],
+                    values.length > 5 ? values[5] : 0, values.length > 6 ? values[6] : 0));
+            } else if (raw instanceof Number number) {
+                var epoch = new java.math.BigDecimal(number.toString());
+                var instant = java.time.Instant.ofEpochSecond(epoch.longValue(), epoch.remainder(java.math.BigDecimal.ONE).movePointRight(9).longValue());
+                event.setOccurredAt(instant.atZone(java.time.ZoneId.of("Asia/Colombo")).toLocalDateTime());
+            } else {
+                String timestamp = String.valueOf(raw);
+                try { event.setOccurredAt(java.time.Instant.parse(timestamp).atZone(java.time.ZoneId.of("Asia/Colombo")).toLocalDateTime()); }
+                catch (java.time.format.DateTimeParseException local) { event.setOccurredAt(java.time.LocalDateTime.parse(timestamp)); }
+            }
+            if (event.getEventId() == null || event.getParcelId() == null || event.getNewStatus() == null)
+                throw new IllegalArgumentException("Incomplete reporting event");
+        } catch (RuntimeException invalid) {
+            throw new org.springframework.amqp.AmqpRejectAndDontRequeueException("Invalid reporting event", invalid);
+        }
+        processParcelEvent(event);
+    }
+
     @Transactional
     public void processParcelEvent(ParcelStatusChangedEvent event) {
         // Idempotency check: don't process the same event twice

@@ -14,6 +14,10 @@ import java.util.Optional;
  * Provides automated database query execution on the "couriers" table.
  */
 public interface CourierRepository extends JpaRepository<Courier, Long> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select e from Courier e where e.id = :id")
+    Optional<Courier> findForUpdate(@org.springframework.data.repository.query.Param("id") Long id);
+
 
     // Finds a courier profile by their Identity Service user ID
     Optional<Courier> findByUserId(String userId);

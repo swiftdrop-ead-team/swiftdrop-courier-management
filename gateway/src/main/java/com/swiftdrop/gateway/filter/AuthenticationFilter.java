@@ -21,6 +21,16 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
+            String path = exchange.getRequest().getPath().value();
+            // These exact public summaries are sanitized by Parcel Service.
+            if (exchange.getRequest().getMethod() == org.springframework.http.HttpMethod.GET
+                    && path.matches("/api/v1/parcels/tracking/[A-Za-z0-9-]{4,50}"))
+                return chain.filter(exchange);
+            // Merchant Service authenticates scoped, hashed integration keys itself.
+            if (path.startsWith("/api/v1/merchant/")
+                    && !exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)
+                    && org.springframework.util.StringUtils.hasText(exchange.getRequest().getHeaders().getFirst("X-API-Key")))
+                return chain.filter(exchange);
             if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
