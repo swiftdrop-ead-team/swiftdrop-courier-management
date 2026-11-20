@@ -26,6 +26,7 @@ import {
   type PublicTracking,
 } from "./model";
 import { downloadCsv } from "../../pages/admin/adminData";
+import { CheckCircle2, Circle } from "lucide-react";
 
 // Keep the existing layout props while using the shared Soft UI typography.
 export function WorkspaceText({ color, fontWeight, sx, ...props }: TypographyProps & { component?: React.ElementType }) {
@@ -163,6 +164,66 @@ export function SelectField({
     </Field>
   );
 }
+export function DeliveryServiceOptions({
+  value,
+  onChange,
+  standardValue = "STANDARD",
+  expressValue = "EXPRESS",
+  disabled = false,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  standardValue?: string;
+  expressValue?: string;
+  disabled?: boolean;
+}) {
+  const groupId = useId();
+  const options = [
+    { value: standardValue, label: "Standard" },
+    { value: expressValue, label: "Express" },
+  ];
+
+  return (
+    <Box component="fieldset" sx={{ border: 0, m: 0, p: 0, minWidth: 0 }}>
+      <Typography component="legend" variant="caption" fontWeight={700} sx={{ mb: 1 }}>
+        Delivery service
+      </Typography>
+      <Box
+        role="radiogroup"
+        aria-label="Delivery service"
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
+          gap: 1.25,
+        }}
+      >
+        {options.map((option) => {
+          const selected = value === option.value;
+          const inputId = `${groupId}-${option.value.toLowerCase()}`;
+          return (
+            <Box component="label" htmlFor={inputId} key={option.value} sx={{ cursor: disabled ? "not-allowed" : "pointer" }}>
+              <Box
+                component="input"
+                id={inputId}
+                type="radio"
+                name={groupId}
+                value={option.value}
+                checked={selected}
+                disabled={disabled}
+                aria-label={option.label}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
+                sx={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+              />
+              {selected ? <CheckCircle2 aria-hidden="true" /> : <Circle aria-hidden="true" />}
+              <Typography variant="body2" fontWeight={700}>{option.label}</Typography>
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
 export function Panel({
   title,
   children,

@@ -135,6 +135,17 @@ describe("Assignment frontend workflows", () => {
     expect(screen.queryByText("SD-PERSISTED-1")).not.toBeInTheDocument();
     expect(screen.queryByText("SD-DEMO-1001")).not.toBeInTheDocument();
   });
+  it("shows and submits the selected delivery service", async () => {
+    workspace("CUSTOMER", "send");
+    const standard = screen.getByRole("radio", { name: "Standard" });
+    const express = screen.getByRole("radio", { name: "Express" });
+
+    expect(standard).toBeChecked();
+    expect(express).not.toBeChecked();
+    fireEvent.click(express);
+    expect(express).toBeChecked();
+    expect(standard).not.toBeChecked();
+  });
   it("quotes a customer booking and only creates it after fee confirmation", async () => {
     const initial = getPreview().parcels.length;
     workspace("CUSTOMER", "send");

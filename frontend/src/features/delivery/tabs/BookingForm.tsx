@@ -1,5 +1,8 @@
 import { MapPin, Package, UserRound } from "lucide-react";
-import { WorkspaceText as Typography } from "@/features/delivery/components";
+import {
+  DeliveryServiceOptions,
+  WorkspaceText as Typography,
+} from "@/features/delivery/components";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -272,16 +275,11 @@ export function BookingForm({
             )}
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Field
-              select
-              label="Delivery service"
+            <DeliveryServiceOptions
               value={form.service}
               disabled={disabled}
-              onChange={(event) => update("service", event.target.value)}
-            >
-              <MenuItem value="STANDARD">Standard</MenuItem>
-              <MenuItem value="EXPRESS">Express</MenuItem>
-            </Field>
+              onChange={(value) => update("service", value)}
+            />
           </Grid>
           <Grid item xs={12}>
             {text("description", "Parcel contents")}
