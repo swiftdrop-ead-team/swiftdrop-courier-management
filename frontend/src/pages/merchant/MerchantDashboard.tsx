@@ -59,6 +59,7 @@ import TimelineItem from "examples/Timeline/TimelineItem";
 import landscape from "assets/images/ivancik.jpg";
 import merchantIllustration from "../../assets/images/merchant-packing.png";
 import { useAuth } from "../../hooks/useAuth";
+import { DeliveryServiceOptions } from "../../features/delivery/components";
 import {
   Shipment,
   ShipmentStatus,
@@ -1637,28 +1638,17 @@ export const MerchantDashboard: React.FC<{ previewMode?: boolean }> = ({ preview
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <SoftTypography
-                      component="label"
-                      htmlFor="del-type"
-                      variant="caption"
-                      fontWeight="bold"
-                      display="block"
-                      mb={1}
-                    >
-                      Delivery speed
-                    </SoftTypography>
-                    <SoftInput
-                      id="del-type"
-                      fullWidth
+                    <DeliveryServiceOptions
                       value={formDelivery.deliveryType}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setFormDelivery((p) => ({ ...p, deliveryType: e.target.value as any }))
+                      standardValue="Standard"
+                      expressValue="Express"
+                      onChange={(value) =>
+                        setFormDelivery((p) => ({
+                          ...p,
+                          deliveryType: value as "Standard" | "Express",
+                        }))
                       }
-                      select
-                    >
-                      <option value="Standard">Standard — 2-3 business days</option>
-                      <option value="Express">Express — Next business day (+LKR 350)</option>
-                    </SoftInput>
+                    />
                   </Grid>
                   <Grid item xs={12}>
                     <Field

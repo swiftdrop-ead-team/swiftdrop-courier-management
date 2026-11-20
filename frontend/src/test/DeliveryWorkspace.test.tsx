@@ -108,6 +108,44 @@ describe("Assignment frontend workflows", () => {
     await waitFor(() => expect(getPreview().parcels).toHaveLength(initial + 1));
     expect(getPreview().parcels[0].ownerId).toBe("preview-customer");
   });
+  it("shows the selected delivery service and submits the selected value", async () => {
+    workspace("CUSTOMER", "send");
+    const standard = screen.getByRole("radio", { name: "Standard" });
+    const express = screen.getByRole("radio", { name: "Express" });
+    expect(standard).toBeChecked();
+    expect(express).not.toBeChecked();
+
+    fireEvent.click(express);
+
+    expect(express).toBeChecked();
+    expect(standard).not.toBeChecked();
+    for (const [label, value] of [
+      ["Sender phone", "0771234567"],
+      ["Pickup address", "24 Main Road, Colombo"],
+      ["Recipient name", "Nimal Perera"],
+      ["Recipient phone", "0772345678"],
+      ["Drop-off address", "18 Lake Road, Kandy"],
+      ["Parcel contents", "Books"],
+    ])
+      fireEvent.change(screen.getByRole("textbox", { name: label }), {
+        target: { value },
+      });
+    await choose("Delivery zone", "Kandy");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Get delivery estimate" }),
+    );
+    fireEvent.click(
+      await screen.findByRole("checkbox", {
+        name: /I confirm the addresses/,
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirm delivery request" }),
+    );
+    await waitFor(() =>
+      expect(getPreview().parcels[0].service).toBe("EXPRESS"),
+    );
+  });
   it("assigns an unassigned delivery and shares the assignment with the courier view", async () => {
     const rendered = workspace("ADMIN", "dispatch");
     fireEvent.click(

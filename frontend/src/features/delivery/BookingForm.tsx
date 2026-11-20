@@ -21,7 +21,7 @@ import {
 import { previewBook, previewQuote } from "./preview";
 import { deliveryApi, errorMessage } from "./service";
 import type { Workspace } from "./useDeliveryWorkspace";
-import { Field, Panel } from "./components";
+import { DeliveryServiceOptions, Field, Panel } from "./components";
 
 export function BookingForm({
   workspace: w,
@@ -236,16 +236,11 @@ export function BookingForm({
             )}
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Field
-              select
-              label="Delivery service"
+            <DeliveryServiceOptions
               value={form.service}
               disabled={disabled}
-              onChange={(event) => update("service", event.target.value)}
-            >
-              <MenuItem value="STANDARD">Standard</MenuItem>
-              <MenuItem value="EXPRESS">Express</MenuItem>
-            </Field>
+              onChange={(value) => update("service", value)}
+            />
           </Grid>
           <Grid item xs={12}>
             {text("description", "Parcel contents")}

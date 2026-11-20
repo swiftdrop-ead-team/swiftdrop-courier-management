@@ -26,6 +26,7 @@ import {
   type PublicTracking,
 } from "./model";
 import { downloadCsv } from "../../pages/admin/adminData";
+import { CheckCircle2, Circle } from "lucide-react";
 
 // Keep the existing layout props while using the shared Soft UI typography.
 export function WorkspaceText({ color, fontWeight, sx, ...props }: TypographyProps & { component?: React.ElementType }) {
@@ -161,6 +162,153 @@ export function SelectField({
     </Field>
   );
 }
+
+export function DeliveryServiceOptions({
+  value,
+  onChange,
+  standardValue = "STANDARD",
+  expressValue = "EXPRESS",
+  disabled = false,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  standardValue?: string;
+  expressValue?: string;
+  disabled?: boolean;
+}) {
+  const groupId = useId();
+  const options = [
+    {
+      value: standardValue,
+      label: "Standard",
+      description: "Normal delivery service, suitable for regular shipments.",
+    },
+    {
+      value: expressValue,
+      label: "Express",
+      description: "Faster delivery service, suitable for urgent shipments.",
+    },
+  ];
+
+  return (
+    <Box component="fieldset" sx={{ border: 0, m: 0, p: 0, minWidth: 0 }}>
+      <Typography
+        component="legend"
+        variant="caption"
+        fontWeight={700}
+        sx={{ color: "text.primary", mb: 1 }}
+      >
+        Delivery service
+      </Typography>
+      <Box
+        role="radiogroup"
+        aria-label="Delivery service"
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
+          gap: 1.25,
+        }}
+      >
+        {options.map((option) => {
+          const selected = value === option.value;
+          const inputId = `${groupId}-${option.value.toLowerCase()}`;
+          return (
+            <Box
+              component="label"
+              htmlFor={inputId}
+              key={option.value}
+              sx={{
+                position: "relative",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 1.25,
+                minHeight: 88,
+                p: 1.5,
+                border: "1px solid",
+                borderColor: selected ? "#00274c" : "rgba(0, 39, 76, 0.18)",
+                borderRadius: 2,
+                bgcolor: selected ? "rgba(0, 39, 76, 0.06)" : "#fff",
+                boxShadow: selected
+                  ? "0 0 0 2px rgba(0, 39, 76, 0.08)"
+                  : "none",
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.6 : 1,
+                transition:
+                  "border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease",
+                "&:hover": disabled
+                  ? {}
+                  : {
+                      borderColor: "#00274c",
+                      bgcolor: selected
+                        ? "rgba(0, 39, 76, 0.08)"
+                        : "rgba(0, 39, 76, 0.025)",
+                      transform: "translateY(-1px)",
+                    },
+                "&:focus-within": {
+                  outline: "3px solid rgba(0, 39, 76, 0.22)",
+                  outlineOffset: 2,
+                },
+              }}
+            >
+              <Box
+                component="input"
+                id={inputId}
+                type="radio"
+                name={groupId}
+                value={option.value}
+                checked={selected}
+                disabled={disabled}
+                aria-label={option.label}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  onChange(event.target.value)
+                }
+                sx={{
+                  position: "absolute",
+                  width: 1,
+                  height: 1,
+                  opacity: 0,
+                  pointerEvents: "none",
+                }}
+              />
+              {selected ? (
+                <CheckCircle2
+                  size={21}
+                  color="#00274c"
+                  aria-hidden="true"
+                  style={{ flexShrink: 0, marginTop: 1 }}
+                />
+              ) : (
+                <Circle
+                  size={21}
+                  color="#64748b"
+                  aria-hidden="true"
+                  style={{ flexShrink: 0, marginTop: 1 }}
+                />
+              )}
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  variant="body2"
+                  fontWeight={700}
+                  sx={{ color: selected ? "#00274c" : "text.primary" }}
+                >
+                  {option.label}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", lineHeight: 1.45, mt: 0.35 }}
+                >
+                  {option.description}
+                </Typography>
+              </Box>
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
 export function Panel({
   title,
   children,
