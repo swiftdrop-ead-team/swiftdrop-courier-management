@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.swiftdrop.aiassistant.dto.DeliverySummaryResponse;
+import java.time.Instant;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -70,5 +72,36 @@ public class ReportService {
 
     public List<DailyDeliveryStats> getAllDailyReports() {
         return statsRepository.findAll();
+    }
+
+    public DeliverySummaryResponse getDeliverySummary() {
+        List<DailyDeliveryStats> allStats = statsRepository.findAll();
+
+        long total = allStats.stream().mapToLong(DailyDeliveryStats::getTotalDeliveries).sum();
+        long success = allStats.stream().mapToLong(DailyDeliveryStats::getSuccessfulDeliveries).sum();
+        long failed = allStats.stream().mapToLong(DailyDeliveryStats::getFailedDeliveries).sum();
+
+        BigDecimal successRate = BigDecimal.ZERO;
+        BigDecimal failureRate = BigDecimal.ZERO;
+
+        if (total > 0) {
+            BigDecimal totalBd = BigDecimal.valueOf(total);
+            successRate = BigDecimal.valueOf(success)
+                    .divide(totalBd, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+            failureRate = BigDecimal.valueOf(failed)
+                    .divide(totalBd, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+        }
+
+        return DeliverySummaryResponse.builder()
+                .totalDeliveries(total)
+                .successfulDeliveries(success)
+                .failedDeliveries(failed)
+                .overallSuccessRate(successRate)
+                .overallFailureRate(failureRate)
+                .daysTracked(allStats.size())
+                .generatedAt(Instant.now())
+                .build();
     }
 }
