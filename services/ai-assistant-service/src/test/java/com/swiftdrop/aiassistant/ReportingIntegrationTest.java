@@ -9,10 +9,13 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.*;
 import static org.assertj.core.api.Assertions.*;
 
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 @SpringBootTest
 @ActiveProfiles("test")
 @org.springframework.transaction.annotation.Transactional
 class ReportingIntegrationTest {
+    @Autowired org.springframework.test.web.servlet.MockMvc mvc;
+    @org.springframework.beans.factory.annotation.Value("${jwt.secret}") String secret;
     @Autowired ReportService reports;
     @Autowired AiAssistantService assistant;
     @Test void consumesActualEventShapesAndIgnoresDuplicateEventIds() {
@@ -39,5 +42,14 @@ class ReportingIntegrationTest {
     @Test void rejectsMissingProviderCredentialsInsteadOfReturningSuccessfulAnswer() {
         assertThatThrownBy(() -> assistant.processQuery("Delivery status?", "test@example.com", List.of("CUSTOMER")))
             .isInstanceOf(org.springframework.web.server.ResponseStatusException.class).hasMessageContaining("503");
+    }
+
+    @Test void authenticatedChatReturnsProviderUnavailableStatusWithoutErrorDispatchMasking() throws Exception {
+        String token = io.jsonwebtoken.Jwts.builder().subject("audit@example.com").claim("roles", List.of("CUSTOMER"))
+            .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(io.jsonwebtoken.io.Decoders.BASE64.decode(secret))).compact();
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/assistant/chat")
+            .header("Authorization", "Bearer " + token).contentType("application/json").content("{\"message\":\"Delivery status?\"}"))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isServiceUnavailable())
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.message").value(org.hamcrest.Matchers.containsString("credentials")));
     }
 }

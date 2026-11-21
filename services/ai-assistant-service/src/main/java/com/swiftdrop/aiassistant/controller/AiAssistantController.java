@@ -41,4 +41,9 @@ public class AiAssistantController {
         ChatResponse response = aiAssistantService.processQuery(request.getMessage(), userEmail, roles);
         return ResponseEntity.ok(response);
     }
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<java.util.Map<String, String>> unavailable(org.springframework.web.server.ResponseStatusException error) {
+        return ResponseEntity.status(error.getStatusCode()).body(java.util.Map.of("message",
+                error.getReason() == null ? "AI request failed" : error.getReason()));
+    }
 }
