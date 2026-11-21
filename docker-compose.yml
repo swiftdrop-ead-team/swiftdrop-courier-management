@@ -287,6 +287,7 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
       PRICING_SERVICE_URL: http://pricing-service:8085
+      PRICING_READ_TIMEOUT_MS: 10000
       IDENTITY_SERVICE_URL: http://identity-service:8081
       NOTIFICATION_MOCK_MODE: ${NOTIFICATION_MOCK_MODE:-true}
     depends_on:

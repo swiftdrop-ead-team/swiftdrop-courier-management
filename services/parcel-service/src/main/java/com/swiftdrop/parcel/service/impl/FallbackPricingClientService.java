@@ -24,10 +24,12 @@ public class FallbackPricingClientService implements PricingClientService {
     @Value("${swiftdrop.pricing-service.url:http://localhost:8085}")
     private String pricingServiceUrl;
 
-    public FallbackPricingClientService() {
+    public FallbackPricingClientService(
+            @Value("${swiftdrop.pricing-service.connect-timeout-ms:3000}") int connectTimeoutMs,
+            @Value("${swiftdrop.pricing-service.read-timeout-ms:3000}") int readTimeoutMs) {
         var factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(3000);
-        factory.setReadTimeout(3000);
+        factory.setConnectTimeout(connectTimeoutMs);
+        factory.setReadTimeout(readTimeoutMs);
         this.restTemplate = new RestTemplate(factory);
     }
 
@@ -69,7 +71,7 @@ public class FallbackPricingClientService implements PricingClientService {
                 }
             }
         } catch (RestClientException ex) {
-            log.info("Pricing Service (Port 8085) unreachable ({}) — using deterministic fallback pricing model.", ex.getMessage());
+            log.warn("Pricing Service unavailable ({}). No fallback fee will be used.", ex.getMessage());
         }
 
         throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "Pricing is temporarily unavailable. Please try again.");

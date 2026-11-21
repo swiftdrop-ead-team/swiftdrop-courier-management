@@ -54,8 +54,8 @@ swiftdrop:
       notification: swiftdrop.notification.parcel-updates
   pricing-service:
     url: ${PRICING_SERVICE_URL:http://localhost:8085}
-    connect-timeout-ms: 3000
-    read-timeout-ms: 3000
+    connect-timeout-ms: ${PRICING_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-ms: ${PRICING_READ_TIMEOUT_MS:3000}
 
 management:
   endpoints:
