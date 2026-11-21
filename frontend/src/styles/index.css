@@ -4,24 +4,57 @@
 
 @layer base {
   :root {
-    --color-brand-navy: #00274c;
-    --color-brand-blue: #11296b;
-    --color-brand-yellow: #ffcb05;
+    /* ── Brand colors ── */
+    --color-brand-navy:         #00274c;
+    --color-brand-blue:         #11296b;
+    --color-brand-yellow:       #ffcb05;
     --color-brand-yellow-light: #ffdb57;
-    --color-surface: #ededed;
-    --color-surface-raised: #fcfcfc;
-    --color-border: #cbd5e1;
-    --color-text: #1e293b;
-    --color-text-muted: #64748b;
-    --focus-ring: #2563eb;
+
+    /* ── Very light grey surface similar to white (#f8fafc) ── */
+    --color-surface:        #f8fafc;   /* clean, airy ultra-light grey background */
+    --color-surface-raised: #ffffff;   /* pure white for cards to pop crisp       */
+    --color-border:         #e2e8f0;   /* crisp subtle border                     */
+    --color-text:           #1e293b;
+    --color-text-muted:     #64748b;
+    --focus-ring:           #2563eb;   /* calm blue focus ring                   */
     --font-sans: 'Inter', 'Segoe UI', sans-serif;
+
+    /* ── Standard Semantic Status Tokens ── */
+
+    /* Success — green (delivered, active, online, healthy) */
+    --color-success:        #16a34a;
+    --color-success-bg:     #dcfce7;
+    --color-success-border: #86efac;
+    --color-success-text:   #14532d;
+
+    /* Danger / Error — red (cancelled, rejected, alert) */
+    --color-danger:         #dc2626;
+    --color-danger-bg:      #fee2e2;
+    --color-danger-border:  #fca5a5;
+    --color-danger-text:    #7f1d1d;
+
+    /* Warning / Pending — amber (awaiting pickup, under review) */
+    --color-warning:        #d97706;
+    --color-warning-bg:     #fef3c7;
+    --color-warning-border: #fcd34d;
+    --color-warning-text:   #78350f;
+
+    /* Info — logistics blue (in-transit, route optimization, tracking) */
+    --color-info:           #2563eb;
+    --color-info-bg:        #dbeafe;
+    --color-info-border:    #93c5fd;
+    --color-info-text:      #1e3a8a;
+
+    /* Primary Brand Highlight — vibrant yellow */
+    --color-active:         #ffcb05;
+    --color-active-bg:      #fff9cc;
+    --color-active-border:  #ffdb57;
+    --color-active-text:    #00274c;
   }
 
   *,
   *::before,
-  *::after {
-    box-sizing: border-box;
-  }
+  *::after { box-sizing: border-box; }
 
   html {
     min-width: 320px;
@@ -38,17 +71,10 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  #root {
-    min-height: 100vh;
-  }
+  #root { min-height: 100vh; }
 
-  .auth-form-panel {
-    scrollbar-width: none;
-  }
-
-  .auth-form-panel::-webkit-scrollbar {
-    display: none;
-  }
+  .auth-form-panel             { scrollbar-width: none; }
+  .auth-form-panel::-webkit-scrollbar { display: none; }
 
   ::selection {
     color: var(--color-brand-navy);
@@ -57,28 +83,18 @@
 
   @media (min-width: 1024px) and (max-height: 820px) {
     .auth-form-content {
-      transform: scale(0.9);
-      transform-origin: top center;
-      width: 111.111%;
-      margin-left: -5.555%;
+      transform: scale(0.9); transform-origin: top center;
+      width: 111.111%; margin-left: -5.555%;
     }
   }
-
   @media (min-width: 1024px) and (max-height: 700px) {
     .auth-form-content {
-      transform: scale(0.8);
-      transform-origin: top center;
-      width: 125%;
-      margin-left: -12.5%;
+      transform: scale(0.8); transform-origin: top center;
+      width: 125%; margin-left: -12.5%;
     }
   }
 
-  button,
-  input,
-  textarea,
-  select {
-    font: inherit;
-  }
+  button, input, textarea, select { font: inherit; }
 
   :focus-visible {
     outline: 2px solid var(--focus-ring);
@@ -86,29 +102,369 @@
   }
 }
 
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
+/* ================================================================
+   DASHBOARD SHELL  —  Clean middle-gray background (#EDEDED)
+   ================================================================ */
+.soft-ui-shell {
   background: var(--color-surface);
 }
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+
+.soft-ui-header {
+  background: #ffffff;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+.soft-ui-sidebar {
+  margin: 0 !important;
+  min-height: 100vh !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: linear-gradient(180deg, #001a35 0%, #00274c 55%, #08213f 100%) !important;
+  overflow: hidden;
 }
+
+.soft-ui-header {
+  border-bottom: 1px solid rgba(0, 39, 76, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 39, 76, 0.04);
+}
+
+.soft-ui-dashboard {
+  color: var(--color-text-muted);
+}
+
+/* High-contrast crisp white cards on middle-gray — Soft UI */
+.soft-ui-dashboard .bg-white,
+.soft-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 1rem;
+  box-shadow: 0 20px 27px 0 rgba(0, 0, 0, 0.05);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.soft-ui-dashboard .bg-white:hover,
+.soft-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 39, 76, 0.08), 0 2px 6px rgba(0, 39, 76, 0.04);
+  transform: translateY(-2px);
+}
+
+.soft-ui-dashboard h2,
+.soft-ui-dashboard h3,
+.soft-ui-dashboard h4 {
+  color: var(--color-brand-navy);
+}
+
+/* ================================================================
+   NAVIGATION ITEMS
+   =============================================================== */
+.soft-ui-nav-item {
+  margin: 0.35rem 0;
+  color: var(--color-text-muted);
+  transition: all 160ms ease;
+}
+
+.soft-ui-nav-item:hover {
+  background: #f4f4f4;
+  color: var(--color-brand-navy);
+}
+
+/* Active navigation item: vibrant yellow with deep navy text */
+.soft-ui-nav-item.active-nav,
+.soft-ui-nav-item[aria-current="page"],
+.soft-ui-nav-item.bg-navy-900 {
+  background: #e8f0fb !important;
+  color: #00274c !important;
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 #2563eb;
+}
+
+/* ================================================================
+   HERO / ADMIN HEADER BANNER
+   ================================================================ */
+.soft-ui-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border-radius: 1.25rem;
+  padding: 2rem;
+  color: #00274c;
+  background: linear-gradient(135deg, #e8f0fb 0%, #f3f7fc 55%, #ffffff 100%);
+  border: 1px solid #d5e2f2;
+  box-shadow: 0 6px 20px rgba(0, 39, 76, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.soft-ui-hero h2 { color: #00274c !important; }
+.soft-ui-hero p  { color: rgba(0, 39, 76, 0.75) !important; }
+
+/* ================================================================
+   BUTTONS
+   ================================================================ */
+.soft-ui-primary-button {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 0.45rem; border: 0; border-radius: 0.75rem;
+  background: linear-gradient(135deg, #ffcb05, #e6b800);
+  padding: 0.7rem 1.2rem; color: #00274c;
+  font-size: 0.75rem; font-weight: 700;
+  box-shadow: 0 3px 10px rgba(0, 39, 76, 0.12);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.soft-ui-primary-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(0, 39, 76, 0.16);
+}
+
+/* ================================================================
+   STAT CARD ICONS — Meaningful, Energetic Palette
+   ================================================================ */
+.soft-stat-card {
+  display: flex; align-items: center; gap: 1rem; padding: 1.25rem;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.soft-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 39, 76, 0.08);
+}
+
+.soft-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 3rem; height: 3rem; flex: 0 0 auto;
+  color: #fff; border-radius: 0.75rem;
+  box-shadow: 0 4px 10px rgba(20, 20, 20, 0.12);
+}
+
+/* ✦ Primary & Dark → Vibrant Brand Yellow */
+.soft-icon-primary { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e3a8a; }
+.soft-icon-dark    { background: linear-gradient(135deg, #00274c, #11296b); color: #ffffff; }
+
+/* ✦ Info → Vibrant Logistics Blue for in-transit */
+.soft-icon-info    { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #ffffff; }
+
+/* ✦ Success → Standard Green for delivered / healthy */
+.soft-icon-success { background: linear-gradient(135deg, #22c55e, #15803d); color: #ffffff; }
+
+/* ✦ Warning → Standard Amber for pending */
+.soft-icon-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; }
+
+/* ✦ Danger → Standard Red */
+.soft-icon-danger  { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #ffffff; }
+
+.soft-stat-label, .soft-stat-helper {
+  display: block; color: var(--color-text-muted); font-size: 0.7rem;
+}
+.soft-stat-value {
+  display: block; margin-top: 0.2rem;
+  color: var(--color-brand-navy); font-size: 1.25rem;
+  line-height: 1.2; font-weight: 700;
+}
+
+/* ================================================================
+   BADGES
+   ================================================================ */
+.soft-badge {
+  display: inline-flex; align-items: center;
+  border-radius: 0.5rem; padding: 0.35rem 0.65rem;
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.03em;
+}
+
+.soft-badge-primary { background: #fff9cc; color: #00274c; border: 1px solid #ffdb57; }
+.soft-badge-success { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+.soft-badge-warning { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+.soft-badge-info    { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.soft-badge-danger  { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+/* ================================================================
+   ALERTS
+   ================================================================ */
+.alert-success { display:flex; align-items:flex-start; gap:.75rem; padding:1rem 1.25rem; border-radius:.75rem; background:#dcfce7; border:1px solid #86efac; color:#14532d; }
+.alert-danger  { display:flex; align-items:flex-start; gap:.75rem; padding:1rem 1.25rem; border-radius:.75rem; background:#fee2e2; border:1px solid #fca5a5; color:#7f1d1d; }
+.alert-warning { display:flex; align-items:flex-start; gap:.75rem; padding:1rem 1.25rem; border-radius:.75rem; background:#fef3c7; border:1px solid #fcd34d; color:#78350f; }
+.alert-info    { display:flex; align-items:flex-start; gap:.75rem; padding:1rem 1.25rem; border-radius:.75rem; background:#dbeafe; border:1px solid #93c5fd; color:#1e3a8a; }
+.alert-active  { display:flex; align-items:flex-start; gap:.75rem; padding:1rem 1.25rem; border-radius:.75rem; background:#fff9cc; border:1px solid #ffdb57; color:#00274c; }
+
+/* ================================================================
+   CUSTOMER DASHBOARD SHELL — Clean light grey (#f8fafc)
+   ================================================================ */
+.customer-dashboard-shell {
+  background: #f8fafc;
+}
+
+.customer-dashboard-shell #customer-navigation {
+  background: linear-gradient(180deg, #001a35 0%, #00274c 55%, #08213f 100%) !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  height: 100vh !important;
+}
+
+.customer-dashboard-shell .MuiCard-root {
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 27px 0 rgba(0, 0, 0, 0.05);
+  border-radius: 1rem;
+  transition: box-shadow 200ms ease, transform 200ms ease;
+  background: #ffffff;
+}
+.customer-dashboard-shell .MuiCard-root:hover {
+  box-shadow: 0 8px 24px rgba(0, 39, 76, 0.08), 0 2px 6px rgba(0, 39, 76, 0.04);
+  transform: translateY(-2px);
+}
+
+.customer-dashboard-shell .MuiInputBase-root {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid #e9ecef;
+  transition: all 150ms ease;
+}
+.customer-dashboard-shell .MuiInputBase-root:focus-within {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  border-color: #2563eb;
+}
+
+/* ── Global MUI Dialog — Soft UI ── */
+.MuiDialog-paper {
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden;
+}
+.MuiDialogTitle-root {
+  padding: 24px 28px 16px !important;
+  border-bottom: 1px solid #e9ecef !important;
+  background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%) !important;
+}
+.MuiDialogContent-root {
+  padding: 24px 28px !important;
+}
+.MuiDialogActions-root {
+  background: linear-gradient(180deg, #fafbfc 0%, #f5f6f8 100%) !important;
+  border-top: 1px solid #e9ecef !important;
+  padding: 16px 28px !important;
+  gap: 10px !important;
+}
+
+/* ── Global MUI Table — Soft UI ── */
+.MuiTableContainer-root {
+  border-radius: 1rem !important;
+  border: 1px solid #e9ecef !important;
+  box-shadow: 0 20px 27px 0 rgba(0, 0, 0, 0.05) !important;
+  background: #ffffff !important;
+  overflow: hidden;
+  transition: box-shadow 200ms ease !important;
+}
+.MuiTableContainer-root:hover {
+  box-shadow: 0 8px 24px rgba(0, 39, 76, 0.08), 0 2px 6px rgba(0, 39, 76, 0.04) !important;
+}
+.MuiTable-root th,
+.MuiTableHead-root th {
+  background: linear-gradient(180deg, #f8f9fa 0%, #f1f3f5 100%) !important;
+  font-size: 0.65rem !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  color: #67748e !important;
+  padding: 14px 18px !important;
+  border-bottom: 2px solid #e9ecef !important;
+}
+.MuiTable-root td {
+  padding: 14px 18px !important;
+  border-bottom: 1px solid #f0f2f5 !important;
+  vertical-align: middle !important;
+}
+.MuiTableRow-root {
+  transition: all 150ms ease !important;
+}
+.MuiTableRow-root:hover,
+.MuiTableRow-root:focus-within {
+  background: linear-gradient(90deg, #f0f7ff 0%, #f8f9fa 100%) !important;
+}
+
+/* ── Global MUI Pagination — Soft UI ── */
+.MuiPaginationItem-root {
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid #e9ecef !important;
+  background: white !important;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  transition: all 150ms ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+.MuiPaginationItem-root:hover:not(.Mui-selected):not(.Mui-disabled) {
+  background: #f0f7ff !important;
+  border-color: #2563eb !important;
+  color: #2563eb !important;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12) !important;
+  transform: translateY(-1px) !important;
+}
+.MuiPaginationItem-root.Mui-selected {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: white !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
+}
+.MuiPaginationItem-root.Mui-disabled {
+  opacity: 0.4 !important;
+  background: #f8f9fa !important;
+}
+.MuiPaginationItem-ellipsis {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ── Global MUI Buttons — Soft UI ── */
+.MuiButton-root {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-weight: 600 !important;
+  border-radius: 0.75rem !important;
+  padding: 8px 18px !important;
+  transition: all 150ms ease !important;
+}
+.MuiButton-root:hover {
+  box-shadow: 0 4px 12px rgba(0, 39, 76, 0.12) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── Global MUI Input — Soft UI ── */
+.MuiOutlinedInput-root {
+  border-radius: 0.75rem !important;
+  background: #ffffff !important;
+  transition: all 150ms ease !important;
+}
+.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: #e9ecef !important;
+}
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #2563eb !important;
+}
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #2563eb !important;
+  border-width: 2px !important;
+}
+
+/* ── Global MUI Alert — Soft UI ── */
+.MuiAlert-root {
+  border-radius: 0.75rem !important;
+  font-weight: 500 !important;
+  font-size: 0.82rem !important;
+}
+
+.customer-dashboard-shell .MuiBreadcrumbs-root a       { color: var(--color-brand-blue); }
+.customer-dashboard-shell .MuiBreadcrumbs-root a:hover { color: var(--color-brand-yellow); }
+
+/* Custom scrollbars */
+::-webkit-scrollbar       { width:8px; height:8px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

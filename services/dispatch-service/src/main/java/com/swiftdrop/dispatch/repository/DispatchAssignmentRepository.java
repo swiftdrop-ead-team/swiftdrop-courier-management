@@ -3,7 +3,6 @@ package com.swiftdrop.dispatch.repository;
 import com.swiftdrop.dispatch.entity.AssignmentStatus;
 import com.swiftdrop.dispatch.entity.DispatchAssignment;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,8 +11,11 @@ import java.util.Optional;
  * Spring Data JPA Repository for DispatchAssignment entity.
  * Provides database operations on the "dispatch_assignments" table.
  */
-@Repository
 public interface DispatchAssignmentRepository extends JpaRepository<DispatchAssignment, Long> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select e from DispatchAssignment e where e.id = :id")
+    Optional<DispatchAssignment> findForUpdate(@org.springframework.data.repository.query.Param("id") Long id);
+
 
     // Retrieves all assignments given to a specific courier
     List<DispatchAssignment> findByCourierId(Long courierId);

@@ -1,6 +1,9 @@
 package com.swiftdrop.identity.service;
 
 import com.swiftdrop.identity.dto.PendingMerchantResponse;
+import com.swiftdrop.identity.dto.MerchantReviewResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import com.swiftdrop.identity.dto.UserProfileResponse;
 import com.swiftdrop.identity.entity.*;
 import com.swiftdrop.identity.exception.ResourceNotFoundException;
@@ -20,6 +23,20 @@ import java.util.stream.Collectors;
 public class AdminService {
 
     private final UserRepository userRepository;
+    private final com.swiftdrop.identity.repository.RoleRepository roleRepository;
+    private final com.swiftdrop.identity.repository.RefreshSessionRepository sessions;
+    @Transactional
+    public void updateAccess(UUID id,UUID actor,java.util.Set<RoleName> roles,UserStatus status) {
+        if(id.equals(actor) && (status!=UserStatus.ACTIVE || !roles.contains(RoleName.ROLE_ADMIN)))
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,"You cannot remove your own administrator access");
+        var user=userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        // Merchant approval remains a separate workflow; role edits do not provision merchant records.
+        if(roles.contains(RoleName.ROLE_MERCHANT) && user.getMerchantRecord()==null)
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,"Register a merchant account before assigning the merchant role");
+        user.setRoles(roles.stream().map(r -> roleRepository.findByName(r).orElseThrow()).collect(java.util.stream.Collectors.toSet()));
+        user.setStatus(status);userRepository.save(user);sessions.revokeAllByUserId(id);
+    }
+
     private final MerchantApprovalRecordRepository merchantApprovalRecordRepository;
 
     @Transactional(readOnly = true)
@@ -69,33 +86,38 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<MerchantReviewResponse> getMerchantReviews() {
+        return merchantApprovalRecordRepository.findByReviewedAtIsNotNullOrderByReviewedAtDescIdDesc().stream()
+                .map(r -> new MerchantReviewResponse(r.getId(), r.getBusinessName(), r.getStatus(),
+                        r.getNotes() == null ? "" : r.getNotes(), r.getReviewedAt(),
+                        r.getReviewer() == null ? "Reviewer unavailable" : r.getReviewer().getFullName()))
+                .toList();
+    }
+
     @Transactional
     public void approveMerchant(UUID recordId, UUID adminId, String notes) {
-        MerchantApprovalRecord record = merchantApprovalRecordRepository.findById(recordId)
-                .orElseThrow(() -> new ResourceNotFoundException("Merchant approval record not found"));
-
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
-
-        record.setStatus(MerchantApprovalStatus.APPROVED);
-        record.setReviewer(admin);
-        record.setNotes(notes != null ? notes : "Approved by administrator");
-        record.setReviewedAt(Instant.now());
-
-        merchantApprovalRecordRepository.save(record);
+        review(recordId, adminId, MerchantApprovalStatus.APPROVED, notes == null ? "Approved by administrator" : notes);
     }
 
     @Transactional
     public void rejectMerchant(UUID recordId, UUID adminId, String notes) {
-        MerchantApprovalRecord record = merchantApprovalRecordRepository.findById(recordId)
+        review(recordId, adminId, MerchantApprovalStatus.REJECTED, notes == null ? "Rejected by administrator" : notes);
+    }
+
+    private void review(UUID recordId, UUID adminId, MerchantApprovalStatus decision, String notes) {
+        MerchantApprovalRecord record = merchantApprovalRecordRepository.findForReview(recordId)
                 .orElseThrow(() -> new ResourceNotFoundException("Merchant approval record not found"));
+        if (record.getStatus() != MerchantApprovalStatus.PENDING) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "This application has already been reviewed.");
+        }
 
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
 
-        record.setStatus(MerchantApprovalStatus.REJECTED);
+        record.setStatus(decision);
         record.setReviewer(admin);
-        record.setNotes(notes != null ? notes : "Rejected by administrator");
+        record.setNotes(notes);
         record.setReviewedAt(Instant.now());
 
         merchantApprovalRecordRepository.save(record);

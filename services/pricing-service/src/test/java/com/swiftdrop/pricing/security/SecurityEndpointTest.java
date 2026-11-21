@@ -54,6 +54,25 @@ class SecurityEndpointTest {
 
     private static final String OTHER_SECRET = "dGhpc0lzQURpZmZlcmVudFNlY3JldEtleUZvclRlc3Rpbmc4OTAxMjM0NTY3ODkwMTI=";
 
+    @org.springframework.beans.factory.annotation.Value("${swiftdrop.security.jwt.secret}")
+    private String sharedSecret;
+
+    @Test
+    void merchantServiceTokenIsLimitedToParcelCalculation() throws Exception {
+        String token = Jwts.builder().subject(UUID.randomUUID().toString())
+                .issuer("swiftdrop-merchant").claim("roles", List.of("ROLE_MERCHANT"))
+                .expiration(new Date(System.currentTimeMillis() + 60000))
+                .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(sharedSecret))).compact();
+        mockMvc.perform(post("/api/v1/pricing/calculate").servletPath("/api/v1/pricing/calculate")
+                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/pricing/rules").header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/v1/pricing/quotes").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
     @Test
     @DisplayName("Public endpoint /api/v1/pricing/health is accessible without authentication")
     void publicHealthEndpointAccessibleWithoutAuth() throws Exception {

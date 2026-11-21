@@ -1,348 +1,274 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import { AdminPagination as WorkspacePagination } from "./AdminPagination";
+import { Activity } from "./tabs/Activity";
+import { Users } from "./tabs/Users";
+import { Merchants } from "./tabs/Merchants";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Alert, Box, Card, Dialog, DialogActions, DialogContent, DialogTitle, Grid, LinearProgress, Snackbar, TextField } from '@mui/material';
+import { ArrowRight, Building2, Check, RefreshCw, ShieldCheck, X } from 'lucide-react';
+import SoftBox from 'components/SoftBox';
+import SoftTypography from 'components/SoftTypography';
+import SoftButton from 'components/SoftButton';
+import SoftInput from 'components/SoftInput';
+import MiniStatisticsCard from 'examples/Cards/StatisticsCards/MiniStatisticsCard';
+import Table from 'examples/Tables/Table';
+import adminIllustration from '../../assets/images/admin-review.png';
 import { useAuth } from '../../hooks/useAuth';
 import { adminService } from '../../services/authService';
-import { User, PendingMerchant } from '../../types/auth';
-import { 
-  Users, 
-  CheckCircle, 
-  XCircle, 
-  ShieldCheck, 
-  Clock, 
-  RefreshCw, 
-  Building2, 
-  AlertCircle,
-  FileCheck2,
-  Search,
-  Check,
-  X
-} from 'lucide-react';
+import type { PendingMerchant, User } from '../../types/auth';
+import { AdminWorkspaceHeader } from './AdminWorkspaceUI';
+import { AdminProfile } from './tabs/Profile';
+import { AdminActivity, createAdminPreview, dateTime } from './adminData';
+import { AdminBadge, AdminDetails, AdminEmpty, adminActionStyle, adminSelectStyle } from './AdminShared';
 
-export const AdminDashboard: React.FC = () => {
+const headings = {
+  overview: ['Your platform, at a glance.', 'Keep account activity and merchant reviews moving.'],
+  merchants: ['Merchant approvals', 'Review business registrations and make informed decisions.'],
+  users: ['User management', 'Find accounts and review roles, status, and contact details.'],
+  activity: ['Review activity', 'Merchant decisions made in this browser session.'],
+  profile: ['Administrator profile', 'Your account details and workspace access.'],
+};
+type Tab = keyof typeof headings;
+type Decision = 'APPROVED' | 'REJECTED';
+const roles = ['ADMIN', 'MERCHANT', 'COURIER', 'CUSTOMER'];
+
+export const AdminDashboard: React.FC<{ previewMode?: boolean }> = ({ previewMode = false }) => {
   const { user } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
-  const [pendingMerchants, setPendingMerchants] = useState<PendingMerchant[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionInProgress, setActionInProgress] = useState<string | null>(null);
-  const [feedbackMessage, setFeedbackMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const location = useLocation();
+  const base = previewMode ? '/dashboard-preview/admin' : '/admin/dashboard';
+  const segment = location.pathname.slice(base.length).split('/')[1] || location.hash.slice(1) || 'overview';
+  const activeTab: Tab = Object.prototype.hasOwnProperty.call(headings, segment) ? segment as Tab : 'overview';
+  const [users, setUsers] = useState<User[] | null>(() => previewMode ? createAdminPreview().users : null);
+  const [merchants, setMerchants] = useState<PendingMerchant[] | null>(() => previewMode ? createAdminPreview().merchants : null);
+  const [account, setAccount] = useState<User>(() => createAdminPreview().users[0]);
+  const [loading, setLoading] = useState(!previewMode);
+  const [errors, setErrors] = useState({ users: '', merchants: '', activity: '' });
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const [activity, setActivity] = useState<AdminActivity[]>([]);
+  const [query, setQuery] = useState('');
+  const [role, setRole] = useState('All');
+  const [status, setStatus] = useState('All');
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
+  const [selectedMerchant, setSelectedMerchant] = useState<PendingMerchant | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [decision, setDecision] = useState<Decision | null>(null);
+  const [notes, setNotes] = useState('');
+  const [reviewError, setReviewError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [resetOpen, setResetOpen] = useState(false);
+  const requestSequence = useRef(0);
+  const displayAccount = previewMode ? account : user;
+  const name = displayAccount?.fullName || 'Administrator';
 
   const loadData = useCallback(async () => {
-    setLoading(true);
-    setFeedbackMessage(null);
+    if (previewMode) return;
+    const request = ++requestSequence.current;
+    setLoading(true); setPage(0); setErrors({ users: '', merchants: '', activity: '' });
+    const needUsers = activeTab === 'overview' || activeTab === 'users';
+    const needMerchants = activeTab === 'overview' || activeTab === 'merchants';
+    const [userResult, merchantResult, reviews] = await Promise.allSettled([
+      needUsers ? adminService.getAllUsers() : null,
+      needMerchants ? adminService.getPendingMerchants() : null,
+      activeTab === 'activity' ? adminService.getMerchantReviews() : null,
+    ]);
+    if (request !== requestSequence.current) return;
+    if (needUsers) setUsers(userResult.status === 'fulfilled' ? userResult.value : null);
+    if (needMerchants) setMerchants(merchantResult.status === 'fulfilled' ? merchantResult.value : null);
+    if (activeTab === 'activity') setActivity(reviews.status === 'fulfilled' ? reviews.value || [] : []);
+    setErrors({
+      users: userResult.status === 'rejected' ? 'User accounts could not be loaded. Refresh to try again.' : '',
+      merchants: merchantResult.status === 'rejected' ? 'Merchant applications could not be loaded. Refresh to try again.' : '',
+      activity: reviews.status === 'rejected' ? 'Review history could not be loaded. Refresh to try again.' : '',
+    });
+    setUpdatedAt(userResult.status === 'fulfilled' && merchantResult.status === 'fulfilled' ? new Date().toISOString() : null);
+    setLoading(false);
+  }, [activeTab, previewMode]);
+  useEffect(() => { void loadData(); return () => { requestSequence.current += 1; }; }, [loadData]);
+  useEffect(() => { setQuery(''); setRole('All'); setStatus('All'); setPage(0); setSelectedMerchant(null); setSelectedUser(null); }, [activeTab]);
+
+  const pending = (merchants || []).filter((item) => item.approvalStatus === 'PENDING');
+  const visibleUsers = (users || []).filter((item) => `${item.fullName} ${item.email} ${item.phoneNumber || ''}`.toLowerCase().includes(query.trim().toLowerCase()) && (role === 'All' || item.roles.includes(role as User['roles'][number])) && (status === 'All' || item.status === status));
+  const visibleMerchants = (merchants || []).filter((item) => `${item.businessName} ${item.contactPerson} ${item.email}`.toLowerCase().includes(query.trim().toLowerCase()) && (status === 'All' || item.approvalStatus === status));
+  const visibleActivity = activity.filter((item) => `${item.merchant} ${item.actor} ${item.notes}`.toLowerCase().includes(query.trim().toLowerCase()) && (status === 'All' || item.decision === status));
+  const pageRows = <T,>(items: T[]) => items.slice(page * pageSize, (page + 1) * pageSize);
+  const resetPage = (value: string, setter: (value: string) => void) => { setter(value); setPage(0); };
+  const go = (tab: Tab) => `${base}/${tab}`;
+
+  function review(item: PendingMerchant) { setSelectedMerchant(item); setDecision(null); setNotes(''); setReviewError(''); }
+  async function submitDecision() {
+    if (!selectedMerchant || !decision || busy) return;
+    if (decision === 'REJECTED' && !notes.trim()) { setReviewError('Add a reason so the merchant can understand the rejection.'); return; }
+    setBusy(true); setReviewError('');
+    const application = selectedMerchant;
     try {
-      const [usersList, merchantsList] = await Promise.all([
-        adminService.getAllUsers(),
-        adminService.getPendingMerchants(),
-      ]);
-      setUsers(usersList);
-      setPendingMerchants(merchantsList);
-    } catch (err: any) {
-      setFeedbackMessage({
-        text: 'Failed to fetch admin data from Identity Service.',
-        type: 'error',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      if (!previewMode) {
+        const result = decision === 'APPROVED' ? await adminService.approveMerchant(application.id, notes.trim() || undefined) : await adminService.rejectMerchant(application.id, notes.trim());
+        if (!result.success) throw new Error(result.message || 'The decision could not be saved.');
+      }
+      const timestamp = new Date().toISOString();
+      if (previewMode) setActivity((items) => [{ id: `${application.id}-${timestamp}`, merchant: application.businessName, decision, notes: notes.trim(), timestamp, actor: name }, ...items]);
+      if (previewMode) setMerchants((items) => (items || []).map((item) => item.id === application.id ? { ...item, approvalStatus: decision, notes: notes.trim() } : item));
+      else setMerchants((items) => (items || []).filter((item) => item.id !== application.id));
+      setUsers((items) => items?.map((item) => item.id === application.userId ? { ...item, merchantApprovalStatus: decision } : item) || null);
+      setSelectedMerchant(null);
+      setPage(0);
+      setMessage(`${previewMode ? 'Preview: ' : ''}${application.businessName} ${decision === 'APPROVED' ? 'approved' : 'rejected'}.`);
+      if (!previewMode) await loadData();
+    } catch (error: unknown) {
+      const serverMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setReviewError(serverMessage || (error instanceof Error ? error.message : 'The decision could not be saved. Please try again.'));
+    } finally { setBusy(false); }
+  }
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  function pagination(count: number) {
+    return <WorkspacePagination count={count} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />;
+  }
+  function select(label: string, value: string, values: string[], setter: (value: string) => void) {
+    return <Box><SoftTypography component="label" htmlFor={`admin-filter-${label}`} variant="caption" fontWeight="bold" display="block" mb={1}>{label}</SoftTypography><Box component="select" id={`admin-filter-${label}`} aria-label={label} value={value} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => resetPage(event.target.value, setter)} sx={adminSelectStyle}>{values.map((option) => <option key={option} value={option}>{option === 'All' ? 'All ' + label.toLowerCase() : option}</option>)}</Box></Box>;
+  }
+  function search(label: string) {
+    return <Box sx={{ flex: '1 1 240px', maxWidth: { xs: '100%', md: 380 } }}><SoftTypography component="label" htmlFor="admin-search" variant="caption" fontWeight="bold" display="block" mb={1}>{label}</SoftTypography><SoftInput id="admin-search" fullWidth placeholder={activeTab === 'users' ? 'Name, email or phone' : activeTab === 'activity' ? 'Business, reviewer or notes' : 'Business, contact or email'} value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => resetPage(event.target.value, setQuery)} /></Box>;
+  }
+  function merchantTable(items: PendingMerchant[]) {
+    if (!items.length) return <AdminEmpty title={query || status !== 'All' ? 'No matching applications' : 'No pending applications'} text="New merchant registrations will appear here for review." />;
+    return <Table columns={[{ name: 'business', align: 'left' }, { name: 'registered', align: 'left' }, { name: 'status', align: 'center' }, { name: 'action', align: 'right' }]} rows={items.map((item) => ({
+      id: item.id, hasBorder: true,
+      business: <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2 }}><SoftBox component="span" bgColor="primary" borderRadius="lg" p={1} display="flex"><Building2 size={18} color="#00274c" /></SoftBox><Box component="span"><SoftTypography component="span" variant="button" fontWeight="bold" display="block">{item.businessName}</SoftTypography><SoftTypography component="span" variant="caption" color="text" display="block">{item.contactPerson}</SoftTypography></Box></Box>,
+      registered: dateTime(item.registeredAt), status: <AdminBadge status={item.approvalStatus} />,
+      action: <SoftButton variant="text" color="dark" size="small" disabled={busy || loading} aria-label={`Review ${item.businessName}`} onClick={() => review(item)} sx={{ fontWeight: 'bold' }}>{item.approvalStatus === 'PENDING' ? 'Review application' : 'View decision'}<ArrowRight size={13} style={{ marginLeft: 6 }} /></SoftButton>,
+    }))} />;
+  }
+  function userTable(items: User[]) {
+    if (!items.length) return <AdminEmpty title="No matching users" text="Try a different name, role, or account status." />;
+    return <Table columns={[{ name: 'user', align: 'left' }, { name: 'roles', align: 'left' }, { name: 'account', align: 'center' }, { name: 'merchant', align: 'center' }, { name: 'action', align: 'right' }]} rows={items.map((item) => ({
+      id: item.id, hasBorder: true,
+      user: <Box component="span" sx={{ px: 2, display: 'block' }}><SoftTypography component="span" variant="button" fontWeight="bold" display="block">{item.fullName}</SoftTypography><SoftTypography component="span" variant="caption" color="text" display="block">{item.email}</SoftTypography></Box>,
+      roles: item.roles.join(', '), account: <AdminBadge status={item.status} />, merchant: item.merchantApprovalStatus ? <AdminBadge status={item.merchantApprovalStatus} /> : 'Not applicable',
+      action: <SoftButton variant="text" color="dark" size="small" aria-label={`View ${item.fullName}`} onClick={() => setSelectedUser(item)}>Details <ArrowRight size={13} style={{ marginLeft: 6 }} /></SoftButton>,
+    }))} />;
+  }
 
-  const handleApprove = async (recordId: string) => {
-    setActionInProgress(recordId);
-    try {
-      await adminService.approveMerchant(recordId, 'Approved via Admin Dashboard');
-      setFeedbackMessage({
-        text: 'Merchant registration approved successfully! Status updated to APPROVED.',
-        type: 'success',
-      });
-      // Refresh list
-      await loadData();
-    } catch (err: any) {
-      setFeedbackMessage({
-        text: err.response?.data?.message || 'Failed to approve merchant.',
-        type: 'error',
-      });
-    } finally {
-      setActionInProgress(null);
-    }
-  };
+  function overview() {
+    return <Grid container spacing={3}>
+      {[
+        { title: 'Registered users', count: users?.length ?? 'Unavailable', icon: 'people', color: 'primary' },
+        { title: 'Pending approvals', count: merchants ? pending.length : 'Unavailable', icon: 'pending_actions', color: 'warning' },
+        { title: 'Active accounts', count: users?.filter((item) => item.status === 'ACTIVE').length ?? 'Unavailable', icon: 'verified_user', color: 'success' },
+        { title: 'Couriers', count: users?.filter((item) => item.roles.includes('COURIER')).length ?? 'Unavailable', icon: 'local_shipping', color: 'info' },
+      ].map(({ title, count, icon, color }) => <Grid item xs={12} sm={6} xl={3} key={title}><MiniStatisticsCard title={{ text: title, fontWeight: 'medium' }} count={count} percentage={{ color: 'secondary', text: '' }} icon={{ color, component: icon }} /></Grid>)}
+      <Grid item xs={12} lg={8}><Card sx={{ p: { xs: 3, md: 4 }, height: '100%' }}>
+        <Grid container spacing={3} alignItems="center" sx={{ height: '100%' }}>
+        <Grid item xs={12} sm={7}>
+        <SoftTypography variant="caption" color="text" fontWeight="bold" sx={{ letterSpacing: 1.2 }}>YOUR REVIEW DESK</SoftTypography>
+        <SoftTypography variant="h3" fontWeight="bold" mt={1}>Keep good businesses moving.</SoftTypography>
+        <SoftTypography variant="body2" color="text" mt={1.5} mb={3} sx={{ maxWidth: 520 }}>{merchants ? pending.length ? `${pending.length} merchant applications are waiting for your review. Check business details and leave a clear decision.` : 'Your review queue is clear. New applications will appear as merchants register.' : 'Merchant data is unavailable. Refresh the workspace to try again.'}</SoftTypography>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}><SoftButton component={Link} to={go('merchants')} variant="gradient" color="primary" sx={adminActionStyle}>Review applications <ArrowRight size={15} style={{ marginLeft: 6 }} /></SoftButton><SoftButton component={Link} to={go('users')} variant="outlined" color="dark">View users</SoftButton></Box>
+        </Grid>
+        <Grid item xs={12} sm={5}>
+          <SoftBox borderRadius="lg" sx={{ minHeight: 200, backgroundColor: '#f7f3e9', display: 'grid', placeItems: 'center', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0, 39, 76, 0.12)' }}>
+            <Box component="img" src={adminIllustration} alt="Administrator reviewing merchant applications" sx={{ width: '100%', maxHeight: 280, objectFit: 'contain', display: 'block' }} />
+          </SoftBox>
+        </Grid>
+        </Grid>
+      </Card></Grid>
+      <Grid item xs={12} lg={4}><Card sx={{ p: 3, height: '100%', bgcolor: '#00274c' }}>
+        <ShieldCheck size={28} color="#ffcb05" /><SoftTypography variant="h5" color="white" fontWeight="bold" mt={2}>A focused admin workspace.</SoftTypography><SoftTypography variant="body2" color="white" opacity={0.8} mt={1.5}>Review merchant registrations, understand your account directory, and keep a record of this session's decisions.</SoftTypography><SoftTypography variant="caption" color="white" opacity={0.65} mt={3} display="block">{previewMode ? 'Sample data / no live changes' : updatedAt ? `Last refreshed: ${dateTime(updatedAt)}` : 'Live data has not fully loaded'}</SoftTypography>
+      </Card></Grid>
+      <Grid item xs={12} lg={8}><Card><Box sx={{ p: 3, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 2 }}><Box><SoftTypography variant="h6" fontWeight="bold">Waiting for review</SoftTypography><SoftTypography variant="button" color="text" fontWeight="regular">Your next merchant applications.</SoftTypography></Box><SoftButton component={Link} to={go('merchants')} variant="text" color="dark">View queue <ArrowRight size={13} style={{ marginLeft: 6 }} /></SoftButton></Box>{merchants ? merchantTable(pending.slice(0, 5)) : <AdminEmpty title="Review queue unavailable" text="Refresh to retry loading merchant applications." />}</Card></Grid>
+      <Grid item xs={12} lg={4}><Card sx={{ p: 3 }}><SoftTypography variant="h6" fontWeight="bold" mb={1}>Accounts by role</SoftTypography><SoftTypography variant="caption" color="text">Accounts with multiple roles appear in each group.</SoftTypography>{roles.map((item) => { const count = users?.filter((entry) => entry.roles.includes(item as User['roles'][number])).length; return <Box key={item} mt={2.5}><Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><SoftTypography variant="caption" fontWeight="bold">{item}</SoftTypography><SoftTypography variant="caption" color="text">{count ?? 'Unavailable'}</SoftTypography></Box><LinearProgress variant="determinate" aria-label={`${item} accounts`} value={users?.length && count !== undefined ? count / users.length * 100 : 0} /></Box>; })}</Card></Grid>
+    </Grid>;
+  }
 
-  const handleReject = async (recordId: string) => {
-    setActionInProgress(recordId);
-    try {
-      await adminService.rejectMerchant(recordId, 'Rejected during compliance review');
-      setFeedbackMessage({
-        text: 'Merchant registration rejected.',
-        type: 'success',
-      });
-      // Refresh list
-      await loadData();
-    } catch (err: any) {
-      setFeedbackMessage({
-        text: err.response?.data?.message || 'Failed to reject merchant.',
-        type: 'error',
-      });
-    } finally {
-      setActionInProgress(null);
-    }
-  };
 
-  const filteredUsers = users.filter((u) => 
-    u.fullName.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-    u.roles.some((r) => r.toLowerCase().includes(userSearchTerm.toLowerCase()))
-  );
 
-  return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Admin Header */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-navy-900 text-white shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-yellow-400" />
-            <h2 className="text-2xl font-extrabold tracking-tight">
-              Platform Administration
-            </h2>
-          </div>
-          <p className="text-xs text-slate-300">
-            Welcome, Administrator <span className="font-semibold text-white">{user?.fullName}</span>. Complete control over registered accounts and merchant verifications.
-          </p>
-        </div>
 
-        <button
-          onClick={loadData}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 border border-slate-700 text-xs font-semibold transition-all disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Data</span>
-        </button>
-      </div>
 
-      {/* Feedback Alert */}
-      {feedbackMessage && (
-        <div className={`p-4 rounded-xl text-xs flex items-center gap-2 animate-fade-in ${
-          feedbackMessage.type === 'success' 
-            ? 'bg-yellow-500/10 border border-yellow-500/30 text-navy-900' 
-            : 'bg-red-50 border border-red-200 text-red-900'
-        }`}>
-          {feedbackMessage.type === 'success' ? (
-            <CheckCircle className="w-4 h-4 text-yellow-500 shrink-0" />
-          ) : (
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-          )}
-          <span className="font-medium">{feedbackMessage.text}</span>
-        </div>
-      )}
-
-      {/* Admin Summary Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Total Registered Users</span>
-          <h4 className="text-2xl font-bold text-navy-900 mt-1">{users.length}</h4>
-          <span className="text-[11px] text-slate-400">Database user accounts</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Pending Merchant Approvals</span>
-          <h4 className="text-2xl font-bold text-amber-600 mt-1">{pendingMerchants.length}</h4>
-          <span className="text-[11px] text-slate-400">Action required</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Field Couriers</span>
-          <h4 className="text-2xl font-bold text-navy-900 mt-1">
-            {users.filter(u => u.roles.includes('COURIER')).length}
-          </h4>
-          <span className="text-[11px] text-slate-400">Active personnel</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs text-slate-500 font-medium">Identity Service Status</span>
-          <h4 className="text-2xl font-bold text-yellow-500 mt-1">HEALTHY</h4>
-          <span className="text-[11px] text-slate-400">Spring Boot 3.4.3 on Port 8081</span>
-        </div>
-      </div>
-
-      {/* ==================================================================== */}
-      {/* 1. Pending Merchant Approvals Table (Live Action)                    */}
-      {/* ==================================================================== */}
-      <div id="merchants" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-5">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-100 gap-2">
-          <div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-amber-500" />
-              <h3 className="text-lg font-bold text-navy-900">
-                Pending Merchant Approvals ({pendingMerchants.length})
-              </h3>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Review and approve newly registered commercial merchants to grant shipping access.
-            </p>
-          </div>
-        </div>
-
-        {pendingMerchants.length === 0 ? (
-          <div className="py-12 text-center text-xs text-slate-500 space-y-2">
-            <FileCheck2 className="w-10 h-10 text-yellow-500 mx-auto" />
-            <p className="font-semibold text-slate-700">All merchant applications reviewed</p>
-            <p className="text-[11px] text-slate-400">No pending commercial registrations at this time.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-y border-slate-200">
-                <tr>
-                  <th className="py-3 px-4">Business & Contact</th>
-                  <th className="py-3 px-4">Email & Phone</th>
-                  <th className="py-3 px-4">Registered Address</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Administrative Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {pendingMerchants.map((merchant) => (
-                  <tr key={merchant.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <div className="font-bold text-navy-900">{merchant.businessName}</div>
-                      <div className="text-slate-500">{merchant.contactPerson}</div>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-600">
-                      <div>{merchant.email}</div>
-                      <div className="text-[11px] text-slate-400">{merchant.phoneNumber}</div>
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate">
-                      {merchant.businessAddress}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                        PENDING
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right space-x-2 whitespace-nowrap">
-                      <button
-                        onClick={() => handleApprove(merchant.id)}
-                        disabled={actionInProgress === merchant.id}
-                        className="px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white font-semibold text-xs inline-flex items-center gap-1 shadow-sm disabled:opacity-50"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        <span>Approve</span>
-                      </button>
-                      <button
-                        onClick={() => handleReject(merchant.id)}
-                        disabled={actionInProgress === merchant.id}
-                        className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold text-xs inline-flex items-center gap-1 disabled:opacity-50"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                        <span>Reject</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+  return <Box className={activeTab === "overview" ? undefined : "workspace-tab admin-workspace"} sx={{ '& .MuiCard-root': { minWidth: 0 } }}>
+    {previewMode && <Alert severity="info" sx={{ mb: 3, borderRadius: 3, fontSize: 12 }}>Preview workspace / Sample accounts and applications. Changes reset when you reload. No live accounts are modified.</Alert>}
+    {activeTab === 'overview' ? <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}><Box><SoftTypography component="h1" variant="h4" fontWeight="bold">{headings[activeTab][0]}</SoftTypography><SoftTypography variant="body2" color="text" mt={0.5}>{headings[activeTab][1]}</SoftTypography></Box><SoftButton variant="outlined" color="dark" disabled={loading || busy} onClick={() => previewMode ? setResetOpen(true) : void loadData()}><RefreshCw size={14} style={{ marginRight: 6 }} />{previewMode ? 'Reset preview' : 'Refresh data'}</SoftButton></Box> : <Box mb={3}><AdminWorkspaceHeader page={activeTab} action={<SoftButton variant="outlined" color="dark" disabled={loading || busy} onClick={() => previewMode ? setResetOpen(true) : void loadData()}><RefreshCw size={14} style={{ marginRight: 6 }} />{previewMode ? 'Reset preview' : 'Refresh data'}</SoftButton>} /></Box>}
+    {errors.users && <Alert severity="error" sx={{ mb: 2 }}>{errors.users}</Alert>}{errors.merchants && <Alert severity="error" sx={{ mb: 2 }}>{errors.merchants}</Alert>}
+    {loading ? <Box role="status" aria-label="Loading admin workspace" sx={{ py: 4 }}><LinearProgress /><SoftTypography variant="button" color="text" display="block" mt={2}>Loading administration data...</SoftTypography></Box> : <>
+      {activeTab === 'overview' && overview()}
+        {activeTab === 'merchants' && (
+          <Merchants
+            available={Boolean(merchants)}
+            pendingCount={pending.length}
+            count={visibleMerchants.length}
+            filters={
+              <>
+                {search('Search applications')}
+                {previewMode &&
+                  select(
+                    'Application status',
+                    status,
+                    ['All', 'PENDING', 'APPROVED', 'REJECTED'],
+                    setStatus,
+                  )}
+              </>
+            }
+          >
+            {merchants && (
+              <>
+                {merchantTable(pageRows(visibleMerchants))}
+                {pagination(visibleMerchants.length)}
+              </>
+            )}
+          </Merchants>
         )}
-      </div>
-
-      {/* ==================================================================== */}
-      {/* 2. Registered Users Management Table                                 */}
-      {/* ==================================================================== */}
-      <div id="users" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-5">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-100 gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-navy-900" />
-              <h3 className="text-lg font-bold text-navy-900">
-                Registered Platform Users ({users.length})
-              </h3>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Live records persisted in PostgreSQL table <code className="font-mono text-yellow-600">users</code>
-            </p>
-          </div>
-
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search user by name, email..."
-              value={userSearchTerm}
-              onChange={(e) => setUserSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:border-yellow-500 outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-y border-slate-200">
-              <tr>
-                <th className="py-3 px-4">User Details</th>
-                <th className="py-3 px-4">Email</th>
-                <th className="py-3 px-4">Phone</th>
-                <th className="py-3 px-4">Assigned Roles</th>
-                <th className="py-3 px-4">Merchant Status</th>
-                <th className="py-3 px-4">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3.5 px-4 font-semibold text-navy-900">
-                    {u.fullName}
-                  </td>
-                  <td className="py-3.5 px-4 font-mono text-slate-600">
-                    {u.email}
-                  </td>
-                  <td className="py-3.5 px-4 text-slate-500">
-                    {u.phoneNumber || '-'}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <div className="flex flex-wrap gap-1">
-                      {u.roles.map((r) => (
-                        <span 
-                          key={r}
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                            r === 'ADMIN' ? 'bg-purple-100 text-purple-800' :
-                            r === 'MERCHANT' ? 'bg-blue-100 text-blue-800' :
-                            r === 'COURIER' ? 'bg-amber-100 text-amber-800' :
-                            'bg-yellow-400/20 text-yellow-700'
-                          }`}
-                        >
-                          {r}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    {u.merchantApprovalStatus ? (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        u.merchantApprovalStatus === 'APPROVED' ? 'bg-yellow-500/20 text-navy-900' :
-                        u.merchantApprovalStatus === 'PENDING' ? 'bg-amber-100 text-amber-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {u.merchantApprovalStatus}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">N/A</span>
-                    )}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="inline-flex items-center gap-1 text-yellow-600 font-semibold text-[11px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
-                      <span>ACTIVE</span>
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+        {activeTab === 'users' && (
+          <Users
+            users={users}
+            matches={visibleUsers}
+            filters={
+              <>
+                {search('Search users')}
+                {select('Role', role, ['All', ...roles], setRole)}
+                {select(
+                  'Account status',
+                  status,
+                  ['All', 'ACTIVE', 'INACTIVE', 'SUSPENDED'],
+                  setStatus,
+                )}
+              </>
+            }
+          >
+            {users && (
+              <>
+                {userTable(pageRows(visibleUsers))}
+                {pagination(visibleUsers.length)}
+              </>
+            )}
+          </Users>
+        )}
+        {activeTab === 'activity' && (
+          <Activity
+            error={errors.activity}
+            count={visibleActivity.length}
+            total={activity.length}
+            items={pageRows(visibleActivity)}
+            filtered={Boolean(query || status !== 'All')}
+            filters={
+              <>
+                {search('Search activity')}
+                {select(
+                  'Decision',
+                  status,
+                  ['All', 'APPROVED', 'REJECTED'],
+                  setStatus,
+                )}
+              </>
+            }
+          >
+            {pagination(visibleActivity.length)}
+          </Activity>
+        )}
+      {activeTab === 'profile' && (displayAccount ? <AdminProfile account={displayAccount} previewMode={previewMode} onSave={(updated) => { setAccount(updated); setUsers((items) => items?.map((entry) => entry.id === updated.id ? updated : entry) || null); setMessage('Preview profile updated.'); }} /> : <Card><AdminEmpty title="Account unavailable" text="Your signed-in profile could not be loaded." /></Card>)}
+    </>}
+    <Dialog open={Boolean(selectedMerchant)} onClose={() => { if (!busy) setSelectedMerchant(null); }} fullWidth maxWidth="sm" aria-labelledby="merchant-review-title"><DialogTitle id="merchant-review-title">{selectedMerchant?.businessName}</DialogTitle>{selectedMerchant && <><DialogContent><Box sx={{ display: 'grid', gap: 3 }}><AdminBadge status={selectedMerchant.approvalStatus} /><AdminDetails items={[["Contact person", selectedMerchant.contactPerson], ['Email address', selectedMerchant.email], ['Phone number', selectedMerchant.phoneNumber], ['Business address', selectedMerchant.businessAddress], ['Registered', dateTime(selectedMerchant.registeredAt)], ['Application ID', selectedMerchant.id]]} />{selectedMerchant.approvalStatus !== 'PENDING' && <AdminDetails items={[["Review notes", selectedMerchant.notes || 'No notes added']]} />}{decision && <><Alert severity={decision === 'APPROVED' ? 'info' : 'warning'}>{previewMode ? 'Preview decision only. ' : ''}{decision === 'APPROVED' ? 'Approval enables merchant access. Confirm the business details before continuing.' : 'The merchant will be marked as rejected. Include a clear reason.'}</Alert><TextField fullWidth multiline minRows={3} label="Review notes" required={decision === 'REJECTED'} value={notes} disabled={busy} onChange={(event) => { setNotes(event.target.value); setReviewError(''); }} inputProps={{ maxLength: 2000 }} helperText={decision === 'REJECTED' ? 'A rejection reason is required.' : 'Optional context for this decision.'} /></>}{reviewError && <Alert severity="error">{reviewError}</Alert>}</Box></DialogContent><DialogActions sx={{ p: 3, gap: 1, flexWrap: 'wrap' }}><SoftButton variant="text" color="secondary" disabled={busy} onClick={() => setSelectedMerchant(null)}>Close</SoftButton>{selectedMerchant.approvalStatus === 'PENDING' && (decision ? <><SoftButton variant="text" color="secondary" disabled={busy} onClick={() => { setDecision(null); setReviewError(''); }}>Back</SoftButton><SoftButton variant="gradient" color={decision === 'APPROVED' ? 'primary' : 'error'} sx={decision === 'APPROVED' ? adminActionStyle : undefined} disabled={busy} onClick={() => void submitDecision()}>{busy ? 'Saving decision...' : decision === 'APPROVED' ? 'Confirm approval' : 'Confirm rejection'}</SoftButton></> : <><SoftButton variant="outlined" color="error" disabled={busy || loading} onClick={() => setDecision('REJECTED')}><X size={14} style={{ marginRight: 6 }} />Reject application</SoftButton><SoftButton variant="gradient" color="primary" sx={adminActionStyle} disabled={busy || loading} onClick={() => setDecision('APPROVED')}><Check size={14} style={{ marginRight: 6 }} />Approve application</SoftButton></>)}</DialogActions></>}</Dialog>
+    <Dialog open={Boolean(selectedUser)} onClose={() => setSelectedUser(null)} fullWidth maxWidth="sm" aria-labelledby="user-detail-title"><DialogTitle id="user-detail-title">{selectedUser?.fullName}</DialogTitle>{selectedUser && <DialogContent><Box mb={3}><AdminBadge status={selectedUser.status} /></Box><AdminDetails items={[["Email address", selectedUser.email], ['Phone number', selectedUser.phoneNumber || 'Not provided'], ['Roles', selectedUser.roles.join(', ')], ['Merchant status', selectedUser.merchantApprovalStatus || 'Not applicable'], ['Registered', dateTime(selectedUser.createdAt)], ['Last updated', dateTime(selectedUser.updatedAt)], ['Account ID', selectedUser.id]]} /><SoftTypography variant="caption" color="text" display="block" mt={3}>Open Manage user access to edit roles or account status.</SoftTypography></DialogContent>}<DialogActions sx={{ p: 3 }}><SoftButton variant="text" color="secondary" onClick={() => setSelectedUser(null)}>Close</SoftButton></DialogActions></Dialog>
+    <Dialog open={resetOpen} onClose={() => setResetOpen(false)} fullWidth maxWidth="xs" aria-labelledby="admin-reset-title"><DialogTitle id="admin-reset-title">Reset preview workspace?</DialogTitle><DialogContent><SoftTypography variant="body2" color="text">Restore sample accounts and applications and clear this session's decisions. Your preview profile edits will be reset too.</SoftTypography></DialogContent><DialogActions sx={{ p: 3 }}><SoftButton variant="text" color="secondary" onClick={() => setResetOpen(false)}>Keep changes</SoftButton><SoftButton variant="gradient" color="primary" sx={adminActionStyle} onClick={() => { const data = createAdminPreview(); setUsers(data.users); setMerchants(data.merchants); setAccount(data.users[0]); setActivity([]); setQuery(''); setRole('All'); setStatus('All'); setPage(0); setResetOpen(false); setMessage('Preview workspace reset.'); }}>Reset workspace</SoftButton></DialogActions></Dialog>
+    <Snackbar open={Boolean(message)} message={message} autoHideDuration={4500} onClose={() => setMessage('')} />
+  </Box>;
 };

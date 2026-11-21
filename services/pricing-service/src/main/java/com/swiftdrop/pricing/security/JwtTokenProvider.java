@@ -80,6 +80,16 @@ public class JwtTokenProvider {
     /**
      * Extracts user ID (UUID) from the "sub" claim.
      */
+    public UUID getMerchantServiceUser(String token) {
+        Claims claims = Jwts.parser().verifyWith(key).requireIssuer("swiftdrop-merchant")
+                .build().parseSignedClaims(token).getPayload();
+        List<?> roles = claims.get("roles", List.class);
+        if (roles == null || roles.stream().noneMatch(role -> "ROLE_MERCHANT".equals(role) || "MERCHANT".equals(role))) {
+            throw new IllegalArgumentException("Merchant service role required");
+        }
+        return UUID.fromString(claims.getSubject());
+    }
+
     public UUID getUserId(String token) {
         Claims claims = getClaims(token);
         return UUID.fromString(claims.getSubject());

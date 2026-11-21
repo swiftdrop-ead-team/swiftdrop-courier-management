@@ -1,6 +1,5 @@
 package com.swiftdrop.identity.security;
 
-import com.swiftdrop.identity.entity.Role;
 import com.swiftdrop.identity.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;

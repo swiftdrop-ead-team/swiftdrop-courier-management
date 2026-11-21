@@ -23,6 +23,9 @@ public class NotificationLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name="read_at")
+    private LocalDateTime readAt;
+
     @Column(name = "event_id", length = 100)
     private String eventId;
 

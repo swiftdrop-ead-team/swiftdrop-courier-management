@@ -4,9 +4,11 @@ import com.swiftdrop.aiassistant.dto.ChatResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -78,11 +80,12 @@ public class AiAssistantService {
             return new ChatResponse(extractTextFromGeminiResponse(response));
 
         } catch (Exception e) {
-            log.error("Error communicating with Gemini API", e);
+            log.warn("AI provider request failed ({})", e.getClass().getSimpleName());
             if (!groundedContext.isBlank()) {
                 return new ChatResponse(groundedContext);
             }
-            return new ChatResponse("Sorry, I encountered an error processing your request with the AI assistant.");
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "AI provider request failed. Please try again later.");
         }
     }
 
@@ -147,6 +150,6 @@ public class AiAssistantService {
         } catch (Exception e) {
             log.error("Failed to parse Gemini response structure", e);
         }
-        return "I received an empty response from the AI model.";
+        throw new IllegalStateException("AI provider returned no answer");
     }
 }

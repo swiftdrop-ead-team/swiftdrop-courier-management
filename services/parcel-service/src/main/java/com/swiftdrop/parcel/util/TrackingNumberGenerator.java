@@ -7,7 +7,6 @@ import java.security.SecureRandom;
 @Component
 public class TrackingNumberGenerator {
 
-    private static final String ALPHANUMERIC = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String DIGITS = "0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 

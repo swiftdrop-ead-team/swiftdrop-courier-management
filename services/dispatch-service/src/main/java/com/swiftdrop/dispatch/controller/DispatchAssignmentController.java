@@ -5,6 +5,7 @@ import com.swiftdrop.dispatch.service.DispatchAssignmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,7 @@ public class DispatchAssignmentController {
      * Validates capacity, increments courier load, and publishes RabbitMQ event.
      */
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Assign a parcel to an available courier")
     public ResponseEntity<ApiResponse<DispatchAssignmentResponse>> assignCourier(
             @Valid @RequestBody AssignCourierRequest request) {
@@ -41,11 +43,21 @@ public class DispatchAssignmentController {
                 .body(ApiResponse.ok("Parcel assigned to courier successfully", response));
     }
 
+    public record ReassignRequest(@jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Positive Long courierId) {}
+
+    @PatchMapping("/{id}/courier")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<DispatchAssignmentResponse>> reassign(@PathVariable Long id,
+            @Valid @RequestBody ReassignRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("Courier reassigned", assignmentService.reassignCourier(id, request.courierId())));
+    }
+
     /**
      * Lists all dispatch assignments.
      * HTTP GET /api/v1/dispatch/assignments
      */
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Retrieve all dispatch assignments")
     public ResponseEntity<ApiResponse<List<DispatchAssignmentResponse>>> getAllAssignments() {
         return ResponseEntity.ok(ApiResponse.ok(assignmentService.getAllAssignments()));
@@ -56,6 +68,7 @@ public class DispatchAssignmentController {
      * HTTP GET /api/v1/dispatch/assignments/{id}
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('COURIER') and @dispatchAccess.assignment(#id))")
     @Operation(summary = "Retrieve dispatch assignment by assignment ID")
     public ResponseEntity<ApiResponse<DispatchAssignmentResponse>> getAssignmentById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(assignmentService.getAssignmentById(id)));
@@ -66,6 +79,7 @@ public class DispatchAssignmentController {
      * HTTP GET /api/v1/dispatch/assignments/tracking/{trackingNumber}
      */
     @GetMapping("/tracking/{trackingNumber}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('COURIER') and @dispatchAccess.tracking(#trackingNumber))")
     @Operation(summary = "Retrieve dispatch assignment by parcel tracking number")
     public ResponseEntity<ApiResponse<DispatchAssignmentResponse>> getAssignmentByTrackingNumber(
             @PathVariable String trackingNumber) {
@@ -77,6 +91,7 @@ public class DispatchAssignmentController {
      * HTTP GET /api/v1/dispatch/assignments/courier/{courierId}
      */
     @GetMapping("/courier/{courierId}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('COURIER') and @dispatchAccess.courier(#courierId))")
     @Operation(summary = "Retrieve all dispatch assignments for a specific courier")
     public ResponseEntity<ApiResponse<List<DispatchAssignmentResponse>>> getAssignmentsByCourier(
             @PathVariable Long courierId) {
@@ -88,6 +103,7 @@ public class DispatchAssignmentController {
      * HTTP GET /api/v1/dispatch/assignments/courier/{courierId}/active
      */
     @GetMapping("/courier/{courierId}/active")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('COURIER') and @dispatchAccess.courier(#courierId))")
     @Operation(summary = "Retrieve active/in-progress dispatch assignments for a courier")
     public ResponseEntity<ApiResponse<List<DispatchAssignmentResponse>>> getActiveAssignmentsByCourier(
             @PathVariable Long courierId) {
@@ -99,6 +115,7 @@ public class DispatchAssignmentController {
      * HTTP PATCH /api/v1/dispatch/assignments/{id}/status
      */
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('COURIER') and @dispatchAccess.assignment(#id))")
     @Operation(summary = "Update assignment delivery status (PICKED_UP, IN_TRANSIT, OUT_FOR_DELIVERY, FAILED, etc.)")
     public ResponseEntity<ApiResponse<DispatchAssignmentResponse>> updateAssignmentStatus(
             @PathVariable Long id,
@@ -112,6 +129,7 @@ public class DispatchAssignmentController {
      * HTTP POST /api/v1/dispatch/assignments/{id}/proof
      */
     @PostMapping("/{id}/proof")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('COURIER') and @dispatchAccess.assignment(#id))")
     @Operation(summary = "Submit Proof of Delivery (POD) for an assignment")
     public ResponseEntity<ApiResponse<ProofOfDeliveryResponse>> submitProofOfDelivery(
             @PathVariable Long id,
@@ -126,6 +144,7 @@ public class DispatchAssignmentController {
      * HTTP GET /api/v1/dispatch/assignments/{id}/proof
      */
     @GetMapping("/{id}/proof")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('COURIER') and @dispatchAccess.assignment(#id))")
     @Operation(summary = "Retrieve Proof of Delivery for an assignment")
     public ResponseEntity<ApiResponse<ProofOfDeliveryResponse>> getProofOfDelivery(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(assignmentService.getProofOfDelivery(id)));

@@ -2,7 +2,6 @@ package com.swiftdrop.pricing.strategy;
 
 import com.swiftdrop.pricing.entity.ServiceType;
 import com.swiftdrop.pricing.exception.UnsupportedPricingTierException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -19,7 +18,6 @@ public class PricingStrategyRegistry {
 
     private final Map<ServiceType, PricingStrategy> strategyMap;
 
-    @Autowired
     public PricingStrategyRegistry(List<PricingStrategy> strategies) {
         this.strategyMap = new EnumMap<>(ServiceType.class);
         if (strategies != null) {
