@@ -27,6 +27,7 @@ import SoftInput from "components/SoftInput";
 import TemplateDashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import { Sidebar, Menu, MenuItem, Logo } from "../ui/MuiSidebar";
 import { useAuth } from "../../hooks/useAuth";
+import { FloatingAIAssistant } from "../ai/FloatingAIAssistant";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
@@ -425,6 +426,7 @@ function RoleShell({ role, basePath: base, sidebarSubtitle, navigation, getActiv
         <Box component="main" id="dashboard-main" sx={{ minWidth: 0, pt: active?.tab === "overview" ? 0 : 2.5 }}>
           <Outlet key={preview ? "preview" : user?.id || "customer"} />
         </Box>
+        <FloatingAIAssistant preview={preview} />
         <Box
           component="footer"
           sx={{
