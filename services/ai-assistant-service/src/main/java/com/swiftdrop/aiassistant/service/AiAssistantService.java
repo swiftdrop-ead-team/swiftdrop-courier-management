@@ -42,7 +42,9 @@ public class AiAssistantService {
             "kurunegala", 500,
             "ratnapura", 550
     );
-
+    public ChatResponse processQuery(String userMessage, String userEmail, List<String> roles) {
+        return processQuery(userMessage, userEmail, roles, null);
+    }
     public ChatResponse processQuery(String userMessage, String userEmail, List<String> roles, String authHeader) {
         String groundedContext = gatherGroundedBackendData(userMessage, authHeader);
 
