@@ -28,6 +28,7 @@ export function FloatingAIAssistant({ preview = false }: { preview?: boolean }) 
   const request = useRef<AbortController>();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -47,7 +48,8 @@ export function FloatingAIAssistant({ preview = false }: { preview?: boolean }) 
 
   // Focus input when not busy
   useEffect(() => {
-    if (!busy && open && !minimized && request.current) {
+    if (minimized) launcherRef.current?.focus();
+    if (!busy && open && !minimized) {
       inputRef.current?.focus();
     }
   }, [busy, open, minimized]);
@@ -119,6 +121,7 @@ export function FloatingAIAssistant({ preview = false }: { preview?: boolean }) 
   const handleClose = () => {
     setOpen(false);
     setMinimized(false);
+    launcherRef.current?.focus();
   };
 
   const handleRestore = () => {
@@ -128,10 +131,14 @@ export function FloatingAIAssistant({ preview = false }: { preview?: boolean }) 
   return (
     <>
       {/* Floating Action Button */}
-      <Tooltip title={open ? "Close AI Assistant" : "Ask AI Assistant"} placement="left">
+      <Tooltip title={open && !minimized ? "Minimize AI Assistant" : "Ask AI Assistant"} placement="left">
         <Box
           component="button"
-          aria-label={open ? "Close AI Assistant" : "Open AI Assistant"}
+          ref={launcherRef}
+          type="button"
+          aria-label={open && !minimized ? "Minimize AI Assistant" : "Open AI Assistant"}
+          aria-expanded={open && !minimized}
+          aria-controls={open ? "floating-assistant-panel" : undefined}
           onClick={toggleOpen}
           sx={{
             position: "fixed",
@@ -195,11 +202,10 @@ export function FloatingAIAssistant({ preview = false }: { preview?: boolean }) 
             position: "fixed",
             bottom: { xs: 84, sm: 88 },
             right: { xs: 16, sm: 24 },
-            top: { xs: 64, sm: "auto" },
             width: { xs: "calc(100vw - 32px)", sm: 400 },
             maxWidth: 420,
-            height: { xs: "calc(100vh - 100px)", sm: 560 },
-            maxHeight: { xs: "calc(100vh - 100px)", sm: 620 },
+            height: { xs: "min(560px, calc(100dvh - 112px))", sm: 560 },
+            maxHeight: "calc(100dvh - 112px)",
             zIndex: 1199,
             display: "flex",
             flexDirection: "column",
@@ -228,6 +234,10 @@ export function FloatingAIAssistant({ preview = false }: { preview?: boolean }) 
             },
           }}
           onClick={minimized ? handleRestore : undefined}
+          onKeyDown={event => {
+            if (event.key === "Escape") { event.stopPropagation(); handleClose(); }
+          }}
+          id="floating-assistant-panel"
           role="dialog"
           aria-label="AI Assistant chat"
         >

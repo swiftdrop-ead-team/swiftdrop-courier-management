@@ -77,3 +77,22 @@ it("does not send or simulate replies in dashboard previews", () => {
 it("rejects blank messages in the adapter before calling the API", async () => {
   const post = vi.spyOn(api, "post"); await expect(askAssistant("  ")).rejects.toThrow("Enter a message"); expect(post).not.toHaveBeenCalled();
 });
+it("sends only the recent conversation as bounded context", async () => {
+  const post = vi.spyOn(api, "post")
+    .mockResolvedValueOnce({ data: { response: "First reply" } })
+    .mockResolvedValueOnce({ data: { response: "Second reply" } });
+  open();
+  enter("First question");
+  fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+  await screen.findByRole("article", { name: "AI Assistant message" });
+  enter("Second question");
+  fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+  await waitFor(() => expect(post).toHaveBeenCalledTimes(2));
+  expect(post.mock.calls[1][1]).toEqual({
+    message: "Second question",
+    history: [
+      { role: "user", text: "First question" },
+      { role: "assistant", text: "First reply" },
+    ],
+  });
+});

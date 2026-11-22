@@ -1,10 +1,18 @@
 import { api } from "./api";
 
-/** The backend accepts one independent message and returns a plain-text answer. */
-export async function askAssistant(message: string, signal?: AbortSignal): Promise<string> {
+/** The backend accepts a message and a bounded recent transcript. */
+export type AssistantHistoryMessage = { role: "user" | "assistant"; text: string };
+
+export async function askAssistant(
+  message: string,
+  signal?: AbortSignal,
+  history: AssistantHistoryMessage[] = [],
+): Promise<string> {
   const trimmed = message.trim();
   if (!trimmed) throw new Error("Enter a message before sending.");
-  const { data } = await api.post<{ response?: unknown }>("/assistant/chat", { message: trimmed }, { signal });
+  const payload: { message: string; history?: AssistantHistoryMessage[] } = { message: trimmed };
+  if (history.length) payload.history = history.slice(-8);
+  const { data } = await api.post<{ response?: unknown }>("/assistant/chat", payload, { signal });
   if (typeof data?.response !== "string" || !data.response.trim()) {
     throw new Error("The assistant returned an empty response. Please try again.");
   }

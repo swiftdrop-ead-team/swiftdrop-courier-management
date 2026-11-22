@@ -3,7 +3,7 @@ import { Alert, Box, Tooltip } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { Bot, RefreshCw, Send, UserRound } from "lucide-react";
 import { ActionButton, Field, Panel, WorkspaceText as Text } from "@/features/delivery/components";
-import { askAssistant, assistantError } from "@/services/assistantService";
+import { askAssistant, assistantError, type AssistantHistoryMessage } from "@/services/assistantService";
 
 type Message = { id: number; role: "user" | "assistant"; text: string; failed?: boolean };
 type Failure = { id: number; text: string; error: string };
@@ -49,7 +49,11 @@ export function Assistant({ preview = false }: { preview?: boolean }) {
     const controller = new AbortController();
     request.current = controller;
     try {
-      const reply = await askAssistant(text, controller.signal);
+      const history: AssistantHistoryMessage[] = messages
+        .filter(message => message.failed !== true)
+        .slice(-8)
+        .map(message => ({ role: message.role, text: message.text }));
+      const reply = await askAssistant(text, controller.signal, history);
       if (mounted.current) setMessages(previous => [...previous, { id: ++sequence.current, role: "assistant", text: reply }]);
     } catch (error) {
       if (mounted.current && !controller.signal.aborted) {
@@ -99,7 +103,7 @@ export function Assistant({ preview = false }: { preview?: boolean }) {
     </Box>
     {failure && <Alert severity="error" sx={{ mt: 2 }} action={<ActionButton size="small" disabled={busy || preview} startIcon={<RefreshCw size={14} />} onClick={() => void send(failure)}>Retry</ActionButton>}>{failure.error}</Alert>}
     <Box component="form" onSubmit={event => { event.preventDefault(); void send(); }} aria-label="Send an AI message" sx={{ mt: 1 }}>
-      <Field label="Message" placeholder="Ask a delivery question..." multiline minRows={2} maxRows={6} inputRef={input} value={draft} disabled={busy || preview}
+      <Field label="Message" placeholder="Ask a delivery question..." multiline minRows={2} maxRows={6} inputRef={input} value={draft} disabled={busy || preview} inputProps={{ maxLength: 2000 }}
         onChange={event => setDraft(event.target.value)}
         onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} />
       <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 1.5 }}>
