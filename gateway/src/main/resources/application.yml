@@ -137,6 +137,14 @@ spring:
           uri: ${AI_SERVICE_URL:http://localhost:8089}
           predicates:
             - Path=/api/v1/reports/**, /api/v1/assistant/**
+          filters:
+            - AuthenticationFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userIpKeyResolver}"
 
 management:
   endpoints:
