@@ -6,14 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 
 class AuthenticationFilterTest {
     private final JwtUtil jwt = mock(JwtUtil.class);
-    private AuthenticationFilter filter() { var filter = new AuthenticationFilter(); ReflectionTestUtils.setField(filter,"jwtUtil",jwt); return filter; }
+    private AuthenticationFilter filter() { return new AuthenticationFilter(jwt); }
     @Test void delegatesMerchantKeysToMerchantServiceOnly() {
         var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/merchant/orders").header("X-API-Key","test-key"));
         GatewayFilterChain chain = mock(GatewayFilterChain.class); when(chain.filter(exchange)).thenReturn(Mono.empty());

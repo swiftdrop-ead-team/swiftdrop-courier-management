@@ -1,7 +1,6 @@
 package com.swiftdrop.gateway.filter;
 
 import com.swiftdrop.gateway.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
@@ -11,11 +10,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    public AuthenticationFilter() {
+    public AuthenticationFilter(JwtUtil jwtUtil) {
         super(Config.class);
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
