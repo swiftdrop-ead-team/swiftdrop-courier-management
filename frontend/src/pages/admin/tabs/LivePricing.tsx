@@ -69,6 +69,14 @@ export function LivePricing() {
   async function save(event: React.FormEvent) {
     event.preventDefault();
     if (!draft || busy) return;
+    const invalidField = (Object.keys(fields) as (keyof typeof fields)[]).find(key => {
+      const minimum = key === "baseWeightKg" ? 0.01 : key === "volumetricDivisor" || key === "urgencyMultiplier" ? 1 : 0;
+      return !Number.isFinite(draft[key]) || draft[key] < minimum || (key === "volumetricDivisor" && !Number.isInteger(draft[key]));
+    });
+    if (invalidField) {
+      setError(`Enter a valid value for ${fields[invalidField]}.`);
+      return;
+    }
     setBusy(true);
     setError("");
     try {
