@@ -39,7 +39,7 @@ public class AiAssistantController {
         }
 
         ChatResponse response = aiAssistantService.processQuery(
-                request.getMessage(), userEmail, roles, authHeader);
+                request.getMessage(), userEmail, roles, authHeader, request.getHistory());
         return ResponseEntity.ok(response);
     }
     @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)

@@ -36,4 +36,16 @@ class AiAssistantServiceTest {
         assertTrue(response.getResponse().toLowerCase().contains("authorization is required"),
                 "Expected auth protection message, got: " + response.getResponse());
     }
+
+    @Test
+    void processQuery_usesLocalPredefinedAnswerForPacking() {
+        ChatResponse response = aiAssistantService.processQuery(
+                "How should I pack a fragile parcel?",
+                "customer@swiftdrop.com",
+                List.of("ROLE_CUSTOMER")
+        );
+
+        assertTrue(response.getResponse().toLowerCase().contains("sturdy box"),
+                "Expected a local packing answer, got: " + response.getResponse());
+    }
 }

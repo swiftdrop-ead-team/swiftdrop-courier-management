@@ -7,4 +7,11 @@ import lombok.Data;
 @AllArgsConstructor
 public class ChatResponse {
     private String response;
+    private Long inputTokens;
+    private Long outputTokens;
+    private Double estimatedCostUsd;
+
+    public ChatResponse(String response) {
+        this(response, null, null, null);
+    }
 }
