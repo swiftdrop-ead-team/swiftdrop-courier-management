@@ -8,7 +8,7 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
-  ({ label, error, icon, endAdornment, id, className = '', ...props }, ref) => {
+  ({ label, error, icon, endAdornment, id, className = '', 'aria-describedby': describedBy, ...props }, ref) => {
     const generatedId = React.useId();
     const inputId = id || props.name || generatedId;
 
@@ -27,7 +27,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
             ref={ref}
             id={inputId}
             aria-invalid={Boolean(error)}
-            aria-describedby={error ? `${inputId}-error` : undefined}
+            aria-describedby={[describedBy, error ? `${inputId}-error` : undefined].filter(Boolean).join(' ') || undefined}
             className={`product-input min-h-12 w-full rounded-lg border bg-white text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-4 ${icon ? 'pl-10' : 'pl-4'} ${endAdornment ? 'pr-12' : 'pr-4'} ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-100' : 'border-slate-200 focus:border-yellow-500 focus:ring-yellow-100'} ${className}`}
             {...props}
           />

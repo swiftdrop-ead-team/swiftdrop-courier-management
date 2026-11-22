@@ -26,7 +26,7 @@ import SoftTypography from "components/SoftTypography";
 // Timeline context
 import { TimelineProvider } from "examples/Timeline/context";
 
-function TimelineList({ title, dark, children }) {
+function TimelineList({ title, dark = false, children }) {
   return (
     <TimelineProvider value={dark}>
       <Card>
@@ -42,11 +42,6 @@ function TimelineList({ title, dark, children }) {
     </TimelineProvider>
   );
 }
-
-// Setting default values for the props of TimelineList
-TimelineList.defaultProps = {
-  dark: false,
-};
 
 // Typechecking props for the TimelineList
 TimelineList.propTypes = {
