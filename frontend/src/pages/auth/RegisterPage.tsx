@@ -19,10 +19,10 @@ import {
 } from 'lucide-react';
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  phoneNumber: z.string().regex(/^(?:0|(?:\+|00)94)7\d{8}$/, 'Enter a valid Sri Lankan mobile number, e.g. +94771234567'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  fullName: z.string().trim().min(2, 'Full name must be at least 2 characters').max(150, 'Full name must be at most 150 characters'),
+  email: z.string().trim().email('Please enter a valid email address'),
+  phoneNumber: z.string().trim().regex(/^(?:0|(?:\+|00)94)7\d{8}$/, 'Enter a valid Sri Lankan mobile number, e.g. +94771234567'),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(100, 'Password must be at most 100 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   acceptTerms: z.boolean().refine((value) => value, {
     message: 'You must accept the terms and conditions',
@@ -166,7 +166,7 @@ export const RegisterPage: React.FC = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  {...register('password')}
+                  id="password" aria-label="Password" aria-invalid={Boolean(errors.password)} autoComplete="new-password" {...register('password')}
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.password
                       ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
@@ -175,7 +175,7 @@ export const RegisterPage: React.FC = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -197,7 +197,7 @@ export const RegisterPage: React.FC = () => {
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  {...register('confirmPassword')}
+                  id="confirmPassword" aria-label="Confirm Password" aria-invalid={Boolean(errors.confirmPassword)} autoComplete="new-password" {...register('confirmPassword')}
                   className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
                     errors.confirmPassword
                       ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
@@ -206,7 +206,7 @@ export const RegisterPage: React.FC = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide confirmation password" : "Show confirmation password"} onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

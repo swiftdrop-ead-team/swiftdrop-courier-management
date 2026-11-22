@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, UserRole, MerchantApprovalStatus } from '../types/auth';
+import { User, UserRole } from '../types/auth';
 import { authService, LoginParams, RegisterCustomerParams, RegisterMerchantParams } from '../services/authService';
 import { setAccessToken } from '../services/api';
 
@@ -52,6 +52,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initAuth();
   }, [refreshUser]);
+
+  useEffect(() => {
+    const expireSession = () => { setUser(null); setAccessToken(null); };
+    window.addEventListener('auth:expired', expireSession);
+    return () => window.removeEventListener('auth:expired', expireSession);
+  }, []);
 
   const login = async (params: LoginParams): Promise<User> => {
     setIsLoading(true);

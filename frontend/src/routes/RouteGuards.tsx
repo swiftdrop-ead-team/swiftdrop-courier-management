@@ -28,7 +28,7 @@ interface RoleRouteProps {
 }
 
 export const RoleRoute: React.FC<RoleRouteProps> = ({ requiredRole }) => {
-  const { user, hasRole, getDefaultDashboardRoute, isLoading } = useAuth();
+  const { hasRole, getDefaultDashboardRoute, isLoading } = useAuth();
 
   if (isLoading) {
     return (

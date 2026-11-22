@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,7 +8,7 @@ import { Logo } from '../../components/ui/Logo';
 import { Lock, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 const resetSchema = z.object({
-  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters').max(100, 'Password must be at most 100 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Passwords do not match",
@@ -104,12 +104,12 @@ export const ResetPasswordPage: React.FC = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  {...register('newPassword')}
+                  id="newPassword" aria-label="Password" aria-invalid={Boolean(errors.newPassword)} autoComplete="new-password" {...register('newPassword')}
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 text-sm outline-none transition-all"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -131,12 +131,12 @@ export const ResetPasswordPage: React.FC = () => {
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  {...register('confirmPassword')}
+                  id="confirmPassword" aria-label="Confirm Password" aria-invalid={Boolean(errors.confirmPassword)} autoComplete="new-password" {...register('confirmPassword')}
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 text-sm outline-none transition-all"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide confirmation password" : "Show confirmation password"} onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400"
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

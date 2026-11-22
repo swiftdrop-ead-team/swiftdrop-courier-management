@@ -57,9 +57,11 @@ api.interceptors.response.use(
     // Don't attempt refresh for login, register, or refresh itself
     const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') ||
                            originalRequest?.url?.includes('/auth/register') ||
-                           originalRequest?.url?.includes('/auth/refresh');
+                           originalRequest?.url?.includes('/auth/refresh') ||
+                           originalRequest?.url?.includes('/auth/logout');
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthEndpoint) {
+      originalRequest._retry = true;
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -81,10 +83,13 @@ api.interceptors.response.use(
         const response = await axios.post(
           `${api.defaults.baseURL}/auth/refresh`,
           {},
-          { withCredentials: true }
+          { withCredentials: true, timeout: 15000 }
         );
 
         const newAccessToken = response.data.accessToken;
+        if (typeof newAccessToken !== 'string' || !newAccessToken.trim()) {
+          throw new Error('Session refresh returned no access token');
+        }
         setAccessToken(newAccessToken);
         processQueue(null, newAccessToken);
 
@@ -95,12 +100,17 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         setAccessToken(null);
+        window.dispatchEvent(new Event('auth:expired'));
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
     }
 
+    if (error.response?.status === 401 && originalRequest?._retry) {
+      setAccessToken(null);
+      window.dispatchEvent(new Event('auth:expired'));
+    }
     return Promise.reject(error);
   }
 );

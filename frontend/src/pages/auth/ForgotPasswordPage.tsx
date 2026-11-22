@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,7 +8,7 @@ import { Logo } from '../../components/ui/Logo';
 import { Mail, ArrowRight, AlertCircle, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.string().trim().email('Please enter a valid email address'),
 });
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;

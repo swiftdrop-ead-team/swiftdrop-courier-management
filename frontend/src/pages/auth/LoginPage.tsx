@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.string().trim().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().optional(),
 });
@@ -72,7 +72,7 @@ export const LoginPage: React.FC = () => {
 
   const handleGoogleLogin = () => {
     // Redirect to Spring Security OAuth2 Google authorization endpoint
-    const gatewayUrl = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8080';
+    const gatewayUrl = import.meta.env.VITE_GATEWAY_URL || '';
     window.location.href = `${gatewayUrl}/oauth2/authorization/google`;
   };
 
@@ -134,7 +134,7 @@ export const LoginPage: React.FC = () => {
           {/* Email field */}
           <TextField
             label="Email Address"
-            type="email"
+            type="email" autoComplete="username"
             placeholder="name@company.com"
             icon={<Mail className="h-4 w-4" />}
             error={errors.email?.message}
@@ -154,6 +154,8 @@ export const LoginPage: React.FC = () => {
             </div>
             <TextField
               label=""
+              aria-label="Password"
+              autoComplete="current-password"
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               icon={<Lock className="h-4 w-4" />}
